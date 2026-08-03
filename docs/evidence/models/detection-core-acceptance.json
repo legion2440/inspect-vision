@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-03T11:55:20.306645Z",
+  "sourceCommit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
+  "sourceFiles": {
+    "backend/detection/__init__.py": "2f644f552db5060ce598bc23a4fb015a388cb9a64881d6135764b5b052036cce",
+    "backend/detection/base.py": "a4c4d13fe3f2258502665e78f695be8108639c3e69529493a3389e04f839dd13",
+    "backend/detection/device.py": "1c44fe186de0a5bbd1e6578c8c334142ef3c978e501a88a4662199b89e5156d1",
+    "backend/detection/dto.py": "05e45e78e7d231b1c98ca9ad8912fd28e812d5380a2f039fce877e8da851b9ca",
+    "backend/detection/ultralytics_backend.py": "277e7fba70aafa3dfcfb46ecbfe3d38e929a8575e2fdb64874775e7b0ea99fed",
+    "backend/utils/model_loader.py": "95d9ad0eea3bae84e3494afed09aac91e9210fbf6246dc0f5d2828a50551a9c2",
+    "backend/utils/preprocessing.py": "6b339be7c16ae07a230bd127d1c2437a403395fc36f8edb58d7589dfe94b47ea",
+    "scripts/probe_models.py": "9b0b21de9e190fc74d9c5fa3b591a93d2b4e5be6f74148850ba97fb0ffa3b036"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "packages": {
+      "numpy": "2.4.6",
+      "opencv-python": "4.13.0.92",
+      "torch": "2.12.1+cpu",
+      "torchvision": "0.27.1+cpu",
+      "ultralytics": "8.4.78"
+    }
+  },
+  "probe": {
+    "engine": "core",
+    "confidence": 0.05,
+    "iou": 0.5,
+    "sampleCount": 3
+  },
+  "models": [
+    {
+      "modelId": "neu-defect-yolov8",
+      "filename": "defect_neu_yolov8.pt",
+      "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+      "task": "detect",
+      "classes": [
+        "crazing",
+        "inclusion",
+        "patches",
+        "pitted_surface",
+        "rolled-in_scale",
+        "scratches"
+      ],
+      "device": "cpu",
+      "loadMs": 2654.206,
+      "inferenceMs": 207.868,
+      "totalDetections": 11,
+      "samples": [
+        {
+          "sampleId": "neu-crazing-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "expectedClass": "crazing",
+          "detections": [
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.320498,
+              "xyxy": [
+                7.8145,
+                62.7414,
+                133.735,
+                174.9701
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.236378,
+              "xyxy": [
+                6.3187,
+                0.3739,
+                198.5629,
+                71.3904
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.230695,
+              "xyxy": [
+                11.4697,
+                116.8146,
+                193.1956,
+                182.0129
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.17504,
+              "xyxy": [
+                0.0945,
+                3.9327,
+                136.4226,
+                118.1866
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.13197,
+              "xyxy": [
+                93.8742,
+                0.0615,
+                200.0,
+                37.7714
+              ]
+            }
+          ]
+        },
+        {
+          "sampleId": "neu-inclusion-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "expectedClass": "inclusion",
+          "detections": [
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.86685,
+              "xyxy": [
+                115.0581,
+                72.453,
+                141.2979,
+                114.9038
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.85115,
+              "xyxy": [
+                113.4146,
+                113.1367,
+                135.441,
+                200.0
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.717816,
+              "xyxy": [
+                33.957,
+                6.5972,
+                47.7475,
+                35.6789
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.715388,
+              "xyxy": [
+                119.1325,
+                35.3462,
+                132.1562,
+                63.4168
+              ]
+            }
+          ]
+        },
+        {
+          "sampleId": "neu-scratches-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+          "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "expectedClass": "scratches",
+          "detections": [
+            {
+              "classId": 5,
+              "className": "scratches",
+              "confidence": 0.697538,
+              "xyxy": [
+                26.3468,
+                19.1108,
+                41.5676,
+                167.6141
+              ]
+            },
+            {
+              "classId": 5,
+              "className": "scratches",
+              "confidence": 0.283999,
+              "xyxy": [
+                8.7531,
+                183.8789,
+                17.8091,
+                198.7423
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "modelId": "factory-defect-guard-v6-mc",
+      "filename": "factory_defect_guard_v6_mc.pt",
+      "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253",
+      "task": "detect",
+      "classes": [
+        "crazing",
+        "inclusion",
+        "patches",
+        "pitted_surface",
+        "rolled_in_scale",
+        "scratches",
+        "pcb_missing_hole",
+        "pcb_mouse_bite",
+        "pcb_open_circuit",
+        "pcb_short",
+        "pcb_spur",
+        "pcb_spurious_copper",
+        "tile_defect",
+        "transistor_defect",
+        "screw_defect",
+        "metal_nut_defect",
+        "capsule_defect"
+      ],
+      "device": "cpu",
+      "loadMs": 52.18,
+      "inferenceMs": 344.167,
+      "totalDetections": 2,
+      "samples": [
+        {
+          "sampleId": "neu-crazing-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "expectedClass": "crazing",
+          "detections": []
+        },
+        {
+          "sampleId": "neu-inclusion-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "expectedClass": "inclusion",
+          "detections": [
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.220961,
+              "xyxy": [
+                34.2864,
+                6.7294,
+                48.2342,
+                35.3962
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.057819,
+              "xyxy": [
+                118.8717,
+                34.8297,
+                132.9522,
+                63.1592
+              ]
+            }
+          ]
+        },
+        {
+          "sampleId": "neu-scratches-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+          "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "expectedClass": "scratches",
+          "detections": []
+        }
+      ]
+    }
+  ]
+}

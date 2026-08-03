@@ -2,13 +2,19 @@
   "schema_version": 1,
   "recorded_at": "2026-08-03",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
+  "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "frontend-verified-backend-planned",
+  "state": "detection-core-verified-api-planned",
   "verified": [
     "frontend production build with Vite 8.2.0",
     "npm audit with zero known vulnerabilities",
     "dashboard, history, filtering, details, and upload mock browser smoke",
-    "generated JavaScript route tree contains no TypeScript syntax"
+    "generated JavaScript route tree contains no TypeScript syntax",
+    "Python 3.13.5 detection environment with pinned CPU dependencies",
+    "both local model hashes match immutable remote model revisions",
+    "both checkpoints load through Ultralytics with task=detect and native multiclass names",
+    "detection core returns bounded original-image xyxy, confidence, class_id, and class_name for both models",
+    "nineteen detection unit tests and architecture import-boundary test"
   ],
   "known_limitations": [
     {
@@ -17,9 +23,14 @@
       "detail": "FastAPI endpoints and end-to-end real API integration are planned."
     },
     {
-      "id": "model-not-selected",
+      "id": "inspection-detection-service-not-implemented",
       "area": "defect-detection",
-      "detail": "No licensed manufacturing-defect model, manifest, weights, or real inference evidence exists yet."
+      "detail": "Grayscale, CLAHE, annotation, severity, and the composed inspection service are deferred to the next milestone."
+    },
+    {
+      "id": "broad-model-low-probe-confidence",
+      "area": "defect-detection",
+      "detail": "The 17-class alternative required a 0.05 diagnostic threshold and produced two detections on one of three NEU-DET probe images; the stronger six-class model is selected."
     },
     {
       "id": "storage-not-implemented",
@@ -34,12 +45,12 @@
     {
       "id": "runtime-evidence-missing",
       "area": "audit-evidence",
-      "detail": "Real model, live camera/backend, annotated image, and server CSV paths are not runtime-verified."
+      "detail": "Real model inference is verified; live backend, annotated image, persistence, and server CSV paths are not runtime-verified."
     },
     {
       "id": "automated-coverage-partial",
-      "area": "frontend-app",
-      "detail": "Pure frontend utility tests and build checks exist; component and end-to-end automation remain planned."
+      "area": "audit-evidence",
+      "detail": "Detection unit tests, import-boundary checks, frontend utility tests, and builds exist; component, API, and end-to-end automation remain planned."
     }
   ]
 }

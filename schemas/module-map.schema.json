@@ -60,6 +60,11 @@
         "description": { "type": "string", "minLength": 1 },
         "module_type": { "enum": ["application", "service", "library", "contracts", "verification", "artifact", "tooling"] },
         "root": { "type": "string", "minLength": 1 },
+        "additional_owned_paths": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
         "entrypoints": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
         "public_interfaces": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
         "tests": { "type": "array", "items": { "$ref": "#/$defs/reference" } },

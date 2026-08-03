@@ -68,15 +68,26 @@
       "description": "Owns OpenCV preprocessing, model lifecycle, inference, coordinate mapping, annotation, and quality scoring.",
       "module_type": "library",
       "root": "backend/detection",
+      "additional_owned_paths": [
+        "backend/__init__.py",
+        "backend/utils/__init__.py",
+        "backend/utils/preprocessing.py",
+        "backend/utils/model_loader.py"
+      ],
       "entrypoints": [
+        { "path": "backend/detection/__init__.py", "status": "implemented" },
         { "path": "backend/detection/service.py", "status": "planned" }
       ],
       "public_interfaces": [
-        { "path": "backend/utils/preprocessing.py", "status": "planned" },
-        { "path": "backend/utils/model_loader.py", "status": "planned" }
+        { "path": "backend/detection/base.py", "status": "implemented" },
+        { "path": "backend/detection/dto.py", "status": "implemented" },
+        { "path": "backend/detection/device.py", "status": "implemented" },
+        { "path": "backend/detection/ultralytics_backend.py", "status": "implemented" },
+        { "path": "backend/utils/preprocessing.py", "status": "implemented" },
+        { "path": "backend/utils/model_loader.py", "status": "implemented" }
       ],
       "tests": [
-        { "path": "tests/unit/detection", "status": "planned" },
+        { "path": "tests/unit/detection", "status": "implemented" },
         { "path": "tests/integration/detection", "status": "planned" }
       ],
       "docs": [
@@ -152,13 +163,34 @@
       ],
       "tests": [
         { "path": "frontend/tests/utils.test.js", "status": "implemented" },
-        { "path": "tests/unit/evidence", "status": "planned" }
+        { "path": "tests/unit/evidence", "status": "implemented" }
       ],
       "docs": [
         { "path": "docs/evidence/README.md", "status": "implemented" },
         { "path": "backend/samples/README.md", "status": "implemented" }
       ],
-      "generated_artifacts": [],
+      "generated_artifacts": [
+        {
+          "path": "docs/evidence/models/ultralytics-model-probe.json",
+          "status": "generated",
+          "generator": "scripts/probe_models.py",
+          "sources": [
+            "backend/models/model-manifest.json",
+            "backend/samples/model-probe-samples.json"
+          ]
+        },
+        {
+          "path": "docs/evidence/models/detection-core-acceptance.json",
+          "status": "generated",
+          "generator": "scripts/probe_models.py",
+          "sources": [
+            "backend/models/model-manifest.json",
+            "backend/samples/model-probe-samples.json",
+            "backend/detection",
+            "backend/utils/model_loader.py"
+          ]
+        }
+      ],
       "owned_configuration": [
         { "path": "backend/samples/model-probe-samples.json", "status": "implemented" }
       ]

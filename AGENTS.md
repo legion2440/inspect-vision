@@ -64,6 +64,11 @@ recorded command or evidence artifact proves the real path executed.
   the messages defined in `docs/api-contract.md`.
 - Model paths and runtime tuning belong in environment configuration. Model
   weights, local databases, media, secrets, and `.env` files are never committed.
+- Detection input is a non-empty `uint8 H x W x 3` BGR NumPy array. The reusable
+  core returns every native model class as `class_id`, `class_name`, `confidence`,
+  and original-image `xyxy`; it contains no class-specific filter.
+- `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by
+  `defect-detection`, despite living outside that module's primary root.
 
 ## Change workflow
 
@@ -79,7 +84,7 @@ recorded command or evidence artifact proves the real path executed.
 ## Commands
 
 ```text
-python scripts/validate.py
+.venv/Scripts/python.exe scripts/validate.py
 make validate
 make validate-architecture
 make validate-frontend
@@ -89,7 +94,8 @@ make check-architecture
 make status
 ```
 
-Backend run, model preparation, end-to-end, and runtime-evidence commands are
-reserved for later work. Do not document them as working before implementation.
-GNU Make is optional on Windows; `python scripts/validate.py` is the canonical
-cross-platform full check.
+Backend API run and end-to-end commands are reserved for later work. Detection
+model verification is implemented by `scripts/probe_models.py`; do not describe
+the API, storage, annotation, severity, or live backend as working yet.
+GNU Make is optional on Windows;
+`.venv/Scripts/python.exe scripts/validate.py` is the canonical Windows check.

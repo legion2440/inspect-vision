@@ -23,6 +23,7 @@ def main() -> int:
         [sys.executable, "scripts/validate_structure.py"],
         [sys.executable, "scripts/validate_architecture.py"],
         [sys.executable, "scripts/generate_dependency_graph.py", "--check"],
+        [sys.executable, "-m", "pytest", "tests/unit/detection", "tests/unit/evidence"],
         [npm, "--prefix", "frontend", "test"],
         [npm, "--prefix", "frontend", "run", "build"],
         [npm, "--prefix", "frontend", "audit", "--audit-level=high"],

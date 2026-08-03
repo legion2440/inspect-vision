@@ -3,6 +3,10 @@
 Runtime configuration is read from environment variables. `.env.example` is the
 tracked template; `.env`, model weights, databases, and media are ignored.
 
+The backend runtime uses Python 3.13.5. The reproducible baseline dependency
+profile is `requirements-detection.txt` and intentionally excludes FastAPI,
+Streamlit, supervision, tracking, and video runtimes.
+
 ## Variables
 
 | Variable | Required | Meaning |
@@ -11,11 +15,11 @@ tracked template; `.env`, model weights, databases, and media are ignored.
 | `INSPECT_VISION_PORT` | no | FastAPI port |
 | `INSPECT_VISION_CORS_ORIGINS` | yes | Comma-separated exact frontend origins |
 | `INSPECT_VISION_MAX_UPLOAD_BYTES` | yes | Upload limit; canonical value is 10485760 |
-| `INSPECT_VISION_MODEL_KIND` | yes | Registered adapter kind, initially `yolo` |
+| `INSPECT_VISION_MODEL_KIND` | yes | Registered adapter kind; currently `ultralytics` |
 | `INSPECT_VISION_MODEL_PATH` | yes | Repository-relative or deployment-local model path |
 | `INSPECT_VISION_MODEL_INPUT_SIZE` | yes | Square model input size, initially 640 |
 | `INSPECT_VISION_MODEL_CONFIDENCE` | yes | Inclusive detection threshold from 0 to 1 |
-| `INSPECT_VISION_MODEL_DEVICE` | yes | `auto`, `cpu`, CUDA index, or supported device name |
+| `INSPECT_VISION_MODEL_DEVICE` | yes | Exactly `auto`, `cpu`, `cuda`, or `cuda:N` |
 | `INSPECT_VISION_DATABASE_PATH` | yes | SQLite database path |
 | `INSPECT_VISION_MEDIA_DIR` | yes | Original and annotated image directory |
 
@@ -24,22 +28,27 @@ API mode and it must not be changed back to implicit mock mode.
 
 ## Model lifecycle
 
-- Load one model instance during FastAPI lifespan startup or through one
+- `backend/models/model-manifest.json` is the tracked model registry. The selected
+  model, immutable source revision, MIT license metadata, SHA-256, byte size,
+  input size, task, and checkpoint-native classes are recorded there.
+- Verify the local weight byte size and SHA-256 before constructing the adapter.
+- Load one model instance during future FastAPI lifespan startup or through one
   concurrency-safe lazy loader.
 - Validate kind, readable path, class names, input size, and supported device.
 - Do not download weights during request handling.
 - Do not silently replace a missing or failing model with random, heuristic, or
   mock detections. `/api/inspect` and `/api/stream` return `Detection model error`.
 - Serialize inference when the selected runtime/model is not thread-safe.
-- Record model name and version on every persisted inspection.
-
-The later model manifest must record source URL, license, SHA-256, classes,
-framework/runtime versions, expected input, output semantics, and preparation
-command. Large weights remain untracked.
+- Record model ID and manifest hash on every future persisted inspection.
+- Large weights remain untracked.
 
 ## Preprocessing and coordinates
 
-OpenCV owns the required preprocessing stages:
+The current detection core accepts `uint8 H × W × 3` BGR arrays. For Ultralytics
+`.pt` inference it passes the original array to the library without an additional
+letterbox; Ultralytics returns boxes in original-image coordinates.
+
+The next inspection-service milestone will make OpenCV own the required stages:
 
 1. Decode JPEG/PNG and reject invalid content.
 2. Preserve the original width and height.

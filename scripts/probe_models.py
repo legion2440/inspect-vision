@@ -13,11 +13,11 @@ import sys
 import tempfile
 import time
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import cv2
-from ultralytics import YOLO
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -48,6 +48,20 @@ def _current_commit() -> str:
         text=True,
     )
     return process.stdout.strip()
+
+
+def _source_hashes() -> dict[str, str]:
+    source_paths = [
+        *sorted((REPOSITORY_ROOT / "backend/detection").glob("*.py")),
+        REPOSITORY_ROOT / "backend/utils/model_loader.py",
+        REPOSITORY_ROOT / "backend/utils/preprocessing.py",
+        REPOSITORY_ROOT / "scripts/probe_models.py",
+    ]
+    return {
+        path.relative_to(REPOSITORY_ROOT).as_posix(): _sha256(path)
+        for path in source_paths
+        if path.is_file()
+    }
 
 
 def _normalize_names(names: object) -> dict[int, str]:
@@ -99,6 +113,8 @@ def _probe_model(
     confidence: float,
     iou: float,
 ) -> dict[str, Any]:
+    from ultralytics import YOLO
+
     model_path = REPOSITORY_ROOT / "backend" / "models" / model_spec["filename"]
     if not model_path.is_file():
         raise FileNotFoundError(f"Model weight is missing: {model_path}")
@@ -200,6 +216,72 @@ def _probe_model(
     }
 
 
+def _probe_core_model(
+    model_spec: dict[str, Any],
+    samples: list[dict[str, Any]],
+    *,
+    manifest_path: Path,
+    device: str,
+    confidence: float,
+    iou: float,
+) -> dict[str, Any]:
+    if str(REPOSITORY_ROOT) not in sys.path:
+        sys.path.insert(0, str(REPOSITORY_ROOT))
+    from backend.utils.model_loader import create_detector
+
+    started_load = time.perf_counter()
+    detector = create_detector(
+        model_spec["id"],
+        manifest_path=manifest_path,
+        device=device,
+        confidence=confidence,
+        iou=iou,
+    )
+    detector.load()
+    load_ms = (time.perf_counter() - started_load) * 1000.0
+    started_inference = time.perf_counter()
+    results = [detector.infer(sample["image"]) for sample in samples]
+    inference_ms = (time.perf_counter() - started_inference) * 1000.0
+
+    total_detections = sum(len(result.detections) for result in results)
+    if total_detections == 0:
+        raise RuntimeError(f"Model {model_spec['id']} produced no detections")
+
+    sample_results = []
+    for sample, result in zip(samples, results, strict=True):
+        sample_results.append(
+            {
+                "sampleId": sample["id"],
+                "sourceUrl": sample["url"],
+                "sha256": sample["sha256"],
+                "dimensions": {"width": result.image_width, "height": result.image_height},
+                "expectedClass": sample["expectedClass"],
+                "detections": [
+                    {
+                        "classId": detection.class_id,
+                        "className": detection.class_name,
+                        "confidence": round(detection.confidence, 6),
+                        "xyxy": [round(value, 4) for value in detection.xyxy],
+                    }
+                    for detection in result.detections
+                ],
+            }
+        )
+
+    return {
+        "modelId": model_spec["id"],
+        "filename": model_spec["filename"],
+        "sha256": model_spec["sha256"],
+        "task": model_spec["task"],
+        "classes": list(detector.class_names),
+        "device": results[0].device,
+        "loadMs": round(load_ms, 3),
+        "inferenceMs": round(inference_ms, 3),
+        "totalDetections": total_detections,
+        "samples": sample_results,
+    }
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -213,6 +295,7 @@ def _parse_args() -> argparse.Namespace:
         default=REPOSITORY_ROOT / "backend/samples/model-probe-samples.json",
     )
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--engine", choices=("ultralytics", "core"), default="core")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--confidence", type=float, default=0.25)
     parser.add_argument("--iou", type=float, default=0.5)
@@ -225,20 +308,35 @@ def main() -> int:
     sample_manifest = _load_json(args.samples)
     with tempfile.TemporaryDirectory(prefix="inspect-vision-probe-") as temp_directory:
         samples = _prepare_samples(sample_manifest, Path(temp_directory))
-        models = [
-            _probe_model(
-                model_spec,
-                samples,
-                device=args.device,
-                confidence=args.confidence,
-                iou=args.iou,
-            )
-            for model_spec in manifest["models"]
-        ]
+        if args.engine == "core":
+            models = [
+                _probe_core_model(
+                    model_spec,
+                    samples,
+                    manifest_path=args.manifest,
+                    device=args.device,
+                    confidence=args.confidence,
+                    iou=args.iou,
+                )
+                for model_spec in manifest["models"]
+            ]
+        else:
+            models = [
+                _probe_model(
+                    model_spec,
+                    samples,
+                    device=args.device,
+                    confidence=args.confidence,
+                    iou=args.iou,
+                )
+                for model_spec in manifest["models"]
+            ]
 
     evidence = {
         "schemaVersion": 1,
+        "recordedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "sourceCommit": _current_commit(),
+        "sourceFiles": _source_hashes(),
         "runtime": {
             "python": platform.python_version(),
             "platform": platform.system(),
@@ -249,6 +347,7 @@ def main() -> int:
             },
         },
         "probe": {
+            "engine": args.engine,
             "confidence": args.confidence,
             "iou": args.iou,
             "sampleCount": len(sample_manifest["samples"]),

@@ -11,7 +11,7 @@ only when its filename, byte size, and SHA-256 match the manifest.
 Run the equal real-model probe with the project environment:
 
 ```bash
-.venv/Scripts/python.exe scripts/probe_models.py --device cpu --confidence 0.05
+.venv/Scripts/python.exe scripts/probe_models.py --engine core --device cpu --confidence 0.05
 ```
 
 The selected model is `neu-defect-yolov8`. The broader 17-class checkpoint is

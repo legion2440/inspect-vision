@@ -2,10 +2,11 @@
 
 ## Status
 
-The frontend application and its real-API boundary are implemented. Backend API,
-OpenCV preprocessing, real model inference, persistence, demo datasets, and
-runtime evidence are planned. See `docs/project-status.json` for the precise
-baseline and limitations.
+The frontend application, its real-API boundary, and the reusable multiclass
+detection core are implemented. Both registered local models have runtime probe
+evidence. Backend API, inspection-service preprocessing, annotation, severity,
+persistence, and the final demo dataset remain planned. See
+`docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
 
@@ -40,11 +41,16 @@ flowchart LR
 ### Defect detection
 
 - Root: `backend/detection`.
-- Will own OpenCV preprocessing, model lifecycle, inference, coordinate mapping,
-  annotation, and backend quality scoring.
-- The model is loaded once and configured only through the environment/model
-  contract.
-- Planned.
+- Also owns the required `backend/utils/preprocessing.py` and
+  `backend/utils/model_loader.py` paths declared explicitly in `module-map.json`.
+- Implements model integrity checks, `auto | cpu | cuda | cuda:N` selection,
+  Ultralytics loading, multiclass inference, original-coordinate bbox clamping,
+  and normalized DTOs independent of Ultralytics result objects.
+- Passes original BGR arrays directly to Ultralytics; manual letterbox utilities
+  are reserved for adapters that need them and are not applied twice.
+- Does not own HTTP routes, inspection history, video processing, tracking,
+  scheduling, annotation, or severity in this milestone.
+- Implemented and runtime-verified for both registered models.
 
 ### Inspection history
 
@@ -96,6 +102,7 @@ sequenceDiagram
 
 ## Deferred decisions
 
-The exact licensed manufacturing-defect model and dataset source remain open.
-Their choice must be recorded with version, license, source, hash, classes, and
-runtime evidence before AI integration is marked implemented.
+The primary runtime model is registered in `backend/models/model-manifest.json`.
+Production confidence tuning, grayscale/CLAHE service integration, annotation,
+severity, and a redistributable ten-image demo dataset remain deferred until the
+inspection-service milestone.

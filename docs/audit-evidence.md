@@ -6,24 +6,24 @@ implementation claim.
 
 | Audit item | Status | Implementation or plan | Evidence |
 | --- | --- | --- | --- |
-| Repository structure | PARTIAL | Frontend and architecture scaffold exist; backend files are planned | `python scripts/validate_structure.py` |
+| Repository structure | PARTIAL | Frontend, model registry, and detection core exist; API/storage remain planned | `.venv/Scripts/python.exe scripts/validate_structure.py` |
 | Comprehensive root README | PARTIAL | Current state and commands documented; backend setup awaits implementation | `README.md` |
 | Full application starts without errors | PLANNED | Frontend builds; backend is absent | `npm --prefix frontend run build` |
-| Model paths in environment | PARTIAL | Contract and template exist; model is absent | `.env.example`, `docs/env-model-contract.md` |
+| Model paths in environment | PASS | Selected local path, ignored weights, manifest hashes, and integrity validation | `.env.example`, `backend/models/model-manifest.json`, model probe evidence |
 | Required TanStack routes | PASS | Dashboard, inspect, history, and details | Production build and browser smoke |
 | Drag/drop and file selection | PASS | `ImageUploader.jsx` | Browser upload smoke with local JPG |
 | Canvas bounding boxes | PASS | Original-image viewer with rescaled Canvas | Details/upload browser smoke observed one Canvas |
 | Defect list fields | PASS | Type, confidence, and coordinates | Frontend implementation and build |
 | History date/type filters | PARTIAL | Frontend sends canonical filters; real backend is planned | Mock browser filter smoke returned two scratch rows |
 | `POST /api/inspect` | PLANNED | Contract fixed; endpoint absent | `docs/api-contract.md` |
-| OpenCV preprocessing | PLANNED | Pipeline contract fixed; implementation absent | `docs/env-model-contract.md` |
+| OpenCV preprocessing | PARTIAL | Letterbox, normalization, and bbox restore utilities are tested; grayscale/CLAHE service is deferred | Detection unit tests; `docs/env-model-contract.md` |
 | History GET/DELETE/clear | PLANNED | Contract fixed; endpoints absent | `docs/api-contract.md` |
 | Required error messages | PLANNED | Exact HTTP mapping fixed; backend absent | `docs/api-contract.md` |
-| Real YOLO/CNN inference | PLANNED | Adapter and provenance rules fixed; model unselected | `docs/env-model-contract.md` |
-| Accurate boxes/types/confidence | PLANNED | Requires selected model and labeled validation set | No runtime evidence yet |
+| Real YOLO/CNN inference | PASS | Two registered Ultralytics checkpoints execute through the normalized core | `docs/evidence/models/detection-core-acceptance.json` |
+| Accurate boxes/types/confidence | PARTIAL | Native names, finite confidence, and bounded original-image boxes are verified; benchmark accuracy is not | Core acceptance evidence and unit tests |
 | Annotated backend image | PARTIAL | Dual-image frontend contract implemented; backend absent | Frontend build plus API contract |
 | Persisted timestamped records | PLANNED | SQLite/media design fixed; implementation absent | `ARCHITECTURE.md` |
-| Code quality and separation | PARTIAL | Boundaries, validators, frontend modules, and contracts exist | `make validate` |
+| Code quality and separation | PARTIAL | Detection/API/storage boundaries plus real Python and JavaScript import checks exist | `.venv/Scripts/python.exe scripts/validate.py` |
 | Live detection bonus | PARTIAL | Actual dimensions and sequential frame client implemented; endpoint absent | Browser/build checks; backend runtime pending |
 | Severity bonus | PARTIAL | Backend-authoritative contract plus client fallback; backend absent | Frontend utility tests |
 | CSV export bonus | PARTIAL | Real endpoint integration plus mock fallback; endpoint absent | Frontend utility tests; server runtime pending |

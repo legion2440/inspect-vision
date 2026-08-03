@@ -1,23 +1,51 @@
 # Inspect-Vision
 
 Visual quality-control system for manufacturing images. The React/Vite frontend
-is implemented and build-verified. The FastAPI, OpenCV, model, persistence, and
-runtime-evidence modules are intentionally marked `planned` until implemented
-and verified.
+and reusable multiclass detection core are implemented and runtime-verified.
+FastAPI, inspection preprocessing/service logic, persistence, and end-to-end
+application evidence remain planned.
 
 ## Current state
 
 - Frontend routes, upload UI, history, Canvas overlays, severity fallback, live
   capture UI, and CSV integration are implemented.
 - Real API mode is the default (`VITE_USE_MOCK=false`).
-- Backend endpoints and real model inference are not implemented yet.
+- Two local Ultralytics detection models are registered by source revision,
+  license, SHA-256, input size, and native classes; `.pt` files remain ignored.
+- The Python core accepts a BGR `numpy.ndarray` and returns normalized multiclass
+  detections with `class_id`, `class_name`, `confidence`, and original-image
+  `xyxy` coordinates.
+- Backend endpoints, grayscale/CLAHE service preprocessing, annotation, severity,
+  and persistence are not implemented yet.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
+
+## Python setup
+
+Inspect-Vision uses Python 3.13.5 on Windows. From Git Bash:
+
+```bash
+python --version
+python -m venv .venv
+.venv/Scripts/python.exe -m pip install --upgrade pip
+.venv/Scripts/python.exe -m pip install -r requirements-detection.txt
+```
+
+The tracked dependency profile installs CPU PyTorch for a reproducible baseline.
+Install a compatible CUDA PyTorch build separately before selecting `cuda` or
+`cuda:N`.
+
+Model weights must match `backend/models/model-manifest.json`. Verify both local
+models through the detection core with:
+
+```bash
+.venv/Scripts/python.exe scripts/probe_models.py --engine core --device cpu --confidence 0.05
+```
 
 ## Commands
 
 ```bash
-python scripts/validate.py
+.venv/Scripts/python.exe scripts/validate.py
 ```
 
 If GNU Make is installed, the same checks are available as:
@@ -35,13 +63,14 @@ make status
 Without Make:
 
 ```bash
-python scripts/validate_structure.py
-python scripts/validate_architecture.py
-python scripts/generate_dependency_graph.py --check
+.venv/Scripts/python.exe scripts/validate_structure.py
+.venv/Scripts/python.exe scripts/validate_architecture.py
+.venv/Scripts/python.exe scripts/generate_dependency_graph.py --check
+.venv/Scripts/python.exe -m pytest tests/unit/detection tests/unit/evidence
 npm --prefix frontend test
 npm --prefix frontend run build
 npm --prefix frontend audit --audit-level=high
-python scripts/show_status.py
+.venv/Scripts/python.exe scripts/show_status.py
 ```
 
 Frontend development:

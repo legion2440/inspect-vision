@@ -1,4 +1,4 @@
-PYTHON ?= python
+PYTHON ?= .venv/Scripts/python.exe
 NPM ?= npm
 
 .PHONY: validate validate-architecture validate-frontend test architecture check-architecture status
@@ -16,6 +16,7 @@ validate-frontend:
 	$(NPM) --prefix frontend audit --audit-level=high
 
 test:
+	$(PYTHON) -m pytest tests/unit/detection tests/unit/evidence
 	$(NPM) --prefix frontend test
 
 architecture:

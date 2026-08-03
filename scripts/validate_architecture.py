@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import ast
+import hashlib
 import json
 import re
 import subprocess
@@ -21,6 +23,9 @@ REFERENCE_FIELDS = (
     "owned_configuration",
 )
 COMMIT_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+JAVASCRIPT_IMPORT_PATTERN = re.compile(
+    r"(?:\bfrom\s*|\bimport\s*\(?\s*)['\"](?P<path>\.{1,2}/[^'\"]+)['\"]"
+)
 
 
 def _load_json(relative_path: str) -> dict[str, Any]:
@@ -65,6 +70,15 @@ def _check_module_map(module_map: dict[str, Any], errors: list[str]) -> set[str]
             errors.append(f"Module {module_id} has invalid root: {root!r}")
         elif not (REPOSITORY_ROOT / root).is_dir():
             errors.append(f"Module {module_id} root does not exist: {root}")
+        for additional_path in module.get("additional_owned_paths", []):
+            if not _valid_repository_path(additional_path):
+                errors.append(
+                    f"Module {module_id} has invalid additional owned path: {additional_path!r}"
+                )
+            elif not (REPOSITORY_ROOT / additional_path).exists():
+                errors.append(
+                    f"Module {module_id} additional owned path does not exist: {additional_path}"
+                )
 
     owned_paths: dict[str, str] = {}
     for module_id, field, reference in _iter_references(module_map):
@@ -177,6 +191,160 @@ def _check_graph(graph: dict[str, Any], module_ids: set[str], errors: list[str])
     _check_cycles(graph, node_set, errors)
 
 
+def _owner_for_path(relative_path: PurePosixPath, module_map: dict[str, Any]) -> str | None:
+    candidates: list[tuple[int, str]] = []
+    for module in module_map.get("modules", []):
+        module_id = module["id"]
+        owned_paths = [module["root"], *module.get("additional_owned_paths", [])]
+        for owned_path in owned_paths:
+            owned = PurePosixPath(owned_path)
+            if relative_path == owned or owned in relative_path.parents:
+                candidates.append((len(owned.parts), module_id))
+    if not candidates:
+        return None
+    return max(candidates)[1]
+
+
+def _python_module_name(relative_path: PurePosixPath) -> str:
+    without_suffix = relative_path.with_suffix("")
+    parts = list(without_suffix.parts)
+    if parts[-1] == "__init__":
+        parts.pop()
+    return ".".join(parts)
+
+
+def _resolve_from_import(source_module: str, module: str | None, level: int) -> str:
+    if level == 0:
+        return module or ""
+    source_parts = source_module.split(".")
+    source_path = REPOSITORY_ROOT / (source_module.replace(".", "/") + ".py")
+    if not source_path.is_file():
+        package_parts = source_parts
+    else:
+        package_parts = source_parts[:-1]
+    keep = len(package_parts) - level + 1
+    if keep < 0:
+        return ""
+    prefix = package_parts[:keep]
+    return ".".join([*prefix, *(module.split(".") if module else [])])
+
+
+def _check_python_imports(
+    module_map: dict[str, Any],
+    graph: dict[str, Any],
+    errors: list[str],
+) -> None:
+    python_files = sorted((REPOSITORY_ROOT / "backend").rglob("*.py"))
+    modules_by_name: dict[str, str] = {}
+    sources: list[tuple[Path, PurePosixPath, str, str]] = []
+    for path in python_files:
+        if "__pycache__" in path.parts:
+            continue
+        relative_path = PurePosixPath(path.relative_to(REPOSITORY_ROOT).as_posix())
+        owner = _owner_for_path(relative_path, module_map)
+        if owner is None:
+            errors.append(f"Backend Python file has no module owner: {relative_path}")
+            continue
+        module_name = _python_module_name(relative_path)
+        modules_by_name[module_name] = owner
+        sources.append((path, relative_path, module_name, owner))
+
+    allowed_pairs = {
+        (edge.get("from"), edge.get("to")) for edge in graph.get("allowed_edges", [])
+    }
+    known_names = sorted(modules_by_name, key=len, reverse=True)
+    for path, relative_path, source_module, source_owner in sources:
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(relative_path))
+        except (OSError, UnicodeDecodeError, SyntaxError) as error:
+            errors.append(f"Cannot parse backend import source {relative_path}: {error}")
+            continue
+        imported_names: list[str] = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported_names.extend(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                imported_names.append(
+                    _resolve_from_import(source_module, node.module, node.level)
+                )
+        for imported_name in imported_names:
+            target_name = next(
+                (
+                    known_name
+                    for known_name in known_names
+                    if imported_name == known_name or imported_name.startswith(known_name + ".")
+                ),
+                None,
+            )
+            if target_name is None:
+                continue
+            target_owner = modules_by_name[target_name]
+            if source_owner != target_owner and (source_owner, target_owner) not in allowed_pairs:
+                errors.append(
+                    f"Forbidden Python import in {relative_path}: "
+                    f"{source_owner} -> {target_owner} ({imported_name})"
+                )
+
+
+def _resolve_javascript_import(source_path: Path, specifier: str) -> Path | None:
+    unresolved = source_path.parent / specifier
+    candidates = (
+        unresolved,
+        Path(f"{unresolved}.js"),
+        Path(f"{unresolved}.jsx"),
+        unresolved / "index.js",
+        unresolved / "index.jsx",
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.resolve()
+    return None
+
+
+def _check_javascript_imports(
+    module_map: dict[str, Any],
+    graph: dict[str, Any],
+    errors: list[str],
+) -> None:
+    allowed_pairs = {
+        (edge.get("from"), edge.get("to")) for edge in graph.get("allowed_edges", [])
+    }
+    source_files = sorted((REPOSITORY_ROOT / "frontend/src").rglob("*.js"))
+    source_files.extend(sorted((REPOSITORY_ROOT / "frontend/src").rglob("*.jsx")))
+    for source_path in source_files:
+        relative_source = PurePosixPath(source_path.relative_to(REPOSITORY_ROOT).as_posix())
+        source_owner = _owner_for_path(relative_source, module_map)
+        if source_owner is None:
+            errors.append(f"Frontend JavaScript file has no module owner: {relative_source}")
+            continue
+        content = source_path.read_text(encoding="utf-8")
+        for match in JAVASCRIPT_IMPORT_PATTERN.finditer(content):
+            specifier = match.group("path")
+            target_path = _resolve_javascript_import(source_path, specifier)
+            if target_path is None:
+                errors.append(f"Unresolved JavaScript import in {relative_source}: {specifier}")
+                continue
+            try:
+                relative_target = PurePosixPath(
+                    target_path.relative_to(REPOSITORY_ROOT).as_posix()
+                )
+            except ValueError:
+                errors.append(
+                    f"JavaScript import escapes repository in {relative_source}: {specifier}"
+                )
+                continue
+            target_owner = _owner_for_path(relative_target, module_map)
+            if target_owner is None:
+                errors.append(
+                    f"JavaScript import target has no module owner: {relative_target}"
+                )
+            elif source_owner != target_owner and (source_owner, target_owner) not in allowed_pairs:
+                errors.append(
+                    f"Forbidden JavaScript import in {relative_source}: "
+                    f"{source_owner} -> {target_owner} ({specifier})"
+                )
+
+
 def _check_status(errors: list[str]) -> None:
     status = _load_json("docs/project-status.json")
     baseline = status.get("frontend_baseline_commit")
@@ -212,6 +380,82 @@ def _check_model_manifest(errors: list[str]) -> None:
         errors.append("selectedModelId does not reference a registered model")
 
 
+def _check_detection_evidence(errors: list[str]) -> None:
+    evidence = _load_json("docs/evidence/models/detection-core-acceptance.json")
+    manifest = _load_json("backend/models/model-manifest.json")
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("Detection evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(f"Detection evidence sourceCommit is not an ancestor: {source_commit}")
+
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append("Detection evidence must record sourceFiles hashes")
+    else:
+        for relative_path, expected_hash in source_files.items():
+            if not _valid_repository_path(relative_path):
+                errors.append(f"Detection evidence has invalid source path: {relative_path!r}")
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(f"Detection evidence source file is missing: {relative_path}")
+                continue
+            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual_hash != expected_hash:
+                errors.append(f"Detection evidence is stale for source file: {relative_path}")
+
+    manifest_models = {model["id"]: model for model in manifest.get("models", [])}
+    evidence_models = evidence.get("models")
+    if not isinstance(evidence_models, list):
+        errors.append("Detection evidence must contain a models array")
+        return
+    if {model.get("modelId") for model in evidence_models} != set(manifest_models):
+        errors.append("Detection evidence model IDs do not match the model manifest")
+    for model_result in evidence_models:
+        model_id = model_result.get("modelId")
+        model_spec = manifest_models.get(model_id)
+        if model_spec is None:
+            continue
+        if model_result.get("sha256") != model_spec["sha256"]:
+            errors.append(f"Detection evidence hash mismatch for model: {model_id}")
+        if model_result.get("classes") != model_spec["classes"]:
+            errors.append(f"Detection evidence class mismatch for model: {model_id}")
+        if model_result.get("task") != "detect":
+            errors.append(f"Detection evidence task mismatch for model: {model_id}")
+        if not isinstance(model_result.get("totalDetections"), int) or model_result["totalDetections"] < 1:
+            errors.append(f"Detection evidence has no detections for model: {model_id}")
+        classes = model_spec["classes"]
+        for sample in model_result.get("samples", []):
+            dimensions = sample.get("dimensions", {})
+            width = dimensions.get("width")
+            height = dimensions.get("height")
+            for detection in sample.get("detections", []):
+                class_id = detection.get("classId")
+                if not isinstance(class_id, int) or not 0 <= class_id < len(classes):
+                    errors.append(f"Detection evidence has invalid class ID for model: {model_id}")
+                    continue
+                if detection.get("className") != classes[class_id]:
+                    errors.append(f"Detection evidence has invalid class name for model: {model_id}")
+                xyxy = detection.get("xyxy", [])
+                if (
+                    not isinstance(width, int)
+                    or not isinstance(height, int)
+                    or not isinstance(xyxy, list)
+                    or len(xyxy) != 4
+                    or not (0 <= xyxy[0] <= xyxy[2] <= width)
+                    or not (0 <= xyxy[1] <= xyxy[3] <= height)
+                ):
+                    errors.append(f"Detection evidence has invalid bbox for model: {model_id}")
+
+
 def _check_frontend_invariants(errors: list[str]) -> None:
     route_tree = (REPOSITORY_ROOT / "frontend/src/routeTree.gen.js").read_text(encoding="utf-8")
     forbidden_types = (" as any", "declare module", "export interface", "_addFileTypes")
@@ -231,7 +475,10 @@ def main() -> int:
         graph = _load_json("dependency-graph.json")
         module_ids = _check_module_map(module_map, errors)
         _check_graph(graph, module_ids, errors)
+        _check_python_imports(module_map, graph, errors)
+        _check_javascript_imports(module_map, graph, errors)
         _check_model_manifest(errors)
+        _check_detection_evidence(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:
