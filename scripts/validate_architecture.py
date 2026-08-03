@@ -867,6 +867,139 @@ def _check_api_bonus_evidence(errors: list[str]) -> None:
         errors.append("API bonus acceptance flags are incomplete")
 
 
+def _check_demo_sample_evidence(errors: list[str]) -> None:
+    evidence = _load_json("docs/evidence/demo-samples/demo-samples-acceptance.json")
+    sample_manifest = _load_json("backend/samples/demo-samples.json")
+    model_manifest = _load_json("backend/models/model-manifest.json")
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("Demo sample evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(f"Demo sample evidence sourceCommit is not an ancestor: {source_commit}")
+
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append("Demo sample evidence must record sourceFiles hashes")
+    else:
+        for relative_path, expected_hash in source_files.items():
+            if not _valid_repository_path(relative_path):
+                errors.append(f"Demo sample evidence has invalid source path: {relative_path!r}")
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(f"Demo sample evidence source file is missing: {relative_path}")
+                continue
+            if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
+                errors.append(f"Demo sample evidence is stale for source file: {relative_path}")
+
+    if evidence.get("dataset") != sample_manifest.get("dataset"):
+        errors.append("Demo sample evidence provenance differs from the sample manifest")
+    selected_model_id = model_manifest.get("selectedModelId")
+    selected_model = next(
+        (
+            model
+            for model in model_manifest.get("models", [])
+            if model.get("id") == selected_model_id
+        ),
+        None,
+    )
+    model = evidence.get("model", {})
+    if (
+        selected_model is None
+        or model.get("modelId") != selected_model_id
+        or model.get("sha256") != selected_model.get("sha256")
+        or model.get("classes") != selected_model.get("classes")
+        or model.get("confidence") != 0.25
+    ):
+        errors.append("Demo sample evidence has an invalid selected-model contract")
+        native_classes: set[str] = set()
+    else:
+        native_classes = set(selected_model["classes"])
+
+    manifest_files = {
+        item.get("id"): item
+        for item in sample_manifest.get("files", [])
+        if isinstance(item, dict)
+    }
+    samples = evidence.get("samples")
+    if (
+        not isinstance(samples, list)
+        or len(samples) < 10
+        or evidence.get("sampleCount") != len(samples)
+        or {sample.get("sampleId") for sample in samples if isinstance(sample, dict)}
+        != set(manifest_files)
+    ):
+        errors.append("Demo sample evidence does not cover the complete ten-image manifest")
+        return
+
+    total_detections = 0
+    observed_types: set[str] = set()
+    for sample in samples:
+        manifest_item = manifest_files.get(sample.get("sampleId"))
+        if manifest_item is None:
+            continue
+        dimensions = sample.get("dimensions", {})
+        defects = sample.get("defects")
+        if (
+            sample.get("path") != manifest_item.get("path")
+            or sample.get("sha256") != manifest_item.get("sha256")
+            or sample.get("sourceArchivePath")
+            != manifest_item.get("source", {}).get("archivePath")
+            or sample.get("sourceCategory") != manifest_item.get("source", {}).get("category")
+            or sample.get("sourceAnomalyLabel")
+            != manifest_item.get("source", {}).get("anomalyLabel")
+            or sample.get("expectedNativeClass") != manifest_item.get("expectedNativeClass")
+            or sample.get("actualNativeTypes") != manifest_item.get("expectedNativeTypes")
+            or dimensions != manifest_item.get("dimensions")
+        ):
+            errors.append(f"Demo sample evidence differs from manifest: {sample.get('sampleId')}")
+        if not isinstance(defects, list) or not defects or sample.get("totalDefects") != len(defects):
+            errors.append(f"Demo sample has no real detections: {sample.get('sampleId')}")
+            continue
+        total_detections += len(defects)
+        width, height = dimensions.get("width"), dimensions.get("height")
+        for defect in defects:
+            defect_type = defect.get("type")
+            observed_types.add(defect_type)
+            confidence = defect.get("confidence")
+            box = defect.get("boundingBox", {})
+            x, y = box.get("x"), box.get("y")
+            box_width, box_height = box.get("width"), box.get("height")
+            values = (confidence, x, y, box_width, box_height)
+            if (
+                defect_type not in native_classes
+                or not all(
+                    isinstance(value, (int, float))
+                    and not isinstance(value, bool)
+                    and math.isfinite(value)
+                    for value in values
+                )
+                or not 0.0 <= confidence <= 1.0
+                or not (0.0 <= x < x + box_width <= width)
+                or not (0.0 <= y < y + box_height <= height)
+            ):
+                errors.append(f"Demo sample has an invalid detection: {sample.get('sampleId')}")
+        if sample.get("status") != "failed":
+            errors.append(f"Detected demo sample must have failed status: {sample.get('sampleId')}")
+
+    if evidence.get("totalDetections") != total_detections or total_detections < len(samples):
+        errors.append("Demo sample evidence has an inconsistent total detection count")
+    if evidence.get("observedNativeTypes") != sorted(observed_types):
+        errors.append("Demo sample evidence has inconsistent observed native types")
+    acceptance = evidence.get("acceptance", {})
+    if not isinstance(acceptance, dict) or not acceptance or not all(
+        value is True for value in acceptance.values()
+    ):
+        errors.append("Demo sample acceptance flags are incomplete")
+
+
 def _check_frontend_invariants(errors: list[str]) -> None:
     route_tree = (REPOSITORY_ROOT / "frontend/src/routeTree.gen.js").read_text(encoding="utf-8")
     forbidden_types = (" as any", "declare module", "export interface", "_addFileTypes")
@@ -893,6 +1026,7 @@ def main() -> int:
         _check_inspection_service_evidence(errors)
         _check_api_persistence_evidence(errors)
         _check_api_bonus_evidence(errors)
+        _check_demo_sample_evidence(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:

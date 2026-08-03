@@ -46,3 +46,13 @@ API bonus evidence is under `api-bonuses/`:
   the history projection exactly.
 - Storage is cleared after the probe and the evidence records that all six media
   files were removed.
+
+Demo-dataset evidence is under `demo-samples/`:
+
+- `demo-samples-acceptance.json` binds all ten tracked VisA anomaly images to
+  their manifest hashes, dimensions, archive paths, CC BY 4.0 provenance, and
+  selected-model output at confidence `0.25`.
+- Every image decodes at `1284 × 1168`; the full service produced 40 real
+  detections across the inventory. Recorded native classes are model outputs,
+  not replacements for VisA's source-level anomaly label.
+- Static validation does not require model weights; the runtime probe does.

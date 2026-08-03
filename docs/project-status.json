@@ -4,7 +4,7 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "api-bonuses-runtime-verified-samples-planned",
+  "state": "functional-scope-runtime-verified-final-evidence-rebinding-pending",
   "verified": [
     "frontend production build with Vite 8.2.0",
     "npm audit with zero known vulnerabilities",
@@ -30,7 +30,9 @@
     "CSV export reuses the canonical combined history filters and newest-first ordering with exact row parity",
     "loopback Uvicorn bonus evidence returned four real stream defects, proved unchanged history, and matched two filtered history rows to CSV",
     "detail media hydration is serialized with delete/clear and database/media path overlap is rejected symmetrically",
-    "one hundred two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests"
+    "one hundred two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests",
+    "ten unmodified VisA industrial anomaly images have pinned CC BY 4.0 provenance, exact hashes, byte sizes, decode, and 1284 by 1168 dimensions",
+    "the selected DetectionService produced forty real detections across all ten tracked demo samples at production confidence 0.25"
   ],
   "known_limitations": [
     {
@@ -42,11 +44,6 @@
       "id": "broad-model-low-probe-confidence",
       "area": "defect-detection",
       "detail": "The 17-class alternative required a 0.05 diagnostic threshold and produced two detections on one of three NEU-DET probe images; the stronger six-class model is selected."
-    },
-    {
-      "id": "samples-incomplete",
-      "area": "audit-evidence",
-      "detail": "The required ten-image manufacturing dataset and provenance manifest are not present."
     },
     {
       "id": "api-evidence-commit-pointer-provisional",

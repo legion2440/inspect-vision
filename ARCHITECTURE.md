@@ -6,7 +6,8 @@ The frontend application, reusable multiclass core, selected-model inspection
 service, SQLite/media persistence, and main FastAPI inspection/history API are
 implemented. Both registered models have core probe evidence. The selected model
 has full preprocessing, HTTP, persistence, deletion, non-persisted stream, and
-filtered CSV evidence. The final demo dataset remains planned. See
+filtered CSV evidence. Ten redistributed VisA anomalies have license, hash,
+decode, dimension, provenance, and real selected-model evidence. See
 `docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
@@ -62,6 +63,9 @@ flowchart LR
   scheduling, media encoding, or persistence.
 - Core inference is runtime-verified for both models; full service inference is
   runtime-verified for the selected six-class model at confidence `0.25`.
+- The selected service is also runtime-verified against all ten tracked VisA
+  anomaly samples; the generic dataset label remains separate from native model
+  class output.
 
 ### Inspection history
 
@@ -92,6 +96,8 @@ flowchart LR
   `docs/audit-evidence.md`.
 - Evidence is immutable per verified milestone and may not contain secrets, host
   paths, large model weights, or personal data.
+- The demo-sample manifest and CC BY 4.0 attribution bind ten unmodified source
+  images to archive paths, hashes, dimensions, and real model results.
 
 ## Boundary rules
 
@@ -122,5 +128,5 @@ sequenceDiagram
 ## Deferred decisions
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
-Production confidence calibration and a redistributable ten-image demo dataset
-remain deferred.
+Production confidence calibration and the final evidence `sourceCommit`
+rebinding remain deferred.

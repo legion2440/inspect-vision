@@ -23,6 +23,7 @@ implementation claim.
 | Accurate boxes/types/confidence | PARTIAL | Native mapping, finite confidence, and positive bounded original-image boxes are verified; benchmark accuracy is not | Core and inspection-service acceptance evidence |
 | Annotated backend image | PASS | DetectionService annotation is encoded in source format, persisted, and returned as `imageUrl`; original remains separate | Service outputs plus API persistence evidence |
 | Persisted timestamped records | PASS | SQLite record, relative media paths, byte-exact original, annotated dimensions, reopen, and cleanup are verified | API persistence evidence; storage/API tests |
+| At least 10 demo images | PASS | Ten unmodified VisA industrial anomaly images carry CC BY 4.0 attribution, pinned archive provenance, SHA-256, decode/dimensions, and actual selected-model native outputs | Demo manifest validator and `docs/evidence/demo-samples/demo-samples-acceptance.json` |
 | Code quality and separation | PASS | Pydantic contract, API/detection/storage boundaries, dependency injection, failure tests, and real import checks exist | `.venv/Scripts/python.exe scripts/validate.py` |
 | Live detection bonus | PASS | Content-verified JPEG frames use the selected service and shared inference lock without persistence | Saved loopback stream/history snapshots; API concurrency and failure tests |
 | Severity bonus | PASS | Backend-authoritative quality-v1 is persisted and delivered through POST/history/detail | Service and API evidence plus backend/frontend tests |

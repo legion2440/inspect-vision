@@ -1,0 +1,701 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-03T19:18:54.249745Z",
+  "sourceCommit": "64f40035e133ad3b8c700dfa0943fcd0957cb4c4",
+  "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
+  "sourceFiles": {
+    "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
+    "backend/detection/quality.py": "838854adb6a3505a945259df46df2a6fec5914be45ec306220918c39cf9f197e",
+    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
+    "backend/models/model-manifest.json": "661946c6010515196f399c788a9096394699e3ae66fcc7f5874ac0ee31eda9a9",
+    "backend/samples/demo-samples.json": "2022038b44f76c3b96e88779ca8527e7137e2001f9409d073c6a28b6fbe1d1c5",
+    "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
+    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
+    "scripts/probe_demo_samples.py": "c21612e5cffdd3f304d0c4bf8583b752d9c50b67b34b0d9756aa147eadcaa48b",
+    "scripts/validate_demo_samples.py": "cd97dcb8339f6f3ef732c5fa5200d2ce32b1bf5b57295c9035d2bad60aa83900",
+    "backend/samples/demo/visa-candle-001.jpg": "c697ce4e2176c0de5d9f3ba8f38cd5acf99c61be5f91656ebb49c86652875f9a",
+    "backend/samples/demo/visa-candle-098.jpg": "8da7702e989f8382558fcb931697861a029c8fc56e20c583eb18c0a5d96143ec",
+    "backend/samples/demo/visa-candle-089.jpg": "9e4d2c8c036eaa492b9ea6c225f5ed52be1c5e9a27bb97dc3b10c0628261ed12",
+    "backend/samples/demo/visa-candle-010.jpg": "7001b2b9d7d67ba54a908ff14b989dc2ab3a7f8ab020bfabad0b7c77827b9706",
+    "backend/samples/demo/visa-candle-045.jpg": "ff5a330c70afcc311f80c21c5ede46f79577d04d589a9993918bd045bbf23a7b",
+    "backend/samples/demo/visa-candle-081.jpg": "4fab3cac2dc2702d1b9bf8c13b60a8110be3cca20f8a706e2aee23b39d73b62b",
+    "backend/samples/demo/visa-candle-009.jpg": "a015ce85aa10281bccc26b963c9400aef6882ad92dec2db5d934e79c1a1e44d8",
+    "backend/samples/demo/visa-candle-063.jpg": "6a11d6df145c1908d2a574a037424c16948a65d25bd09c6728b9b6ae8e1f691d",
+    "backend/samples/demo/visa-candle-027.jpg": "6c48743e09af766c5693ae27c8c4ac07a877cb43fd5f0e63321eba3d10bf762a",
+    "backend/samples/demo/visa-candle-054.jpg": "4b441eba2eb7f9714bae59e8d3bfc21a4fc121c8aff89036704a12bb4a2434b0"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "packages": {
+      "numpy": "2.4.6",
+      "opencv-python": "4.13.0.92",
+      "torch": "2.12.1+cpu",
+      "ultralytics": "8.4.78"
+    }
+  },
+  "dataset": {
+    "name": "Visual Anomaly (VisA)",
+    "authors": [
+      "Yang Zou",
+      "Jongheon Jeong",
+      "Latha Pemula",
+      "Dongqing Zhang",
+      "Onkar Dabeer"
+    ],
+    "repositoryUrl": "https://github.com/amazon-science/spot-diff",
+    "sourceRevision": "2a692ab575001cbde74d402d897a7286086c6199",
+    "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+    "archiveEtag": "05c830591a1172938cb714895c9e0cfb-113",
+    "archiveLastModified": "Thu, 22 Sep 2022 19:23:39 GMT",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET",
+    "citation": "SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation, ECCV 2022"
+  },
+  "model": {
+    "modelId": "neu-defect-yolov8",
+    "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+    "classes": [
+      "crazing",
+      "inclusion",
+      "patches",
+      "pitted_surface",
+      "rolled-in_scale",
+      "scratches"
+    ],
+    "confidence": 0.25
+  },
+  "sampleCount": 10,
+  "totalDetections": 40,
+  "observedNativeTypes": [
+    "inclusion",
+    "patches"
+  ],
+  "samples": [
+    {
+      "sampleId": "visa-candle-001",
+      "path": "backend/samples/demo/visa-candle-001.jpg",
+      "sha256": "c697ce4e2176c0de5d9f3ba8f38cd5acf99c61be5f91656ebb49c86652875f9a",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/001.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.81381,
+          "boundingBox": {
+            "x": 453.337,
+            "y": 129.672,
+            "width": 189.265,
+            "height": 385.9693
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.659559,
+          "boundingBox": {
+            "x": 460.5565,
+            "y": 673.1683,
+            "width": 191.7997,
+            "height": 375.3713
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.495759,
+          "boundingBox": {
+            "x": 1012.8901,
+            "y": 676.921,
+            "width": 202.2844,
+            "height": 386.9117
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.381124,
+          "boundingBox": {
+            "x": 996.4356,
+            "y": 127.4021,
+            "width": 197.0901,
+            "height": 392.1818
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 69,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-098",
+      "path": "backend/samples/demo/visa-candle-098.jpg",
+      "sha256": "8da7702e989f8382558fcb931697861a029c8fc56e20c583eb18c0a5d96143ec",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/098.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.83477,
+          "boundingBox": {
+            "x": 446.3752,
+            "y": 110.7543,
+            "width": 196.662,
+            "height": 395.3676
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.697351,
+          "boundingBox": {
+            "x": 463.9093,
+            "y": 675.1303,
+            "width": 184.3499,
+            "height": 378.4175
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.520457,
+          "boundingBox": {
+            "x": 1026.3365,
+            "y": 102.8996,
+            "width": 187.7175,
+            "height": 392.7322
+          }
+        }
+      ],
+      "totalDefects": 3,
+      "qualityScore": 73,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-089",
+      "path": "backend/samples/demo/visa-candle-089.jpg",
+      "sha256": "9e4d2c8c036eaa492b9ea6c225f5ed52be1c5e9a27bb97dc3b10c0628261ed12",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/089.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches",
+        "inclusion"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.820648,
+          "boundingBox": {
+            "x": 462.8898,
+            "y": 102.1321,
+            "width": 182.7538,
+            "height": 391.709
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.691807,
+          "boundingBox": {
+            "x": 446.4459,
+            "y": 640.9662,
+            "width": 189.5719,
+            "height": 383.0795
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.505349,
+          "boundingBox": {
+            "x": 1015.3088,
+            "y": 86.1537,
+            "width": 205.6291,
+            "height": 401.163
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.305803,
+          "boundingBox": {
+            "x": 1027.774,
+            "y": 610.2666,
+            "width": 194.0342,
+            "height": 379.7966
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.253811,
+          "boundingBox": {
+            "x": 1026.4679,
+            "y": 609.1468,
+            "width": 195.0114,
+            "height": 380.5452
+          }
+        }
+      ],
+      "totalDefects": 5,
+      "qualityScore": 64,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-010",
+      "path": "backend/samples/demo/visa-candle-010.jpg",
+      "sha256": "7001b2b9d7d67ba54a908ff14b989dc2ab3a7f8ab020bfabad0b7c77827b9706",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/010.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches",
+        "inclusion"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.77854,
+          "boundingBox": {
+            "x": 449.4415,
+            "y": 117.4981,
+            "width": 192.2788,
+            "height": 385.6273
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.704048,
+          "boundingBox": {
+            "x": 458.7354,
+            "y": 669.0038,
+            "width": 183.6442,
+            "height": 378.568
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.700022,
+          "boundingBox": {
+            "x": 1041.2423,
+            "y": 105.883,
+            "width": 180.8392,
+            "height": 384.9865
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.301784,
+          "boundingBox": {
+            "x": 1035.3542,
+            "y": 672.8132,
+            "width": 187.374,
+            "height": 384.3033
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 67,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-045",
+      "path": "backend/samples/demo/visa-candle-045.jpg",
+      "sha256": "ff5a330c70afcc311f80c21c5ede46f79577d04d589a9993918bd045bbf23a7b",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/045.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.82686,
+          "boundingBox": {
+            "x": 455.7944,
+            "y": 120.464,
+            "width": 191.6586,
+            "height": 385.4031
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.823441,
+          "boundingBox": {
+            "x": 448.6395,
+            "y": 653.2006,
+            "width": 194.4439,
+            "height": 375.7881
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.761924,
+          "boundingBox": {
+            "x": 1033.2397,
+            "y": 126.6969,
+            "width": 186.62,
+            "height": 385.4875
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.25232,
+          "boundingBox": {
+            "x": 1018.6147,
+            "y": 663.1709,
+            "width": 197.2045,
+            "height": 375.0148
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 66,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-081",
+      "path": "backend/samples/demo/visa-candle-081.jpg",
+      "sha256": "4fab3cac2dc2702d1b9bf8c13b60a8110be3cca20f8a706e2aee23b39d73b62b",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/081.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.81932,
+          "boundingBox": {
+            "x": 458.1382,
+            "y": 124.2664,
+            "width": 195.8903,
+            "height": 388.8189
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.684747,
+          "boundingBox": {
+            "x": 450.874,
+            "y": 660.1909,
+            "width": 191.0498,
+            "height": 382.4719
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.58405,
+          "boundingBox": {
+            "x": 1005.5762,
+            "y": 111.0345,
+            "width": 206.1906,
+            "height": 396.8567
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.319623,
+          "boundingBox": {
+            "x": 1010.8873,
+            "y": 653.5046,
+            "width": 198.8077,
+            "height": 379.4818
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 68,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-009",
+      "path": "backend/samples/demo/visa-candle-009.jpg",
+      "sha256": "a015ce85aa10281bccc26b963c9400aef6882ad92dec2db5d934e79c1a1e44d8",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/009.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.590408,
+          "boundingBox": {
+            "x": 1035.6134,
+            "y": 694.2224,
+            "width": 180.3866,
+            "height": 373.514
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.423534,
+          "boundingBox": {
+            "x": 983.2816,
+            "y": 133.0023,
+            "width": 204.9252,
+            "height": 394.6988
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.329879,
+          "boundingBox": {
+            "x": 467.5522,
+            "y": 130.1719,
+            "width": 204.0862,
+            "height": 388.6569
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.310736,
+          "boundingBox": {
+            "x": 470.6942,
+            "y": 669.6193,
+            "width": 192.1704,
+            "height": 380.2501
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 78,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-063",
+      "path": "backend/samples/demo/visa-candle-063.jpg",
+      "sha256": "6a11d6df145c1908d2a574a037424c16948a65d25bd09c6728b9b6ae8e1f691d",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/063.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches",
+        "inclusion"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.819704,
+          "boundingBox": {
+            "x": 455.5447,
+            "y": 672.4142,
+            "width": 188.8776,
+            "height": 376.2662
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.817427,
+          "boundingBox": {
+            "x": 452.6684,
+            "y": 117.5031,
+            "width": 191.0397,
+            "height": 384.5323
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.780759,
+          "boundingBox": {
+            "x": 1034.3715,
+            "y": 155.0494,
+            "width": 192.7642,
+            "height": 380.5266
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.304793,
+          "boundingBox": {
+            "x": 1028.8182,
+            "y": 678.2603,
+            "width": 189.8694,
+            "height": 382.4402
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 64,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-027",
+      "path": "backend/samples/demo/visa-candle-027.jpg",
+      "sha256": "6c48743e09af766c5693ae27c8c4ac07a877cb43fd5f0e63321eba3d10bf762a",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/027.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.820132,
+          "boundingBox": {
+            "x": 443.9751,
+            "y": 121.7933,
+            "width": 200.9637,
+            "height": 386.5433
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.663763,
+          "boundingBox": {
+            "x": 450.6415,
+            "y": 668.7591,
+            "width": 189.1782,
+            "height": 379.1519
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.571759,
+          "boundingBox": {
+            "x": 1024.4005,
+            "y": 117.6534,
+            "width": 194.1223,
+            "height": 389.3118
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.292786,
+          "boundingBox": {
+            "x": 1016.9553,
+            "y": 661.6053,
+            "width": 200.2274,
+            "height": 380.9697
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 69,
+      "status": "failed"
+    },
+    {
+      "sampleId": "visa-candle-054",
+      "path": "backend/samples/demo/visa-candle-054.jpg",
+      "sha256": "4b441eba2eb7f9714bae59e8d3bfc21a4fc121c8aff89036704a12bb4a2434b0",
+      "sourceArchivePath": "candle/Data/Images/Anomaly/054.JPG",
+      "sourceCategory": "candle",
+      "sourceAnomalyLabel": "anomaly",
+      "expectedNativeClass": "patches",
+      "actualNativeTypes": [
+        "patches"
+      ],
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "defects": [
+        {
+          "type": "patches",
+          "confidence": 0.787017,
+          "boundingBox": {
+            "x": 458.1574,
+            "y": 100.0207,
+            "width": 195.9933,
+            "height": 393.3473
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.749609,
+          "boundingBox": {
+            "x": 453.7701,
+            "y": 672.9736,
+            "width": 188.6187,
+            "height": 376.6334
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.524838,
+          "boundingBox": {
+            "x": 1028.0197,
+            "y": 124.0162,
+            "width": 196.2456,
+            "height": 391.4923
+          }
+        },
+        {
+          "type": "patches",
+          "confidence": 0.254091,
+          "boundingBox": {
+            "x": 1017.6588,
+            "y": 120.047,
+            "width": 166.7823,
+            "height": 233.6075
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 70,
+      "status": "failed"
+    }
+  ],
+  "acceptance": {
+    "atLeastTenDecodedSamples": true,
+    "allSourceHashesMatch": true,
+    "allSourceDimensionsMatch": true,
+    "completePinnedProvenance": true,
+    "redistributionLicenseVerified": true,
+    "noSyntheticImages": true,
+    "noFakeDetections": true,
+    "everySampleHasRealSelectedModelDetection": true,
+    "nativeClassExpectationsMatch": true
+  }
+}

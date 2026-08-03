@@ -4,7 +4,8 @@ Visual quality-control system for manufacturing images. The React/Vite frontend,
 selected-model inspection service, crash-recoverable SQLite/media persistence,
 and main FastAPI inspection/history API are implemented and verified. Live
 stream inference and server CSV export are also implemented and verified. The
-final ten-image demo dataset remains planned.
+tracked ten-image VisA anomaly dataset is hash/provenance validated and verified
+through the selected model.
 
 ## Current state
 
@@ -29,6 +30,8 @@ final ten-image demo dataset remains planned.
   JPEG/PNG format; POST/detail use the dual-image data URL contract.
 - `/api/stream` reuses the selected service and inference lock without
   persistence; `/api/export` reuses the canonical history filters and ordering.
+- Ten unmodified CC BY 4.0 VisA anomaly images are tracked with exact archive
+  paths, hashes, dimensions, attribution, and real native-model outputs.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
 
@@ -75,6 +78,18 @@ parity with:
 .venv/Scripts/python.exe scripts/probe_api_bonuses.py
 ```
 
+Validate the tracked demo dataset without inference, or regenerate its real
+selected-model evidence:
+
+```bash
+.venv/Scripts/python.exe scripts/validate_demo_samples.py
+.venv/Scripts/python.exe scripts/probe_demo_samples.py
+```
+
+`scripts/prepare_demo_samples.py` reproducibly streams the official VisA
+archive, preserves ten original anomaly-image byte sequences with nonzero model
+output, and rebuilds the manifest. It is not required for normal setup.
+
 ## Run
 
 Copy `.env.example` to `.env`, keep the registered model weight at the configured
@@ -110,6 +125,8 @@ make check-architecture
 make probe-service
 make probe-api
 make probe-bonuses
+make validate-samples
+make probe-samples
 make status
 ```
 

@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-03T19:12:45.843412Z",
+  "selection": {
+    "method": "unmodified VisA anomaly images with nonzero selected-model output",
+    "modelId": "neu-defect-yolov8",
+    "confidence": 0.25,
+    "syntheticImages": false,
+    "fakeDetections": false
+  },
+  "dataset": {
+    "name": "Visual Anomaly (VisA)",
+    "authors": [
+      "Yang Zou",
+      "Jongheon Jeong",
+      "Latha Pemula",
+      "Dongqing Zhang",
+      "Onkar Dabeer"
+    ],
+    "repositoryUrl": "https://github.com/amazon-science/spot-diff",
+    "sourceRevision": "2a692ab575001cbde74d402d897a7286086c6199",
+    "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+    "archiveEtag": "05c830591a1172938cb714895c9e0cfb-113",
+    "archiveLastModified": "Thu, 22 Sep 2022 19:23:39 GMT",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET",
+    "citation": "SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation, ECCV 2022"
+  },
+  "files": [
+    {
+      "id": "visa-candle-001",
+      "path": "backend/samples/demo/visa-candle-001.jpg",
+      "sha256": "c697ce4e2176c0de5d9f3ba8f38cd5acf99c61be5f91656ebb49c86652875f9a",
+      "byteSize": 110454,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/001.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    },
+    {
+      "id": "visa-candle-098",
+      "path": "backend/samples/demo/visa-candle-098.jpg",
+      "sha256": "8da7702e989f8382558fcb931697861a029c8fc56e20c583eb18c0a5d96143ec",
+      "byteSize": 109565,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/098.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    },
+    {
+      "id": "visa-candle-089",
+      "path": "backend/samples/demo/visa-candle-089.jpg",
+      "sha256": "9e4d2c8c036eaa492b9ea6c225f5ed52be1c5e9a27bb97dc3b10c0628261ed12",
+      "byteSize": 115790,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/089.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches",
+        "inclusion"
+      ]
+    },
+    {
+      "id": "visa-candle-010",
+      "path": "backend/samples/demo/visa-candle-010.jpg",
+      "sha256": "7001b2b9d7d67ba54a908ff14b989dc2ab3a7f8ab020bfabad0b7c77827b9706",
+      "byteSize": 121855,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/010.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches",
+        "inclusion"
+      ]
+    },
+    {
+      "id": "visa-candle-045",
+      "path": "backend/samples/demo/visa-candle-045.jpg",
+      "sha256": "ff5a330c70afcc311f80c21c5ede46f79577d04d589a9993918bd045bbf23a7b",
+      "byteSize": 115379,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/045.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    },
+    {
+      "id": "visa-candle-081",
+      "path": "backend/samples/demo/visa-candle-081.jpg",
+      "sha256": "4fab3cac2dc2702d1b9bf8c13b60a8110be3cca20f8a706e2aee23b39d73b62b",
+      "byteSize": 111097,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/081.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    },
+    {
+      "id": "visa-candle-009",
+      "path": "backend/samples/demo/visa-candle-009.jpg",
+      "sha256": "a015ce85aa10281bccc26b963c9400aef6882ad92dec2db5d934e79c1a1e44d8",
+      "byteSize": 112624,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/009.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    },
+    {
+      "id": "visa-candle-063",
+      "path": "backend/samples/demo/visa-candle-063.jpg",
+      "sha256": "6a11d6df145c1908d2a574a037424c16948a65d25bd09c6728b9b6ae8e1f691d",
+      "byteSize": 117077,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/063.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches",
+        "inclusion"
+      ]
+    },
+    {
+      "id": "visa-candle-027",
+      "path": "backend/samples/demo/visa-candle-027.jpg",
+      "sha256": "6c48743e09af766c5693ae27c8c4ac07a877cb43fd5f0e63321eba3d10bf762a",
+      "byteSize": 108351,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/027.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    },
+    {
+      "id": "visa-candle-054",
+      "path": "backend/samples/demo/visa-candle-054.jpg",
+      "sha256": "4b441eba2eb7f9714bae59e8d3bfc21a4fc121c8aff89036704a12bb4a2434b0",
+      "byteSize": 113258,
+      "dimensions": {
+        "width": 1284,
+        "height": 1168
+      },
+      "mediaType": "image/jpeg",
+      "modified": false,
+      "source": {
+        "dataset": "Visual Anomaly (VisA)",
+        "archiveUrl": "https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar",
+        "archivePath": "candle/Data/Images/Anomaly/054.JPG",
+        "category": "candle",
+        "anomalyLabel": "anomaly",
+        "license": "CC BY 4.0",
+        "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET"
+      },
+      "expectedNativeClass": "patches",
+      "expectedNativeTypes": [
+        "patches"
+      ]
+    }
+  ]
+}

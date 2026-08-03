@@ -176,7 +176,10 @@
         { "path": "scripts/probe_models.py", "status": "implemented" },
         { "path": "scripts/probe_inspection_service.py", "status": "implemented" },
         { "path": "scripts/probe_api_persistence.py", "status": "implemented" },
-        { "path": "scripts/probe_api_bonuses.py", "status": "implemented" }
+        { "path": "scripts/probe_api_bonuses.py", "status": "implemented" },
+        { "path": "scripts/prepare_demo_samples.py", "status": "implemented" },
+        { "path": "scripts/probe_demo_samples.py", "status": "implemented" },
+        { "path": "scripts/validate_demo_samples.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "docs/audit-evidence.md", "status": "implemented" },
@@ -188,7 +191,8 @@
       ],
       "docs": [
         { "path": "docs/evidence/README.md", "status": "implemented" },
-        { "path": "backend/samples/README.md", "status": "implemented" }
+        { "path": "backend/samples/README.md", "status": "implemented" },
+        { "path": "backend/samples/VISA-NOTICE.md", "status": "implemented" }
       ],
       "generated_artifacts": [
         {
@@ -334,10 +338,24 @@
           "status": "generated",
           "generator": "scripts/probe_api_bonuses.py",
           "sources": ["scripts/probe_api_bonuses.py"]
+        },
+        {
+          "path": "docs/evidence/demo-samples/demo-samples-acceptance.json",
+          "status": "generated",
+          "generator": "scripts/probe_demo_samples.py",
+          "sources": [
+            "backend/models/model-manifest.json",
+            "backend/samples/demo-samples.json",
+            "backend/samples/demo",
+            "backend/detection/service.py",
+            "scripts/validate_demo_samples.py"
+          ]
         }
       ],
       "owned_configuration": [
-        { "path": "backend/samples/model-probe-samples.json", "status": "implemented" }
+        { "path": "backend/samples/model-probe-samples.json", "status": "implemented" },
+        { "path": "backend/samples/demo-samples.json", "status": "implemented" },
+        { "path": "backend/samples/demo", "status": "implemented" }
       ]
     }
   ],
