@@ -1,9 +1,9 @@
 # Inspect-Vision
 
 Visual quality-control system for manufacturing images. The React/Vite frontend,
-complete selected-model inspection service, and SQLite/media persistence layer
-are implemented and verified. FastAPI and end-to-end HTTP application evidence
-remain planned.
+selected-model inspection service, crash-recoverable SQLite/media persistence,
+and main FastAPI inspection/history API are implemented and verified. Live
+stream, server CSV, and the final ten-image demo dataset remain planned.
 
 ## Current state
 
@@ -22,8 +22,11 @@ remain planned.
 - SQLite metadata, combined server-side filters, staged media creation,
   quarantined deletion, failure compensation, and restart reconciliation are
   implemented.
-- Backend HTTP endpoints and same-format annotated/data URL encoding are not
-  implemented yet.
+- FastAPI loads one detector/service during lifespan, serializes inference, and
+  implements upload plus history list/detail/delete/clear.
+- Original media is stored byte-for-byte; annotation uses the same detected
+  JPEG/PNG format; POST/detail use the dual-image data URL contract.
+- `/api/stream` and `/api/export` are not implemented yet.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
 
@@ -35,12 +38,12 @@ Inspect-Vision uses Python 3.13.5 on Windows. From Git Bash:
 python --version
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install --upgrade pip
-.venv/Scripts/python.exe -m pip install -r requirements-detection.txt
+.venv/Scripts/python.exe -m pip install -r requirements-api.txt
 ```
 
-The tracked dependency profile installs CPU PyTorch for a reproducible baseline.
-Install a compatible CUDA PyTorch build separately before selecting `cuda` or
-`cuda:N`.
+The API profile includes the exact CPU detection profile. Install a compatible
+CUDA PyTorch build separately before selecting `cuda` or `cuda:N`. For
+detection-only work, install `requirements-detection.txt` instead.
 
 Model weights must match `backend/models/model-manifest.json`. Verify both local
 models through the detection core with:
@@ -54,6 +57,30 @@ confidence and regenerate JSON plus annotated PNG evidence with:
 
 ```bash
 .venv/Scripts/python.exe scripts/probe_inspection_service.py
+```
+
+Run the real selected model through a loopback Uvicorn server, POST/list/detail/
+delete persistence sequence, and regenerate HTTP JSON evidence with:
+
+```bash
+.venv/Scripts/python.exe scripts/probe_api_persistence.py
+```
+
+## Run
+
+Copy `.env.example` to `.env`, keep the registered model weight at the configured
+path, then start the backend from the repository root:
+
+```bash
+.venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+```
+
+In another Git Bash terminal:
+
+```bash
+cd frontend
+npm ci
+npm run dev
 ```
 
 ## Commands
@@ -72,6 +99,7 @@ make test
 make architecture
 make check-architecture
 make probe-service
+make probe-api
 make status
 ```
 
@@ -81,7 +109,7 @@ Without Make:
 .venv/Scripts/python.exe scripts/validate_structure.py
 .venv/Scripts/python.exe scripts/validate_architecture.py
 .venv/Scripts/python.exe scripts/generate_dependency_graph.py --check
-.venv/Scripts/python.exe -m pytest tests/unit/detection tests/unit/history tests/unit/evidence
+.venv/Scripts/python.exe -m pytest tests/unit/backend_api tests/unit/contracts tests/unit/detection tests/unit/history tests/unit/evidence tests/integration/api
 npm --prefix frontend test
 npm --prefix frontend run build
 npm --prefix frontend audit --audit-level=high

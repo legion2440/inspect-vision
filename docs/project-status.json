@@ -4,7 +4,7 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "inspection-storage-verified-api-planned",
+  "state": "main-api-persistence-runtime-verified-bonuses-planned",
   "verified": [
     "frontend production build with Vite 8.2.0",
     "npm audit with zero known vulnerabilities",
@@ -20,13 +20,19 @@
     "SQLite inspection CRUD and newest-first combined date/type/query filtering",
     "staged media creation, quarantined deletion, failure compensation, and startup reconciliation",
     "sixteen persistence unit tests covering reopen, cleanup, rollback, and path safety",
-    "forty-nine detection unit tests, four frontend utility tests, and architecture import-boundary test"
+    "FastAPI lifespan creates one selected detection service, storage service, and serialized inference lock",
+    "content-based JPEG/PNG inspection upload with an exact 10485760-byte boundary and exact error mapping",
+    "server-side history list/detail/delete/clear with combined date/type/query filters and summary/detail separation",
+    "loopback Uvicorn POST, list, detail, and delete evidence returned four real selected-model defects and left no media files",
+    "byte-exact persisted original plus same-format original-size annotated image delivered through the dual data URL contract",
+    "dependency-injected API tests cover PNG/JPEG, spoofed content, model failure, reopen, concurrency, filtering, and cleanup",
+    "ninety-two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests"
   ],
   "known_limitations": [
     {
-      "id": "backend-not-implemented",
+      "id": "bonus-endpoints-not-implemented",
       "area": "backend-api",
-      "detail": "FastAPI endpoints and end-to-end real API integration are planned."
+      "detail": "The main inspection/history API is implemented; bonus /api/stream and /api/export endpoints remain planned."
     },
     {
       "id": "alternative-service-mapping-not-implemented",
@@ -39,24 +45,24 @@
       "detail": "The 17-class alternative required a 0.05 diagnostic threshold and produced two detections on one of three NEU-DET probe images; the stronger six-class model is selected."
     },
     {
-      "id": "storage-http-not-integrated",
-      "area": "inspection-history",
-      "detail": "SQLite metadata and media persistence are implemented; HTTP history integration and CSV export are planned."
-    },
-    {
       "id": "samples-incomplete",
       "area": "audit-evidence",
       "detail": "The required ten-image manufacturing dataset and provenance manifest are not present."
     },
     {
-      "id": "runtime-evidence-missing",
+      "id": "bonus-runtime-evidence-missing",
       "area": "audit-evidence",
-      "detail": "Core and inspection-service inference plus annotated outputs are verified; HTTP, live backend, persistence, and server CSV paths are not runtime-verified."
+      "detail": "Core, inspection service, main HTTP API, SQLite, media, and delete cleanup are verified; live backend and server CSV paths remain unverified."
+    },
+    {
+      "id": "api-evidence-commit-pointer-provisional",
+      "area": "audit-evidence",
+      "detail": "API evidence is authoritatively bound by executed source-file hashes; its sourceCommit convenience pointer will be rebased in the final evidence commit."
     },
     {
       "id": "automated-coverage-partial",
       "area": "audit-evidence",
-      "detail": "Detection and persistence unit tests, evidence freshness checks, import-boundary checks, frontend utility tests, and builds exist; component, API, and end-to-end automation remain planned."
+      "detail": "Detection, persistence, contract, and API tests plus evidence freshness, import boundaries, frontend utilities, and builds exist; React component and browser end-to-end automation remain planned."
     }
   ]
 }

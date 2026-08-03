@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-03T18:14:24.302246Z",
+  "sourceCommit": "c085acea8b6f70d96369bebb7efe4e5560aefabd",
+  "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
+  "sourceFiles": {
+    "backend/config.py": "d2e598cfa86ce132e443154951bab28cfb988efccb8364b7de987618d729be70",
+    "backend/main.py": "2d15ea116df5e04a09ab8fbab1a7845a1022da4dd42318de1b2d802846544c0a",
+    "backend/models/record.py": "9683bd0b46d023831c900c0684053c1f16756c4182eb8353583b903b283e522e",
+    "backend/routes/dependencies.py": "5935b0fd1f5916fe6e5527d18824434a94708e728cc30aa384f0e760cc62657b",
+    "backend/routes/detect.py": "d109c1d4be08b0c58e4a6b1542169fddf107a70281801ecb307080812e4ebd1e",
+    "backend/routes/history.py": "ea04bdbb533223e1eaeb2de6f21feb101bb76dc61705f7f47142b31cc5ba8588",
+    "backend/routes/serialization.py": "6044fde30eaf96a3b1b165d165430cb528040930549ca190e7f9148ce40b09f3",
+    "backend/storage/media.py": "49fb29640c3a1e473a06998e11ec675198ab8547cb1421c7be87d23745c490eb",
+    "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
+    "backend/storage/service.py": "484b5e0f62aa81c953ef12825d778b5367fb99477c284f77530e6087ff77f875",
+    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
+    "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
+    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
+    "requirements-api.txt": "e59a3662be62054d80a270ba5d5c6a8059efbdd5ee40b04340cca61374d39531",
+    "scripts/probe_api_persistence.py": "b15c2e5ad486cfaf3e16cbd5b2d69263af2e975b1b4a0c69f246d537eba8c8f5"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "packages": {
+      "fastapi": "0.141.1",
+      "httpx2": "2.9.1",
+      "opencv-python": "4.13.0.92",
+      "pydantic": "2.13.4",
+      "starlette": "1.3.1",
+      "torch": "2.12.1+cpu",
+      "ultralytics": "8.4.78"
+    },
+    "transport": "Uvicorn loopback HTTP/1.1 with FastAPI lifespan"
+  },
+  "configuration": {
+    "modelId": "neu-defect-yolov8",
+    "modelDevice": "cpu",
+    "modelConfidence": 0.25,
+    "maxUploadBytes": 10485760,
+    "database": "temporary SQLite file",
+    "media": "temporary application-owned directory"
+  },
+  "sample": {
+    "sampleId": "neu-inclusion-1",
+    "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+    "sourceSha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
+  },
+  "endpointSequence": [
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    }
+  ],
+  "httpOutputs": [
+    {
+      "path": "docs/evidence/api-persistence/post-inspect.json",
+      "sha256": "4e068dfbe7f42a5398958306c1ab0e3d1f403be2775bdcf14ba9ca4b8a33b41c"
+    },
+    {
+      "path": "docs/evidence/api-persistence/get-history.json",
+      "sha256": "721e08b1ef2953316a5a7aaff7bf3b42a14efbcd5befa2b38ec18885a193ddbb"
+    },
+    {
+      "path": "docs/evidence/api-persistence/get-detail.json",
+      "sha256": "4e068dfbe7f42a5398958306c1ab0e3d1f403be2775bdcf14ba9ca4b8a33b41c"
+    },
+    {
+      "path": "docs/evidence/api-persistence/delete-history.json",
+      "sha256": "77adbac07c40e47fefb8f2af714254e84e51f13ba69a05e29b481d882dcce3f4"
+    },
+    {
+      "path": "docs/evidence/api-persistence/get-history-after-delete.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    }
+  ],
+  "inspection": {
+    "inspectionId": "insp_20260803T181424068094Z_5970bb06",
+    "totalDefects": 4,
+    "qualityScore": 62,
+    "status": "failed",
+    "model": {
+      "name": "neu-defect-yolov8",
+      "version": "1"
+    }
+  },
+  "persistenceBeforeDelete": {
+    "recordExists": true,
+    "databaseFields": {
+      "inspectionId": "insp_20260803T181424068094Z_5970bb06",
+      "timestamp": "2026-08-03T18:14:24.068094Z",
+      "fileName": "evidence-inclusion.jpg",
+      "imageWidth": 200,
+      "imageHeight": 200,
+      "totalDefects": 4,
+      "qualityScore": 62,
+      "status": "failed",
+      "modelId": "neu-defect-yolov8"
+    },
+    "original": {
+      "relativePath": "original/insp_20260803T181424068094Z_5970bb06.jpg",
+      "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+      "byteExactToSource": true
+    },
+    "annotated": {
+      "relativePath": "annotated/insp_20260803T181424068094Z_5970bb06.jpg",
+      "sha256": "cc7f6d0c4b4c6a2586925d2b6b495e6b5aa1f5cd8b5bbf89624c3c919ee93970",
+      "dimensions": {
+        "width": 200,
+        "height": 200
+      }
+    }
+  },
+  "persistenceAfterDelete": {
+    "recordExists": false,
+    "historyCount": 0,
+    "remainingMediaFiles": []
+  },
+  "acceptance": {
+    "realSelectedModelViaDetectionService": true,
+    "postAndDetailIncludeDualDataUrls": true,
+    "historyListOmitsImagePayloads": true,
+    "originalStoredByteForByte": true,
+    "annotatedStoredAtOriginalDimensions": true,
+    "deleteRemovedMetadataAndMedia": true
+  }
+}

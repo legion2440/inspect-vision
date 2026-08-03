@@ -23,3 +23,15 @@ Inspection-service evidence is under `inspection-service/`:
   original-coordinate positive-area defects, source hashes, and annotated hashes.
 - Three `*-annotated.png` outputs prove that annotation is emitted at the original
   image dimensions. Their pinned source URLs and hashes are recorded in the JSON.
+
+Main API and persistence evidence is under `api-persistence/`:
+
+- `api-persistence-acceptance.json` records an actual loopback Uvicorn lifecycle
+  using the selected model at confidence `0.25`.
+- The saved HTTP JSON covers POST inspect, list, detail, delete, and the empty
+  list after deletion.
+- The evidence records the pinned input URL/hash, byte-exact original hash,
+  same-format annotated hash/dimensions, relative media paths, SQLite fields, and
+  proof that no record or media file remains after delete.
+- Executed source-file SHA-256 values are authoritative until the final evidence
+  commit updates the convenience `sourceCommit` pointer.

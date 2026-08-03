@@ -2,11 +2,11 @@
 
 ## Status
 
-The frontend application, its real-API boundary, reusable multiclass core,
-selected-model inspection service, and SQLite/media persistence are implemented.
-Both registered models have core probe evidence, and the selected model has full
-preprocessing, annotation, and quality-score evidence. FastAPI composition and
-the final demo dataset remain planned. See
+The frontend application, reusable multiclass core, selected-model inspection
+service, SQLite/media persistence, and main FastAPI inspection/history API are
+implemented. Both registered models have core probe evidence. The selected model
+has full preprocessing, HTTP, persistence, and deletion evidence. Live stream,
+server CSV, and the final demo dataset remain planned. See
 `docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
@@ -34,10 +34,13 @@ flowchart LR
 ### Backend API
 
 - Root: `backend/routes` with application entrypoint `backend/main.py`.
-- Will own HTTP validation, response serialization, CORS, error mapping, and route
-  composition.
-- Must not contain model inference or persistence implementation.
-- Planned.
+- Owns environment validation, lifespan composition, CORS, multipart/content
+  validation, response serialization, inference locking, and error mapping.
+- Lifespan creates exactly one selected detector/service and one storage service.
+- Implements `POST /api/inspect`, list/detail/delete history, and history clear.
+- Keeps model inference and persistence implementation behind their public
+  service boundaries.
+- `/api/stream` and `/api/export` remain planned.
 
 ### Defect detection
 
@@ -69,7 +72,9 @@ flowchart LR
 - Restores referenced quarantined files and removes interrupted staging plus
   unreferenced media at startup.
 - List responses omit image bodies; detail responses hydrate both image fields.
-- CSV projection remains planned.
+- The HTTP layer persists original bytes unchanged and encodes the annotated copy
+  in the detected source format; POST/detail expose both as data URLs.
+- Main history endpoints are implemented; CSV projection remains planned.
 
 ### Shared contracts
 
@@ -114,6 +119,5 @@ sequenceDiagram
 ## Deferred decisions
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
-FastAPI serialization, same-format annotated encoding, data URLs, production
-confidence calibration, and a redistributable ten-image demo dataset remain
-deferred.
+Live-frame semantics, CSV projection, production confidence calibration, and a
+redistributable ten-image demo dataset remain deferred.

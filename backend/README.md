@@ -4,6 +4,7 @@ The reusable detection library is implemented under `backend/detection`, with
 detection-owned model loading and preprocessing utilities under `backend/utils`.
 It has no FastAPI or persistence dependency.
 
-The FastAPI application, inspection service, annotation, severity, and storage
-remain planned. Their implementation must follow `docs/api-contract.md`,
-`docs/env-model-contract.md`, and the boundaries in `ARCHITECTURE.md`.
+`backend/main.py` composes FastAPI over `DetectionService` and the SQLite/media
+storage service. Main upload and history endpoints follow
+`docs/api-contract.md`; live frames and server CSV remain deferred. Runtime
+settings are validated by `backend/config.py` from `INSPECT_VISION_*` variables.

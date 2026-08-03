@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-03T14:43:55.420392Z",
-  "sourceCommit": "aaa88cee95484c638357064468b16d52eef884df",
+  "recordedAt": "2026-08-03T18:19:27.114908Z",
+  "sourceCommit": "c085acea8b6f70d96369bebb7efe4e5560aefabd",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
     "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
@@ -10,7 +10,7 @@
     "backend/detection/quality.py": "838854adb6a3505a945259df46df2a6fec5914be45ec306220918c39cf9f197e",
     "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
     "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
-    "backend/utils/model_loader.py": "95d9ad0eea3bae84e3494afed09aac91e9210fbf6246dc0f5d2828a50551a9c2",
+    "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
     "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
     "scripts/probe_inspection_service.py": "291175bba32de66c91400f6872966d4816876b17f3cff64bab851117981c685d"
   },

@@ -1,4 +1,18 @@
 # Backend API routes
 
-Planned owner of FastAPI route composition, request validation, and HTTP error
-mapping. Detection and persistence logic belong to their respective modules.
+`backend.main:create_app` composes the FastAPI application. Its lifespan creates
+one selected `DetectionService`, one `InspectionStorage`, and one inference lock.
+Factories are injectable so HTTP tests exercise the real route/storage boundary
+without loading model weights.
+
+Implemented routes:
+
+- `POST /api/inspect`: bounded multipart read, content decode, serialized
+  inference, same-format annotation encoding, persistence, and detail response;
+- `GET /api/history`: combined server-side date/type/query filters;
+- `GET /api/history/{id}`: persisted detail with dual data URLs;
+- `DELETE /api/history/{id}` and `POST /api/history/clear`: metadata plus media
+  cleanup.
+
+`/api/stream` and `/api/export` remain deferred. Detection and persistence logic
+stay in their owning modules.

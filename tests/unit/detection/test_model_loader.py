@@ -72,6 +72,23 @@ def test_create_detector_verifies_weight_and_uses_cpu(tmp_path: Path) -> None:
     assert detector.device.kind == "cpu"
 
 
+def test_create_detector_honors_explicit_weight_path(tmp_path: Path) -> None:
+    manifest_path, models_directory = _manifest(tmp_path, b"model")
+    explicit_path = tmp_path / "deployment" / "selected.pt"
+    explicit_path.parent.mkdir()
+    explicit_path.write_bytes((models_directory / "test.pt").read_bytes())
+
+    detector = create_detector(
+        manifest_path=manifest_path,
+        models_directory=tmp_path / "unused",
+        model_path=explicit_path,
+        device="cpu",
+        torch_module=TorchStub(),
+    )
+
+    assert detector.model_path == explicit_path
+
+
 def test_weight_hash_mismatch_is_rejected(tmp_path: Path) -> None:
     manifest_path, models_directory = _manifest(tmp_path, b"model")
     spec = get_model_spec(manifest_path=manifest_path)

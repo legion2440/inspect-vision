@@ -3,9 +3,10 @@
 Runtime configuration is read from environment variables. `.env.example` is the
 tracked template; `.env`, model weights, databases, and media are ignored.
 
-The backend runtime uses Python 3.13.5. The reproducible baseline dependency
-profile is `requirements-detection.txt` and intentionally excludes FastAPI,
-Streamlit, supervision, tracking, and video runtimes.
+The backend runtime uses Python 3.13.5. `requirements-detection.txt` is the
+detection-only baseline. `requirements-api.txt` extends it with exact FastAPI,
+Pydantic Settings, multipart, Uvicorn, and HTTP test dependencies. Neither
+profile includes Streamlit, supervision, tracking, or video runtimes.
 
 ## Variables
 
@@ -19,6 +20,7 @@ Streamlit, supervision, tracking, and video runtimes.
 | `INSPECT_VISION_MODEL_PATH` | yes | Repository-relative or deployment-local model path |
 | `INSPECT_VISION_MODEL_INPUT_SIZE` | yes | Square model input size, initially 640 |
 | `INSPECT_VISION_MODEL_CONFIDENCE` | yes | Inclusive detection threshold from 0 to 1 |
+| `INSPECT_VISION_MODEL_IOU` | yes | Inclusive model non-maximum-suppression IoU from 0 to 1 |
 | `INSPECT_VISION_MODEL_DEVICE` | yes | Exactly `auto`, `cpu`, `cuda`, or `cuda:N` |
 | `INSPECT_VISION_CLAHE_CLIP_LIMIT` | yes | CLAHE clip limit; fixed baseline is `2.0` |
 | `INSPECT_VISION_CLAHE_TILE_GRID_SIZE` | yes | Square CLAHE tile grid edge; fixed baseline is `8`, meaning `8 × 8` |
@@ -34,14 +36,14 @@ API mode and it must not be changed back to implicit mock mode.
   model, immutable source revision, MIT license metadata, SHA-256, byte size,
   input size, task, and checkpoint-native classes are recorded there.
 - Verify the local weight byte size and SHA-256 before constructing the adapter.
-- Load one model instance during future FastAPI lifespan startup or through one
-  concurrency-safe lazy loader.
+- Load one model instance during FastAPI lifespan startup.
 - Validate kind, readable path, class names, input size, and supported device.
 - Do not download weights during request handling.
 - Do not silently replace a missing or failing model with random, heuristic, or
   mock detections. `/api/inspect` and `/api/stream` return `Detection model error`.
-- Serialize inference when the selected runtime/model is not thread-safe.
-- Record model ID and manifest hash on every future persisted inspection.
+- Serialize inference with the application-owned lock.
+- Record the selected model ID on every persisted inspection; the tracked
+  manifest remains authoritative for its weight hash.
 - Large weights remain untracked.
 
 ## Preprocessing and coordinates
@@ -64,8 +66,8 @@ accepts only that already-decoded array and applies the fixed production path:
 9. Map native classes through the explicit selected-model identity mapping.
 10. Draw annotations on a copy of the original BGR image.
 
-Image encoding remains outside the detection service and belongs to the future
-API/media boundary.
+Image encoding remains outside the detection service. The API stores original
+bytes unchanged and encodes annotation in the same detected JPEG/PNG format.
 
 The adapter boundary returns normalized detections independent of YOLO library
 objects. API routes never parse raw model tensors.
@@ -101,6 +103,8 @@ metrology measurement.
 
 ## Storage
 
-SQLite stores metadata and relative media paths, not base64 bodies. Media writes,
-metadata commits, deletion, and clearing must leave no orphaned files after a
-successful operation. History list queries never load image bytes.
+SQLite stores metadata and relative media paths, not base64 bodies. Staging plus
+commit compensation protects creation; delete/clear use quarantine; startup
+reconciliation repairs interrupted operations and removes unreferenced media.
+History list queries never load image bytes. Data URLs are created only for POST
+and detail responses.

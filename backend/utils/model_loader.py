@@ -80,6 +80,7 @@ def verify_model_weight(path: Path, spec: ModelSpec) -> None:
 def create_detector(
     model_id: str | None = None,
     *,
+    model_path: Path | None = None,
     device: str = "auto",
     confidence: float = 0.25,
     iou: float = 0.5,
@@ -91,12 +92,12 @@ def create_detector(
     spec = get_model_spec(model_id, manifest_path=manifest_path)
     if spec.task != "detect":
         raise ValueError(f"Unsupported model task: {spec.task}")
-    model_path = models_directory / spec.filename
-    verify_model_weight(model_path, spec)
+    resolved_model_path = model_path or (models_directory / spec.filename)
+    verify_model_weight(resolved_model_path, spec)
     device_info: DeviceInfo = select_device(device, torch_module=torch_module)
     return UltralyticsBackend(
         model_id=spec.model_id,
-        model_path=model_path,
+        model_path=resolved_model_path,
         device=device_info,
         image_size=spec.image_size,
         confidence=confidence,

@@ -29,15 +29,15 @@ flowchart LR
 | --- | --- | --- | --- |
 | frontend-app | backend-api | runtime | The frontend calls only the documented FastAPI HTTP surface. |
 | frontend-app | shared-contracts | contract | The frontend consumes stable inspection and error DTO semantics. |
-| backend-api | defect-detection | runtime | Inspection and stream routes invoke the public detection service. |
-| backend-api | inspection-history | runtime | API routes persist, query, export, and delete inspection records through the history service. |
+| backend-api | defect-detection | runtime | The inspection route invokes the public detection service; stream remains deferred. |
+| backend-api | inspection-history | runtime | API routes persist, query, and delete inspection records through the history service; export remains deferred. |
 | backend-api | shared-contracts | contract | FastAPI validates and serializes the shared DTOs. |
 | defect-detection | shared-contracts | contract | Detection emits normalized defects independent of model-library objects. |
 | inspection-history | shared-contracts | contract | Persistence stores and returns shared inspection semantics. |
 | audit-evidence | frontend-app | verification | Audit checks verify the public frontend build and behavior. |
-| audit-evidence | backend-api | verification | Future integration evidence verifies the public API. |
+| audit-evidence | backend-api | verification | Integration tests and loopback HTTP evidence verify the public inspection and history API. |
 | audit-evidence | defect-detection | verification | Audit evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs. |
-| audit-evidence | inspection-history | verification | Unit and future HTTP evidence verify history persistence, media consistency, and CSV behavior. |
+| audit-evidence | inspection-history | verification | Unit and loopback HTTP evidence verify history persistence and media consistency; CSV remains deferred. |
 
 ## Forbidden dependencies
 

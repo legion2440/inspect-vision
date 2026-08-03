@@ -1,7 +1,7 @@
 PYTHON ?= .venv/Scripts/python.exe
 NPM ?= npm
 
-.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service status
+.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service probe-api status
 
 validate:
 	$(PYTHON) scripts/validate.py
@@ -16,7 +16,7 @@ validate-frontend:
 	$(NPM) --prefix frontend audit --audit-level=high
 
 test:
-	$(PYTHON) -m pytest tests/unit/detection tests/unit/history tests/unit/evidence
+	$(PYTHON) -m pytest tests/unit/backend_api tests/unit/contracts tests/unit/detection tests/unit/history tests/unit/evidence tests/integration/api
 	$(NPM) --prefix frontend test
 
 architecture:
@@ -27,6 +27,9 @@ check-architecture:
 
 probe-service:
 	$(PYTHON) scripts/probe_inspection_service.py
+
+probe-api:
+	$(PYTHON) scripts/probe_api_persistence.py
 
 status:
 	$(PYTHON) scripts/show_status.py

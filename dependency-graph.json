@@ -25,13 +25,13 @@
       "from": "backend-api",
       "to": "defect-detection",
       "type": "runtime",
-      "rationale": "Inspection and stream routes invoke the public detection service."
+      "rationale": "The inspection route invokes the public detection service; stream remains deferred."
     },
     {
       "from": "backend-api",
       "to": "inspection-history",
       "type": "runtime",
-      "rationale": "API routes persist, query, export, and delete inspection records through the history service."
+      "rationale": "API routes persist, query, and delete inspection records through the history service; export remains deferred."
     },
     {
       "from": "backend-api",
@@ -61,7 +61,7 @@
       "from": "audit-evidence",
       "to": "backend-api",
       "type": "verification",
-      "rationale": "Future integration evidence verifies the public API."
+      "rationale": "Integration tests and loopback HTTP evidence verify the public inspection and history API."
     },
     {
       "from": "audit-evidence",
@@ -73,7 +73,7 @@
       "from": "audit-evidence",
       "to": "inspection-history",
       "type": "verification",
-      "rationale": "Unit and future HTTP evidence verify history persistence, media consistency, and CSV behavior."
+      "rationale": "Unit and loopback HTTP evidence verify history persistence and media consistency; CSV remains deferred."
     }
   ],
   "forbidden_edges": [

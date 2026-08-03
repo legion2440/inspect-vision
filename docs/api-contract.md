@@ -25,7 +25,7 @@ pixels with `(0, 0)` at the top-left.
   "totalDefects": 1,
   "qualityScore": 82,
   "status": "failed",
-  "model": { "name": "defect-detector", "version": "1" }
+  "model": { "name": "neu-defect-yolov8", "version": "1" }
 }
 ```
 
@@ -40,6 +40,8 @@ Contract invariants:
 - `totalDefects` equals `defects.length`.
 - `status` is `passed` only when `totalDefects` is zero; otherwise it is `failed`.
 - `qualityScore` is an integer from `0` to `100` and is authoritative.
+- `model.name` is the persisted manifest model ID; `model.version` is the API
+  projection version and currently equals `1`.
 - `type` preserves one of the selected model's native names: `crazing`,
   `inclusion`, `patches`, `pitted_surface`, `rolled-in_scale`, or `scratches`.
 
@@ -52,6 +54,9 @@ JPEG or PNG up to 10 MiB. Validation uses decoded content, not only the extensio
 or client-supplied MIME type.
 
 Returns the full inspection detail and persists metadata plus both image assets.
+The original payload is stored byte-for-byte. The annotated image uses the same
+detected format (`image/jpeg` or `image/png`) regardless of filename extension or
+client-supplied MIME type.
 
 ### `GET /api/history`
 

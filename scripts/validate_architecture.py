@@ -611,6 +611,134 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
         errors.append("Inspection-service evidence must contain real selected-model detections")
 
 
+def _check_api_persistence_evidence(errors: list[str]) -> None:
+    evidence = _load_json("docs/evidence/api-persistence/api-persistence-acceptance.json")
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("API persistence evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(f"API persistence evidence sourceCommit is not an ancestor: {source_commit}")
+
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append("API persistence evidence must record sourceFiles hashes")
+    else:
+        for relative_path, expected_hash in source_files.items():
+            if not _valid_repository_path(relative_path):
+                errors.append(f"API persistence evidence has invalid source path: {relative_path!r}")
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(f"API persistence evidence source file is missing: {relative_path}")
+                continue
+            if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
+                errors.append(f"API persistence evidence is stale for source file: {relative_path}")
+
+    output_bodies: dict[str, object] = {}
+    outputs = evidence.get("httpOutputs")
+    if not isinstance(outputs, list) or len(outputs) != 5:
+        errors.append("API persistence evidence must record five HTTP JSON outputs")
+    else:
+        for output in outputs:
+            relative_path = output.get("path") if isinstance(output, dict) else None
+            if not _valid_repository_path(relative_path):
+                errors.append("API persistence evidence has an invalid HTTP output path")
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(f"API persistence HTTP output is missing: {relative_path}")
+                continue
+            if hashlib.sha256(path.read_bytes()).hexdigest() != output.get("sha256"):
+                errors.append(f"API persistence HTTP output hash mismatch: {relative_path}")
+            try:
+                output_bodies[Path(relative_path).name] = json.loads(path.read_text(encoding="utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as error:
+                errors.append(f"API persistence HTTP output is invalid JSON: {relative_path}: {error}")
+
+    expected_sequence = [
+        ("POST", "/api/inspect", 200),
+        ("GET", "/api/history", 200),
+        ("GET", "/api/history/{id}", 200),
+        ("DELETE", "/api/history/{id}", 200),
+        ("GET", "/api/history", 200),
+    ]
+    actual_sequence = [
+        (entry.get("method"), entry.get("path"), entry.get("status"))
+        for entry in evidence.get("endpointSequence", [])
+        if isinstance(entry, dict)
+    ]
+    if actual_sequence != expected_sequence:
+        errors.append("API persistence evidence endpoint sequence is incomplete")
+
+    post = output_bodies.get("post-inspect.json")
+    detail = output_bodies.get("get-detail.json")
+    history = output_bodies.get("get-history.json")
+    deleted = output_bodies.get("delete-history.json")
+    history_after_delete = output_bodies.get("get-history-after-delete.json")
+    if not isinstance(post, dict) or post != detail:
+        errors.append("API persistence POST and detail outputs must match")
+    else:
+        inspection_id = post.get("inspectionId")
+        defects = post.get("defects")
+        if not isinstance(defects, list) or not defects or post.get("totalDefects") != len(defects):
+            errors.append("API persistence evidence must contain real API defects")
+        if post.get("status") != "failed":
+            errors.append("API persistence defect result must be failed")
+        if post.get("model") != {"name": "neu-defect-yolov8", "version": "1"}:
+            errors.append("API persistence evidence has an invalid model projection")
+        for field in ("imageUrl", "originalImageUrl"):
+            if not isinstance(post.get(field), str) or not post[field].startswith("data:image/jpeg;base64,"):
+                errors.append(f"API persistence evidence has an invalid {field}")
+        if (
+            not isinstance(history, list)
+            or len(history) != 1
+            or history[0].get("inspectionId") != inspection_id
+            or "imageUrl" in history[0]
+            or "originalImageUrl" in history[0]
+        ):
+            errors.append("API persistence history output violates the summary contract")
+        if deleted != {"inspectionId": inspection_id, "deleted": True}:
+            errors.append("API persistence delete output violates the contract")
+    if history_after_delete != []:
+        errors.append("API persistence history must be empty after delete")
+
+    sample = evidence.get("sample", {})
+    persisted = evidence.get("persistenceBeforeDelete", {})
+    original = persisted.get("original", {}) if isinstance(persisted, dict) else {}
+    annotated = persisted.get("annotated", {}) if isinstance(persisted, dict) else {}
+    if (
+        persisted.get("recordExists") is not True
+        or original.get("byteExactToSource") is not True
+        or original.get("sha256") != sample.get("sourceSha256")
+    ):
+        errors.append("API persistence evidence does not prove byte-exact original storage")
+    dimensions = annotated.get("dimensions", {})
+    database_fields = persisted.get("databaseFields", {}) if isinstance(persisted, dict) else {}
+    if dimensions != {
+        "width": database_fields.get("imageWidth"),
+        "height": database_fields.get("imageHeight"),
+    }:
+        errors.append("API persistence annotated dimensions differ from the original")
+    if evidence.get("persistenceAfterDelete") != {
+        "recordExists": False,
+        "historyCount": 0,
+        "remainingMediaFiles": [],
+    }:
+        errors.append("API persistence evidence does not prove delete cleanup")
+    acceptance = evidence.get("acceptance", {})
+    if not isinstance(acceptance, dict) or not acceptance or not all(
+        value is True for value in acceptance.values()
+    ):
+        errors.append("API persistence acceptance flags are incomplete")
+
+
 def _check_frontend_invariants(errors: list[str]) -> None:
     route_tree = (REPOSITORY_ROOT / "frontend/src/routeTree.gen.js").read_text(encoding="utf-8")
     forbidden_types = (" as any", "declare module", "export interface", "_addFileTypes")
@@ -635,6 +763,7 @@ def main() -> int:
         _check_model_manifest(errors)
         _check_detection_evidence(errors)
         _check_inspection_service_evidence(errors)
+        _check_api_persistence_evidence(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:
