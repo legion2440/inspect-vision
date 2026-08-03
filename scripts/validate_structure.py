@@ -42,6 +42,10 @@ REQUIRED_FILES = (
     "backend/detection/annotation.py",
     "backend/detection/quality.py",
     "backend/detection/service.py",
+    "backend/storage/__init__.py",
+    "backend/storage/media.py",
+    "backend/storage/repository.py",
+    "backend/storage/service.py",
     "backend/models/model-manifest.json",
     "backend/samples/model-probe-samples.json",
     "docs/api-contract.md",
@@ -67,6 +71,8 @@ REQUIRED_FILES = (
     "scripts/validate.py",
     "scripts/validate_architecture.py",
     "scripts/validate_structure.py",
+    "tests/unit/history/test_repository.py",
+    "tests/unit/history/test_storage_service.py",
 )
 
 JSON_FILES = (

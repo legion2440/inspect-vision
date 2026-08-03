@@ -16,7 +16,7 @@ validate-frontend:
 	$(NPM) --prefix frontend audit --audit-level=high
 
 test:
-	$(PYTHON) -m pytest tests/unit/detection tests/unit/evidence
+	$(PYTHON) -m pytest tests/unit/detection tests/unit/history tests/unit/evidence
 	$(NPM) --prefix frontend test
 
 architecture:

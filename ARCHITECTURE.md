@@ -2,11 +2,11 @@
 
 ## Status
 
-The frontend application, its real-API boundary, reusable multiclass core, and
-selected-model inspection service are implemented. Both registered models have
-core probe evidence, and the selected model has full preprocessing, annotation,
-and quality-score evidence. Backend API, persistence, and the final demo dataset
-remain planned. See
+The frontend application, its real-API boundary, reusable multiclass core,
+selected-model inspection service, and SQLite/media persistence are implemented.
+Both registered models have core probe evidence, and the selected model has full
+preprocessing, annotation, and quality-score evidence. FastAPI composition and
+the final demo dataset remain planned. See
 `docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
@@ -61,10 +61,15 @@ flowchart LR
 ### Inspection history
 
 - Root: `backend/storage`.
-- Will own SQLite metadata, media paths, filtering, deletion, clearing, and CSV
-  projection.
+- Owns SQLite metadata, stable relative media paths, combined SQL filtering,
+  transactional creation, deletion, clearing, and restart reconciliation.
+- Writes new media through staging; delete/clear use quarantine until SQLite
+  commits; compensating cleanup prevents ordinary write/commit failures from
+  leaving inconsistent metadata or final media.
+- Restores referenced quarantined files and removes interrupted staging plus
+  unreferenced media at startup.
 - List responses omit image bodies; detail responses hydrate both image fields.
-- Planned.
+- CSV projection remains planned.
 
 ### Shared contracts
 
@@ -109,5 +114,6 @@ sequenceDiagram
 ## Deferred decisions
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
-FastAPI serialization, JPEG/data URL encoding, production confidence calibration,
-storage, and a redistributable ten-image demo dataset remain deferred.
+FastAPI serialization, same-format annotated encoding, data URLs, production
+confidence calibration, and a redistributable ten-image demo dataset remain
+deferred.

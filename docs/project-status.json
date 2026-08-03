@@ -4,7 +4,7 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "inspection-detection-service-verified-api-planned",
+  "state": "inspection-storage-verified-api-planned",
   "verified": [
     "frontend production build with Vite 8.2.0",
     "npm audit with zero known vulnerabilities",
@@ -17,6 +17,9 @@
     "selected model returns seven detections at confidence 0.25 through letterbox, grayscale, CLAHE, three-channel inference, and one original-coordinate restore",
     "DetectionService returns explicit six-class defects, original-size annotated BGR, quality-v1, and passed/failed without Ultralytics result objects",
     "three annotated PNG evidence outputs preserve original dimensions",
+    "SQLite inspection CRUD and newest-first combined date/type/query filtering",
+    "staged media creation, quarantined deletion, failure compensation, and startup reconciliation",
+    "sixteen persistence unit tests covering reopen, cleanup, rollback, and path safety",
     "forty-nine detection unit tests, four frontend utility tests, and architecture import-boundary test"
   ],
   "known_limitations": [
@@ -36,9 +39,9 @@
       "detail": "The 17-class alternative required a 0.05 diagnostic threshold and produced two detections on one of three NEU-DET probe images; the stronger six-class model is selected."
     },
     {
-      "id": "storage-not-implemented",
+      "id": "storage-http-not-integrated",
       "area": "inspection-history",
-      "detail": "SQLite metadata, media persistence, real filtering, deletion, clearing, and CSV export are planned."
+      "detail": "SQLite metadata and media persistence are implemented; HTTP history integration and CSV export are planned."
     },
     {
       "id": "samples-incomplete",
@@ -53,7 +56,7 @@
     {
       "id": "automated-coverage-partial",
       "area": "audit-evidence",
-      "detail": "Detection service unit tests, evidence freshness checks, import-boundary checks, frontend utility tests, and builds exist; component, API, and end-to-end automation remain planned."
+      "detail": "Detection and persistence unit tests, evidence freshness checks, import-boundary checks, frontend utility tests, and builds exist; component, API, and end-to-end automation remain planned."
     }
   ]
 }

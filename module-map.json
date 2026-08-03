@@ -108,13 +108,15 @@
       "module_type": "library",
       "root": "backend/storage",
       "entrypoints": [
-        { "path": "backend/storage/repository.py", "status": "planned" }
+        { "path": "backend/storage/repository.py", "status": "implemented" }
       ],
       "public_interfaces": [
-        { "path": "backend/storage/service.py", "status": "planned" }
+        { "path": "backend/storage/__init__.py", "status": "implemented" },
+        { "path": "backend/storage/media.py", "status": "implemented" },
+        { "path": "backend/storage/service.py", "status": "implemented" }
       ],
       "tests": [
-        { "path": "tests/unit/history", "status": "planned" },
+        { "path": "tests/unit/history", "status": "implemented" },
         { "path": "tests/integration/history", "status": "planned" }
       ],
       "docs": [

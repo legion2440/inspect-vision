@@ -73,7 +73,7 @@
       "from": "audit-evidence",
       "to": "inspection-history",
       "type": "verification",
-      "rationale": "Future evidence verifies history and CSV persistence behavior."
+      "rationale": "Unit and future HTTP evidence verify history persistence, media consistency, and CSV behavior."
     }
   ],
   "forbidden_edges": [

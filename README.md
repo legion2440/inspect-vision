@@ -1,8 +1,8 @@
 # Inspect-Vision
 
-Visual quality-control system for manufacturing images. The React/Vite frontend
-and the complete selected-model inspection service are implemented and
-runtime-verified. FastAPI, persistence, and end-to-end HTTP application evidence
+Visual quality-control system for manufacturing images. The React/Vite frontend,
+complete selected-model inspection service, and SQLite/media persistence layer
+are implemented and verified. FastAPI and end-to-end HTTP application evidence
 remain planned.
 
 ## Current state
@@ -19,8 +19,11 @@ remain planned.
   grayscale, CLAHE, three-channel YOLO input, one original-coordinate restore,
   six-class identity mapping, positive-area filtering, original-size annotation,
   `quality-v1`, and the passed/failed verdict.
-- Backend HTTP endpoints, JPEG/data URL encoding, SQLite, and media persistence
-  are not implemented yet.
+- SQLite metadata, combined server-side filters, staged media creation,
+  quarantined deletion, failure compensation, and restart reconciliation are
+  implemented.
+- Backend HTTP endpoints and same-format annotated/data URL encoding are not
+  implemented yet.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
 
@@ -78,7 +81,7 @@ Without Make:
 .venv/Scripts/python.exe scripts/validate_structure.py
 .venv/Scripts/python.exe scripts/validate_architecture.py
 .venv/Scripts/python.exe scripts/generate_dependency_graph.py --check
-.venv/Scripts/python.exe -m pytest tests/unit/detection tests/unit/evidence
+.venv/Scripts/python.exe -m pytest tests/unit/detection tests/unit/history tests/unit/evidence
 npm --prefix frontend test
 npm --prefix frontend run build
 npm --prefix frontend audit --audit-level=high

@@ -37,7 +37,7 @@ flowchart LR
 | audit-evidence | frontend-app | verification | Audit checks verify the public frontend build and behavior. |
 | audit-evidence | backend-api | verification | Future integration evidence verifies the public API. |
 | audit-evidence | defect-detection | verification | Audit evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs. |
-| audit-evidence | inspection-history | verification | Future evidence verifies history and CSV persistence behavior. |
+| audit-evidence | inspection-history | verification | Unit and future HTTP evidence verify history persistence, media consistency, and CSV behavior. |
 
 ## Forbidden dependencies
 
