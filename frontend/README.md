@@ -13,9 +13,9 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-With `VITE_USE_MOCK=true` (default) the UI runs on bundled mock responses in
-`src/mocks/mockApi.js` — no backend required. Set it to `false` and point
-`VITE_API_BASE_URL` at FastAPI to use the real endpoints.
+The default is `VITE_USE_MOCK=false`: the UI calls the FastAPI backend configured
+by `VITE_API_BASE_URL`. Set `VITE_USE_MOCK=true` explicitly to run against the
+bundled standalone responses in `src/mocks/mockApi.js`.
 
 ## Routes
 
@@ -33,12 +33,12 @@ With `VITE_USE_MOCK=true` (default) the UI runs on bundled mock responses in
 | Method | Path | Used in |
 | --- | --- | --- |
 | POST | `/api/inspect` (multipart field `image`) | `utils/apiClient.js` → `inspectImage` |
-| GET | `/api/history?from&to&type&q` | `getHistory` |
+| GET | `/api/history?from&to&type&q` | server-filtered `getHistory` |
 | GET | `/api/history/{id}` | `getInspection` |
 | DELETE | `/api/history/{id}` | `deleteInspection` |
 | POST | `/api/history/clear` | `clearHistory` |
 | POST | `/api/stream` (multipart field `frame`) | bonus live detection |
-| GET | `/api/export` | optional server-side CSV (client-side fallback included) |
+| GET | `/api/export?from&to&type&q` | server-side CSV; mock mode uses a browser fallback |
 
 Response shape consumed by the UI (extra fields are ignored, `qualityScore` is
 computed client-side when absent):
@@ -47,7 +47,10 @@ computed client-side when absent):
 {
   "inspectionId": "insp_20250113_001",
   "timestamp": "2025-01-13T14:30:00Z",
-  "imageUrl": "data:image/jpeg;base64,...",
+  "imageUrl": "data:image/jpeg;base64,...annotated...",
+  "originalImageUrl": "data:image/jpeg;base64,...original...",
+  "imageWidth": 1920,
+  "imageHeight": 1080,
   "fileName": "housing_04_2b.jpg",
   "defects": [{ "type": "scratch", "confidence": 0.92, "boundingBox": { "x": 120, "y": 85, "width": 45, "height": 30 } }],
   "totalDefects": 1,
@@ -58,6 +61,11 @@ computed client-side when absent):
 
 Errors are read from `detail` (FastAPI's default), so `HTTPException(400,
 "Unsupported file type")` surfaces verbatim in the UI.
+
+`imageUrl` is the backend-rendered annotated image used by Download.
+`originalImageUrl` is the unmodified source used by `InspectionViewer` with its
+interactive Canvas overlay. History list responses may omit both image bodies;
+the detail endpoint supplies them when a record is opened.
 
 ## Structure
 
@@ -77,6 +85,7 @@ src/
 
 - Upload guards mirror the backend: `Unsupported file type`, `File size exceeds 10MB limit`.
 - `DefectOverlay` draws on `<canvas>` in source-image coordinates, rescaled via
-  `ResizeObserver` — accurate at any viewport.
+  `ResizeObserver` — accurate at any viewport. Live mode uses the camera's actual
+  `videoWidth` and `videoHeight` and processes only one frame request at a time.
 - Confidence is color-coded >90% / 70-90% / <70%; severity score 0-100 falls back
   to `utils/severity.js` if the backend does not send one.

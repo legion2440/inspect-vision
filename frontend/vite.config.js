@@ -9,6 +9,7 @@ export default defineConfig({
     TanStackRouterVite({
       routesDirectory: './src/routes',
       generatedRouteTree: './src/routeTree.gen.js',
+      disableTypes: true,
       routeFileIgnorePrefix: '-',
       quoteStyle: 'single',
     }),

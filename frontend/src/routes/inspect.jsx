@@ -19,6 +19,8 @@ function Inspect() {
   const busy = status === 'detecting';
   const defects = current?.defects || [];
   const count = current?.totalDefects ?? defects.length;
+  const viewerSrc = current?.originalImageUrl || current?.imageUrl || preview;
+  const overlayDefects = current && !current.originalImageUrl ? [] : defects;
 
   return (
     <main className="qc-main">
@@ -69,15 +71,15 @@ function Inspect() {
         <div className="qc-row qc-row-inspect">
           <section>
             <InspectionViewer
-              src={current?.imageUrl || preview}
-              defects={defects}
+              src={viewerSrc}
+              defects={overlayDefects}
               busy={busy}
               meta={fileMeta}
               selectedIndex={selected}
             />
             <p className="text-muted qc-note">
-              Boxes are drawn on a &lt;canvas&gt; layered over the source image and rescaled with the
-              frame — coordinates come straight from the API in source-image space.
+              Boxes are drawn on a &lt;canvas&gt; over the original image. The annotated backend image
+              remains available for download.
             </p>
             {error && <p className="qc-error">{error}</p>}
           </section>

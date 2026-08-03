@@ -1,0 +1,13 @@
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Local runtime files
+*.log
+.DS_Store
+Thumbs.db
+

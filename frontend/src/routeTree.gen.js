@@ -18,96 +18,27 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const InspectRoute = InspectRouteImport.update({
   id: '/inspect',
   path: '/inspect',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 const DetailsIdRoute = DetailsIdRouteImport.update({
   id: '/details/$id',
   path: '/details/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+})
 
-export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/history': typeof HistoryRoute
-  '/inspect': typeof InspectRoute
-  '/details/$id': typeof DetailsIdRoute
-}
-export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/history': typeof HistoryRoute
-  '/inspect': typeof InspectRoute
-  '/details/$id': typeof DetailsIdRoute
-}
-export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/history': typeof HistoryRoute
-  '/inspect': typeof InspectRoute
-  '/details/$id': typeof DetailsIdRoute
-}
-export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/history' | '/inspect' | '/details/$id'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/history' | '/inspect' | '/details/$id'
-  id: '__root__' | '/' | '/history' | '/inspect' | '/details/$id'
-  fileRoutesById: FileRoutesById
-}
-export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  HistoryRoute: typeof HistoryRoute
-  InspectRoute: typeof InspectRoute
-  DetailsIdRoute: typeof DetailsIdRoute
-}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inspect': {
-      id: '/inspect'
-      path: '/inspect'
-      fullPath: '/inspect'
-      preLoaderRoute: typeof InspectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/details/$id': {
-      id: '/details/$id'
-      path: '/details/$id'
-      fullPath: '/details/$id'
-      preLoaderRoute: typeof DetailsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
-}
-
-const rootRouteChildren: RootRouteChildren = {
+const rootRouteChildren = {
   IndexRoute: IndexRoute,
   HistoryRoute: HistoryRoute,
   InspectRoute: InspectRoute,
   DetailsIdRoute: DetailsIdRoute,
 }
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)

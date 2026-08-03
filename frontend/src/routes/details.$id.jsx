@@ -36,6 +36,8 @@ function Details() {
   if (!record) return <main className="qc-main"><p className="qc-mono text-muted">Loading record…</p></main>;
 
   const defects = record.defects || [];
+  const viewerSrc = record.originalImageUrl || record.imageUrl;
+  const overlayDefects = record.originalImageUrl ? defects : [];
 
   return (
     <main className="qc-main">
@@ -58,10 +60,10 @@ function Details() {
 
       <div className="qc-row qc-row-details">
         <InspectionViewer
-          src={record.imageUrl}
-          defects={defects}
+          src={viewerSrc}
+          defects={overlayDefects}
           meta={{ name: record.fileName }}
-          caption="annotated image returned by /api/inspect"
+          caption="original image with interactive canvas overlay"
         />
         <div>
           <h6 className="qc-sectionhead">Defect breakdown</h6>

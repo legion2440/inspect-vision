@@ -10,7 +10,7 @@ export default function DefectOverlay({ defects = [], sourceWidth, sourceHeight,
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !sourceWidth) return undefined;
+    if (!canvas || !sourceWidth || !sourceHeight) return undefined;
 
     const draw = () => {
       const box = canvas.parentElement.getBoundingClientRect();
@@ -22,15 +22,16 @@ export default function DefectOverlay({ defects = [], sourceWidth, sourceHeight,
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, box.width, box.height);
 
-      const scale = box.width / sourceWidth;
+      const scaleX = box.width / sourceWidth;
+      const scaleY = box.height / sourceHeight;
       ctx.font = "600 12px 'Barlow Condensed', sans-serif";
 
       defects.forEach((d, i) => {
         const b = d.boundingBox || {};
-        const x = b.x * scale;
-        const y = b.y * scale;
-        const w = b.width * scale;
-        const h = b.height * scale;
+        const x = b.x * scaleX;
+        const y = b.y * scaleY;
+        const w = b.width * scaleX;
+        const h = b.height * scaleY;
         const color = confidenceColor(d.confidence);
         const active = selectedIndex === i;
 

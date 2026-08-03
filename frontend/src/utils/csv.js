@@ -20,10 +20,16 @@ export function toCsv(records = []) {
 
 export function downloadCsv(records, filename = 'inspection-history.csv') {
   const blob = new Blob([toCsv(records)], { type: 'text/csv;charset=utf-8' });
+  downloadBlob(blob, filename);
+}
+
+export function downloadBlob(blob, filename = 'inspection-history.csv') {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }

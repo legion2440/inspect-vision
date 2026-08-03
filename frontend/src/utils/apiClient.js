@@ -1,7 +1,7 @@
 import * as mock from '../mocks/mockApi.js';
 
 const BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
-const USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'true') === 'true';
+const USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false') === 'true';
 
 async function unwrap(res) {
   if (!res.ok) {
@@ -15,6 +15,20 @@ async function unwrap(res) {
     throw new Error(message);
   }
   return res.json();
+}
+
+async function unwrapBlob(res) {
+  if (!res.ok) {
+    let message = 'Request failed (' + res.status + ')';
+    try {
+      const body = await res.json();
+      message = body.detail || body.message || message;
+    } catch (err) {
+      /* non-JSON error body — keep the status message */
+    }
+    throw new Error(message);
+  }
+  return res.blob();
 }
 
 /** POST /api/inspect — multipart image upload, returns the inspection record. */
@@ -34,12 +48,12 @@ export async function inspectFrame(blob, { signal } = {}) {
 }
 
 /** GET /api/history?from=&to=&type=&q= */
-export async function getHistory(filters = {}) {
+export async function getHistory(filters = {}, { signal } = {}) {
   if (USE_MOCK) return mock.getHistory(filters);
   const qs = new URLSearchParams(
     Object.entries(filters).filter(([, v]) => v !== '' && v != null && v !== 'all'),
   ).toString();
-  return unwrap(await fetch(BASE + '/api/history' + (qs ? '?' + qs : '')));
+  return unwrap(await fetch(BASE + '/api/history' + (qs ? '?' + qs : ''), { signal }));
 }
 
 /** GET /api/history/{id} */
@@ -66,6 +80,12 @@ export function exportUrl(filters = {}) {
     Object.entries(filters).filter(([, v]) => v !== '' && v != null && v !== 'all'),
   ).toString();
   return BASE + '/api/export' + (qs ? '?' + qs : '');
+}
+
+/** GET /api/export — return the server-generated CSV body. */
+export async function exportHistory(filters = {}, { signal } = {}) {
+  if (USE_MOCK) throw new Error('Server CSV export is unavailable in mock mode');
+  return unwrapBlob(await fetch(exportUrl(filters), { signal }));
 }
 
 export const usingMock = USE_MOCK;

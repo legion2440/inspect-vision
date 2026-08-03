@@ -1,4 +1,4 @@
-import { createContext, useCallback, useMemo, useReducer } from 'react';
+import { createContext, useCallback, useMemo, useReducer, useRef } from 'react';
 import * as api from '../utils/apiClient.js';
 import { validateImage } from '../utils/validateImage.js';
 
@@ -37,6 +37,7 @@ function reducer(state, action) {
 
 export function InspectionProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initial);
+  const historyRequestId = useRef(0);
 
   const runInspection = useCallback(async (file) => {
     const invalid = validateImage(file);
@@ -60,12 +61,17 @@ export function InspectionProvider({ children }) {
   }, []);
 
   const loadHistory = useCallback(async (filters) => {
+    const requestId = ++historyRequestId.current;
     dispatch({ type: 'historyLoading' });
     try {
       const records = await api.getHistory(filters);
-      dispatch({ type: 'history', records: Array.isArray(records) ? records : records.items || [] });
+      if (requestId === historyRequestId.current) {
+        dispatch({ type: 'history', records: Array.isArray(records) ? records : records.items || [] });
+      }
     } catch (err) {
-      dispatch({ type: 'historyError', error: err.message || 'Could not load history' });
+      if (requestId === historyRequestId.current) {
+        dispatch({ type: 'historyError', error: err.message || 'Could not load history' });
+      }
     }
   }, []);
 

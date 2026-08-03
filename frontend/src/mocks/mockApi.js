@@ -9,6 +9,9 @@ const rec = (id, iso, defects, file) => ({
   timestamp: iso,
   fileName: file,
   imageUrl: SAMPLE,
+  originalImageUrl: SAMPLE,
+  imageWidth: 1600,
+  imageHeight: 1187,
   defects,
   totalDefects: defects.length,
   status: defects.length ? 'failed' : 'passed',
@@ -52,7 +55,12 @@ export async function inspectImage(file) {
     { type: 'discoloration', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
   ];
   const defects = pool.slice(0, 1 + Math.floor(Math.random() * 3));
-  const record = { ...rec(id, new Date().toISOString(), defects, file?.name || 'upload.jpg'), imageUrl: URL.createObjectURL(file) };
+  const imageUrl = URL.createObjectURL(file);
+  const record = {
+    ...rec(id, new Date().toISOString(), defects, file?.name || 'upload.jpg'),
+    imageUrl,
+    originalImageUrl: imageUrl,
+  };
   store = [record, ...store];
   return record;
 }
@@ -68,7 +76,20 @@ export async function inspectFrame() {
   };
 }
 
-export async function getHistory() { await wait(250); return store; }
+export async function getHistory(filters = {}) {
+  await wait(250);
+  return store.filter((record) => {
+    const day = String(record.timestamp || '').slice(0, 10);
+    if (filters.from && day < filters.from) return false;
+    if (filters.to && day > filters.to) return false;
+    if (filters.type && filters.type !== 'all' && !record.defects.some((d) => d.type === filters.type)) return false;
+    if (filters.q) {
+      const haystack = (record.inspectionId + ' ' + (record.fileName || '')).toLowerCase();
+      if (!haystack.includes(String(filters.q).toLowerCase())) return false;
+    }
+    return true;
+  });
+}
 
 export async function getInspection(id) {
   await wait(200);

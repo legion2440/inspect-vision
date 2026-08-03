@@ -17,5 +17,10 @@ export function severityScore(defects = [], imageArea = 1280 * 854) {
   return Math.max(0, Math.round(100 - penalty));
 }
 
-export const scoreOf = (rec) =>
-  rec?.qualityScore ?? severityScore(rec?.defects || []);
+export const scoreOf = (rec) => {
+  if (rec?.qualityScore != null) return rec.qualityScore;
+  const imageArea = rec?.imageWidth && rec?.imageHeight
+    ? rec.imageWidth * rec.imageHeight
+    : 1280 * 854;
+  return severityScore(rec?.defects || [], imageArea);
+};
