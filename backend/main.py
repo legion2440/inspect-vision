@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import Settings
 from backend.detection.service import DetectionService
-from backend.routes import detect_router, history_router
+from backend.routes import detect_router, export_router, history_router, stream_router
 from backend.storage.media import MediaStore
 from backend.storage.repository import SQLiteInspectionRepository
 from backend.storage.service import InspectionStorage
@@ -83,6 +83,8 @@ def create_app(
     )
     application.include_router(detect_router)
     application.include_router(history_router)
+    application.include_router(stream_router)
+    application.include_router(export_router)
     return application
 
 

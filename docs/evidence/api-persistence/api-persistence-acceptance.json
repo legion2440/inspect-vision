@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-03T18:14:24.302246Z",
-  "sourceCommit": "c085acea8b6f70d96369bebb7efe4e5560aefabd",
+  "recordedAt": "2026-08-03T19:06:19.892671Z",
+  "sourceCommit": "24e910fc14272e7e10825b4b527b796421580108",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
-    "backend/config.py": "d2e598cfa86ce132e443154951bab28cfb988efccb8364b7de987618d729be70",
-    "backend/main.py": "2d15ea116df5e04a09ab8fbab1a7845a1022da4dd42318de1b2d802846544c0a",
-    "backend/models/record.py": "9683bd0b46d023831c900c0684053c1f16756c4182eb8353583b903b283e522e",
+    "backend/config.py": "f9cc81077c88058e17f12622322261a6e6fd29800127c2fab2183a19555971bb",
+    "backend/main.py": "5ea7172c877daff54576251623c7c055c48df0d91402a09bf877c0de798f422c",
+    "backend/models/record.py": "fb1b8ac0e904b4b8b03fa5fd87ab04225faaefe524513c4ae6516f15c8316ecb",
     "backend/routes/dependencies.py": "5935b0fd1f5916fe6e5527d18824434a94708e728cc30aa384f0e760cc62657b",
-    "backend/routes/detect.py": "d109c1d4be08b0c58e4a6b1542169fddf107a70281801ecb307080812e4ebd1e",
-    "backend/routes/history.py": "ea04bdbb533223e1eaeb2de6f21feb101bb76dc61705f7f47142b31cc5ba8588",
+    "backend/routes/detect.py": "f9361a8c0680ac1215b5e46851674ecd045d34f84593b99f1d1e0af7f9650ccc",
+    "backend/routes/history.py": "76153803865becb8bf31d9232888476f8c6c6bd89b3b439ff01781102a4c0f91",
     "backend/routes/serialization.py": "6044fde30eaf96a3b1b165d165430cb528040930549ca190e7f9148ce40b09f3",
     "backend/storage/media.py": "49fb29640c3a1e473a06998e11ec675198ab8547cb1421c7be87d23745c490eb",
     "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
-    "backend/storage/service.py": "484b5e0f62aa81c953ef12825d778b5367fb99477c284f77530e6087ff77f875",
+    "backend/storage/service.py": "caab843cd53754c4bb2846b0d4a3cce190a71a4fef34dfceb445904a62c3f84e",
     "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
     "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
     "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
@@ -78,19 +78,19 @@
   "httpOutputs": [
     {
       "path": "docs/evidence/api-persistence/post-inspect.json",
-      "sha256": "4e068dfbe7f42a5398958306c1ab0e3d1f403be2775bdcf14ba9ca4b8a33b41c"
+      "sha256": "6bf827e13a28e1dcf084a4e4af42c49ca3c95c533293ddb85daa1b206874e5cd"
     },
     {
       "path": "docs/evidence/api-persistence/get-history.json",
-      "sha256": "721e08b1ef2953316a5a7aaff7bf3b42a14efbcd5befa2b38ec18885a193ddbb"
+      "sha256": "c049a80df885e4954102dfd418acf63bd597d6ec604230121cc915ca126e255e"
     },
     {
       "path": "docs/evidence/api-persistence/get-detail.json",
-      "sha256": "4e068dfbe7f42a5398958306c1ab0e3d1f403be2775bdcf14ba9ca4b8a33b41c"
+      "sha256": "6bf827e13a28e1dcf084a4e4af42c49ca3c95c533293ddb85daa1b206874e5cd"
     },
     {
       "path": "docs/evidence/api-persistence/delete-history.json",
-      "sha256": "77adbac07c40e47fefb8f2af714254e84e51f13ba69a05e29b481d882dcce3f4"
+      "sha256": "9d3a40e4f21b1fe79a3bd1afcb4b1aa6b0133fe8ac4278f90356903ed0206497"
     },
     {
       "path": "docs/evidence/api-persistence/get-history-after-delete.json",
@@ -98,7 +98,7 @@
     }
   ],
   "inspection": {
-    "inspectionId": "insp_20260803T181424068094Z_5970bb06",
+    "inspectionId": "insp_20260803T190619644293Z_6b8e3000",
     "totalDefects": 4,
     "qualityScore": 62,
     "status": "failed",
@@ -110,8 +110,8 @@
   "persistenceBeforeDelete": {
     "recordExists": true,
     "databaseFields": {
-      "inspectionId": "insp_20260803T181424068094Z_5970bb06",
-      "timestamp": "2026-08-03T18:14:24.068094Z",
+      "inspectionId": "insp_20260803T190619644293Z_6b8e3000",
+      "timestamp": "2026-08-03T19:06:19.644293Z",
       "fileName": "evidence-inclusion.jpg",
       "imageWidth": 200,
       "imageHeight": 200,
@@ -121,12 +121,12 @@
       "modelId": "neu-defect-yolov8"
     },
     "original": {
-      "relativePath": "original/insp_20260803T181424068094Z_5970bb06.jpg",
+      "relativePath": "original/insp_20260803T190619644293Z_6b8e3000.jpg",
       "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
       "byteExactToSource": true
     },
     "annotated": {
-      "relativePath": "annotated/insp_20260803T181424068094Z_5970bb06.jpg",
+      "relativePath": "annotated/insp_20260803T190619644293Z_6b8e3000.jpg",
       "sha256": "cc7f6d0c4b4c6a2586925d2b6b495e6b5aa1f5cd8b5bbf89624c3c919ee93970",
       "dimensions": {
         "width": 200,

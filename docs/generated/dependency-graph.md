@@ -29,8 +29,8 @@ flowchart LR
 | --- | --- | --- | --- |
 | frontend-app | backend-api | runtime | The frontend calls only the documented FastAPI HTTP surface. |
 | frontend-app | shared-contracts | contract | The frontend consumes stable inspection and error DTO semantics. |
-| backend-api | defect-detection | runtime | The inspection route invokes the public detection service; stream remains deferred. |
-| backend-api | inspection-history | runtime | API routes persist, query, and delete inspection records through the history service; export remains deferred. |
+| backend-api | defect-detection | runtime | Inspection and stream routes invoke the public detection service through one application-owned lock. |
+| backend-api | inspection-history | runtime | API routes persist, query, delete, and export inspection records through the history service. |
 | backend-api | shared-contracts | contract | FastAPI validates and serializes the shared DTOs. |
 | defect-detection | shared-contracts | contract | Detection emits normalized defects independent of model-library objects. |
 | inspection-history | shared-contracts | contract | Persistence stores and returns shared inspection semantics. |

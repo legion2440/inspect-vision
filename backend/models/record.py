@@ -76,6 +76,28 @@ class InspectionDetailRecord(InspectionSummaryRecord):
     original_image_url: str = Field(pattern=r"^data:image/(jpeg|png);base64,")
 
 
+class StreamInspectionRecord(ContractModel):
+    frame_width: int = Field(gt=0)
+    frame_height: int = Field(gt=0)
+    defects: tuple[DefectRecord, ...]
+    total_defects: int = Field(ge=0)
+    quality_score: int = Field(ge=0, le=100)
+    status: Literal["passed", "failed"]
+
+    @model_validator(mode="after")
+    def validate_invariants(self) -> StreamInspectionRecord:
+        if self.total_defects != len(self.defects):
+            raise ValueError("totalDefects must equal defects length")
+        expected_status = "passed" if self.total_defects == 0 else "failed"
+        if self.status != expected_status:
+            raise ValueError("status must be passed only when totalDefects is zero")
+        for defect in self.defects:
+            box = defect.bounding_box
+            if box.x + box.width > self.frame_width or box.y + box.height > self.frame_height:
+                raise ValueError("defect boundingBox exceeds frame dimensions")
+        return self
+
+
 class DeleteInspectionResponse(ContractModel):
     inspection_id: str
     deleted: Literal[True] = True

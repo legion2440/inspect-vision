@@ -3,7 +3,8 @@
 Visual quality-control system for manufacturing images. The React/Vite frontend,
 selected-model inspection service, crash-recoverable SQLite/media persistence,
 and main FastAPI inspection/history API are implemented and verified. Live
-stream, server CSV, and the final ten-image demo dataset remain planned.
+stream inference and server CSV export are also implemented and verified. The
+final ten-image demo dataset remains planned.
 
 ## Current state
 
@@ -26,7 +27,8 @@ stream, server CSV, and the final ten-image demo dataset remain planned.
   implements upload plus history list/detail/delete/clear.
 - Original media is stored byte-for-byte; annotation uses the same detected
   JPEG/PNG format; POST/detail use the dual-image data URL contract.
-- `/api/stream` and `/api/export` are not implemented yet.
+- `/api/stream` reuses the selected service and inference lock without
+  persistence; `/api/export` reuses the canonical history filters and ordering.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
 
@@ -66,6 +68,13 @@ delete persistence sequence, and regenerate HTTP JSON evidence with:
 .venv/Scripts/python.exe scripts/probe_api_persistence.py
 ```
 
+Verify real stream inference without persistence and filtered history/CSV row
+parity with:
+
+```bash
+.venv/Scripts/python.exe scripts/probe_api_bonuses.py
+```
+
 ## Run
 
 Copy `.env.example` to `.env`, keep the registered model weight at the configured
@@ -100,6 +109,7 @@ make architecture
 make check-architecture
 make probe-service
 make probe-api
+make probe-bonuses
 make status
 ```
 

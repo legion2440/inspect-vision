@@ -1,0 +1,114 @@
+[
+  {
+    "inspectionId": "insp_20260803T190608084718Z_351e0a75",
+    "timestamp": "2026-08-03T19:06:08.084718Z",
+    "fileName": "target-inclusion-newest.jpg",
+    "imageWidth": 200,
+    "imageHeight": 200,
+    "defects": [
+      {
+        "type": "inclusion",
+        "confidence": 0.8644312024116516,
+        "boundingBox": {
+          "x": 115.05933380126953,
+          "y": 73.02920532226562,
+          "width": 25.348472595214844,
+          "height": 41.75286865234375
+        }
+      },
+      {
+        "type": "inclusion",
+        "confidence": 0.8521182537078857,
+        "boundingBox": {
+          "x": 114.24813842773438,
+          "y": 113.48981475830078,
+          "width": 20.240249633789062,
+          "height": 86.51018524169922
+        }
+      },
+      {
+        "type": "inclusion",
+        "confidence": 0.6050734519958496,
+        "boundingBox": {
+          "x": 118.81282043457031,
+          "y": 35.93667984008789,
+          "width": 13.271743774414062,
+          "height": 28.205707550048828
+        }
+      },
+      {
+        "type": "inclusion",
+        "confidence": 0.49906036257743835,
+        "boundingBox": {
+          "x": 34.201717376708984,
+          "y": 6.5798234939575195,
+          "width": 13.316516876220703,
+          "height": 28.985133171081543
+        }
+      }
+    ],
+    "totalDefects": 4,
+    "qualityScore": 62,
+    "status": "failed",
+    "model": {
+      "name": "neu-defect-yolov8",
+      "version": "1"
+    }
+  },
+  {
+    "inspectionId": "insp_20260803T190607943049Z_d6eb4926",
+    "timestamp": "2026-08-03T19:06:07.943049Z",
+    "fileName": "target-inclusion-a.jpg",
+    "imageWidth": 200,
+    "imageHeight": 200,
+    "defects": [
+      {
+        "type": "inclusion",
+        "confidence": 0.8644312024116516,
+        "boundingBox": {
+          "x": 115.05933380126953,
+          "y": 73.02920532226562,
+          "width": 25.348472595214844,
+          "height": 41.75286865234375
+        }
+      },
+      {
+        "type": "inclusion",
+        "confidence": 0.8521182537078857,
+        "boundingBox": {
+          "x": 114.24813842773438,
+          "y": 113.48981475830078,
+          "width": 20.240249633789062,
+          "height": 86.51018524169922
+        }
+      },
+      {
+        "type": "inclusion",
+        "confidence": 0.6050734519958496,
+        "boundingBox": {
+          "x": 118.81282043457031,
+          "y": 35.93667984008789,
+          "width": 13.271743774414062,
+          "height": 28.205707550048828
+        }
+      },
+      {
+        "type": "inclusion",
+        "confidence": 0.49906036257743835,
+        "boundingBox": {
+          "x": 34.201717376708984,
+          "y": 6.5798234939575195,
+          "width": 13.316516876220703,
+          "height": 28.985133171081543
+        }
+      }
+    ],
+    "totalDefects": 4,
+    "qualityScore": 62,
+    "status": "failed",
+    "model": {
+      "name": "neu-defect-yolov8",
+      "version": "1"
+    }
+  }
+]

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
+import time
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
@@ -179,3 +182,42 @@ def test_media_paths_reject_traversal(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="relative POSIX"):
         media.read("../secret.png")
+
+
+def test_get_with_media_serializes_against_delete(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    storage = make_storage(tmp_path)
+    storage.initialize()
+    record = create_record(storage, "insp_concurrent_detail")
+    read_started = threading.Event()
+    release_read = threading.Event()
+    original_read = storage.media.read
+    read_count = 0
+    count_lock = threading.Lock()
+
+    def blocking_read(relative_path: str) -> bytes:
+        nonlocal read_count
+        with count_lock:
+            read_count += 1
+            first_read = read_count == 1
+        if first_read:
+            read_started.set()
+            assert release_read.wait(timeout=5.0)
+        return original_read(relative_path)
+
+    monkeypatch.setattr(storage.media, "read", blocking_read)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        detail_future = executor.submit(storage.get_with_media, record.inspection_id)
+        assert read_started.wait(timeout=5.0)
+        delete_future = executor.submit(storage.delete, record.inspection_id)
+        time.sleep(0.05)
+        assert not delete_future.done()
+        release_read.set()
+        stored = detail_future.result(timeout=5.0)
+        deleted = delete_future.result(timeout=5.0)
+
+    assert stored == (record, b"original bytes", b"annotated bytes")
+    assert deleted == record
+    assert storage.get(record.inspection_id) is None

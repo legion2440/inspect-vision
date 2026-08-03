@@ -54,10 +54,12 @@
         { "path": "backend/routes/__init__.py", "status": "implemented" },
         { "path": "backend/routes/dependencies.py", "status": "implemented" },
         { "path": "backend/routes/detect.py", "status": "implemented" },
+        { "path": "backend/routes/export.py", "status": "implemented" },
+        { "path": "backend/routes/filters.py", "status": "implemented" },
         { "path": "backend/routes/history.py", "status": "implemented" },
+        { "path": "backend/routes/images.py", "status": "implemented" },
         { "path": "backend/routes/serialization.py", "status": "implemented" },
-        { "path": "backend/routes/stream.py", "status": "planned" },
-        { "path": "backend/routes/export.py", "status": "planned" }
+        { "path": "backend/routes/stream.py", "status": "implemented" }
       ],
       "tests": [
         { "path": "tests/unit/backend_api", "status": "implemented" },
@@ -173,7 +175,8 @@
         { "path": "scripts/validate_architecture.py", "status": "implemented" },
         { "path": "scripts/probe_models.py", "status": "implemented" },
         { "path": "scripts/probe_inspection_service.py", "status": "implemented" },
-        { "path": "scripts/probe_api_persistence.py", "status": "implemented" }
+        { "path": "scripts/probe_api_persistence.py", "status": "implemented" },
+        { "path": "scripts/probe_api_bonuses.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "docs/audit-evidence.md", "status": "implemented" },
@@ -288,7 +291,49 @@
           "path": "docs/evidence/api-persistence/get-history-after-delete.json",
           "status": "generated",
           "generator": "scripts/probe_api_persistence.py",
-          "sources": ["scripts/probe_api_persistence.py"]
+            "sources": ["scripts/probe_api_persistence.py"]
+        },
+        {
+          "path": "docs/evidence/api-bonuses/api-bonuses-acceptance.json",
+          "status": "generated",
+          "generator": "scripts/probe_api_bonuses.py",
+          "sources": [
+            "backend/main.py",
+            "backend/routes/stream.py",
+            "backend/routes/export.py",
+            "backend/storage/service.py",
+            "backend/samples/model-probe-samples.json"
+          ]
+        },
+        {
+          "path": "docs/evidence/api-bonuses/history-before-stream.json",
+          "status": "generated",
+          "generator": "scripts/probe_api_bonuses.py",
+          "sources": ["scripts/probe_api_bonuses.py"]
+        },
+        {
+          "path": "docs/evidence/api-bonuses/stream.json",
+          "status": "generated",
+          "generator": "scripts/probe_api_bonuses.py",
+          "sources": ["scripts/probe_api_bonuses.py"]
+        },
+        {
+          "path": "docs/evidence/api-bonuses/history-after-stream.json",
+          "status": "generated",
+          "generator": "scripts/probe_api_bonuses.py",
+          "sources": ["scripts/probe_api_bonuses.py"]
+        },
+        {
+          "path": "docs/evidence/api-bonuses/filtered-history.json",
+          "status": "generated",
+          "generator": "scripts/probe_api_bonuses.py",
+          "sources": ["scripts/probe_api_bonuses.py"]
+        },
+        {
+          "path": "docs/evidence/api-bonuses/filtered-export.csv",
+          "status": "generated",
+          "generator": "scripts/probe_api_bonuses.py",
+          "sources": ["scripts/probe_api_bonuses.py"]
         }
       ],
       "owned_configuration": [

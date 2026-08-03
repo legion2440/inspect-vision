@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-03T19:06:08.305588Z",
+  "sourceCommit": "24e910fc14272e7e10825b4b527b796421580108",
+  "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
+  "sourceFiles": {
+    "backend/config.py": "f9cc81077c88058e17f12622322261a6e6fd29800127c2fab2183a19555971bb",
+    "backend/main.py": "5ea7172c877daff54576251623c7c055c48df0d91402a09bf877c0de798f422c",
+    "backend/models/record.py": "fb1b8ac0e904b4b8b03fa5fd87ab04225faaefe524513c4ae6516f15c8316ecb",
+    "backend/routes/dependencies.py": "5935b0fd1f5916fe6e5527d18824434a94708e728cc30aa384f0e760cc62657b",
+    "backend/routes/detect.py": "f9361a8c0680ac1215b5e46851674ecd045d34f84593b99f1d1e0af7f9650ccc",
+    "backend/routes/export.py": "588e1d124a66f01f779c83342ce2fe13235f91ab34c7b8f85aee72a07560bd2a",
+    "backend/routes/filters.py": "bf6a805125f0093fc9e72a01036e8ed12fb6b2fd8c55ee807c6dbbce1c430f89",
+    "backend/routes/history.py": "76153803865becb8bf31d9232888476f8c6c6bd89b3b439ff01781102a4c0f91",
+    "backend/routes/images.py": "bbeddbfbbc10b52fc2ce5decae1523243dbec6189548657ff66693b9f4bf9306",
+    "backend/routes/serialization.py": "6044fde30eaf96a3b1b165d165430cb528040930549ca190e7f9148ce40b09f3",
+    "backend/routes/stream.py": "d1a5b30063b6317d3464160d22041b3ac68d349ce0243f3f9ab25e9c56313066",
+    "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
+    "backend/storage/service.py": "caab843cd53754c4bb2846b0d4a3cce190a71a4fef34dfceb445904a62c3f84e",
+    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
+    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
+    "requirements-api.txt": "e59a3662be62054d80a270ba5d5c6a8059efbdd5ee40b04340cca61374d39531",
+    "scripts/probe_api_bonuses.py": "40718d8880eb412b35e9efacce20245c0f300c25a2f763c30baef4146e7bb2a9"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "packages": {
+      "fastapi": "0.141.1",
+      "httpx2": "2.9.1",
+      "opencv-python": "4.13.0.92",
+      "pydantic": "2.13.4",
+      "starlette": "1.3.1",
+      "torch": "2.12.1+cpu",
+      "ultralytics": "8.4.78",
+      "uvicorn": "0.52.1"
+    },
+    "transport": "Uvicorn loopback HTTP/1.1 with FastAPI lifespan"
+  },
+  "configuration": {
+    "modelId": "neu-defect-yolov8",
+    "modelDevice": "cpu",
+    "modelConfidence": 0.25
+  },
+  "samples": [
+    {
+      "sampleId": "neu-inclusion-1",
+      "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+      "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
+    },
+    {
+      "sampleId": "neu-scratches-1",
+      "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+      "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c"
+    }
+  ],
+  "endpointSequence": [
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/stream",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history?from&to&type&q",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/export?from&to&type&q",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/history/clear",
+      "status": 200
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "docs/evidence/api-bonuses/history-before-stream.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "docs/evidence/api-bonuses/stream.json",
+      "sha256": "8fa213fca5e4aa69472fbb0faa61f5ea9ec8f5393f2e21faf224c11351fc7edf"
+    },
+    {
+      "path": "docs/evidence/api-bonuses/history-after-stream.json",
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "docs/evidence/api-bonuses/filtered-history.json",
+      "sha256": "2e894656151cf649220dbfa5113da7b76164494673bf4bdcaa1f192115a9dba1"
+    },
+    {
+      "path": "docs/evidence/api-bonuses/filtered-export.csv",
+      "sha256": "b9f258a4d1c88c7a342b4350d47e641aa1e96791820260cfaceca36fca6a279d"
+    }
+  ],
+  "stream": {
+    "totalDefects": 4,
+    "qualityScore": 62,
+    "status": "failed",
+    "historyBefore": [],
+    "historyAfter": [],
+    "historyUnchanged": true
+  },
+  "export": {
+    "filters": {
+      "from": "2026-08-03",
+      "to": "2026-08-03",
+      "type": "inclusion",
+      "q": "target"
+    },
+    "historyInspectionIds": [
+      "insp_20260803T190608084718Z_351e0a75",
+      "insp_20260803T190607943049Z_d6eb4926"
+    ],
+    "csvInspectionIds": [
+      "insp_20260803T190608084718Z_351e0a75",
+      "insp_20260803T190607943049Z_d6eb4926"
+    ],
+    "rowsMatchHistoryProjection": true,
+    "contentType": "text/csv; charset=utf-8",
+    "contentDisposition": "attachment; filename=\"inspection-history.csv\""
+  },
+  "persistence": {
+    "createdInspectionCount": 3,
+    "mediaFilesBeforeClear": [
+      "annotated/insp_20260803T190607943049Z_d6eb4926.jpg",
+      "annotated/insp_20260803T190608013445Z_bbf825f1.jpg",
+      "annotated/insp_20260803T190608084718Z_351e0a75.jpg",
+      "original/insp_20260803T190607943049Z_d6eb4926.jpg",
+      "original/insp_20260803T190608013445Z_bbf825f1.jpg",
+      "original/insp_20260803T190608084718Z_351e0a75.jpg"
+    ],
+    "clearResponse": {
+      "cleared": 3
+    },
+    "mediaFilesAfterClear": []
+  },
+  "acceptance": {
+    "realSelectedModelStream": true,
+    "streamDidNotPersist": true,
+    "sharedInferenceLock": true,
+    "historyAndExportFiltersMatch": true,
+    "historyAndCsvRowsMatch": true,
+    "historyAndCsvOrderMatch": true,
+    "csvEscapingCoveredByTests": true
+  }
+}

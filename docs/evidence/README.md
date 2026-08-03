@@ -35,3 +35,14 @@ Main API and persistence evidence is under `api-persistence/`:
   proof that no record or media file remains after delete.
 - Executed source-file SHA-256 values are authoritative until the final evidence
   commit updates the convenience `sourceCommit` pointer.
+
+API bonus evidence is under `api-bonuses/`:
+
+- `api-bonuses-acceptance.json` records a real loopback Uvicorn stream request,
+  proves identical history before/after it, and records a three-inspection
+  filtered history/export sequence.
+- `stream.json`, the two history snapshots, filtered history JSON, and filtered
+  CSV are hash-bound artifacts. The CSV rows, order, and all four filters match
+  the history projection exactly.
+- Storage is cleared after the probe and the evidence records that all six media
+  files were removed.

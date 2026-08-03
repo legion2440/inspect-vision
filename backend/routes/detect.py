@@ -15,21 +15,12 @@ from backend.detection.dto import InspectionResult
 from backend.detection.service import DetectionService
 from backend.models.record import InspectionDetailRecord
 from backend.storage.service import InspectionDraft, InspectionStorage
-from backend.utils.preprocessing import decode_image
-
 from .dependencies import get_detection_service, get_inference_lock, get_storage
+from .images import decode_upload
 from .serialization import to_detail
 
 
 router = APIRouter(prefix="/api", tags=["inspection"])
-
-
-def detect_media_type(payload: bytes) -> tuple[str, str]:
-    if payload.startswith(b"\x89PNG\r\n\x1a\n"):
-        return "image/png", "png"
-    if payload.startswith(b"\xff\xd8"):
-        return "image/jpeg", "jpg"
-    raise ValueError("unsupported image content")
 
 
 def sanitize_filename(filename: str | None, extension: str) -> str:
@@ -67,32 +58,24 @@ def inspect_image(
     storage: InspectionStorage = Depends(get_storage),
     inference_lock: threading.Lock = Depends(get_inference_lock),
 ) -> InspectionDetailRecord:
-    max_bytes: int = request.app.state.settings.max_upload_bytes
-    payload = image.file.read(max_bytes + 1)
-    if len(payload) > max_bytes:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail="File size exceeds 10MB limit",
-        )
-    try:
-        media_type, extension = detect_media_type(payload)
-        decoded = decode_image(payload)
-    except (TypeError, ValueError):
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Unsupported file type",
-        ) from None
+    decoded = decode_upload(
+        image,
+        max_bytes=request.app.state.settings.max_upload_bytes,
+    )
 
     try:
         with inference_lock:
-            result = detection_service.inspect(decoded)
+            result = detection_service.inspect(decoded.image)
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Detection model error",
         ) from None
 
-    encoded, annotated_buffer = cv2.imencode(f".{extension}", result.annotated_image)
+    encoded, annotated_buffer = cv2.imencode(
+        f".{decoded.extension}",
+        result.annotated_image,
+    )
     if not encoded:
         raise HTTPException(status_code=500, detail="Internal server error")
     now = datetime.now(UTC)
@@ -100,7 +83,7 @@ def inspect_image(
     draft = InspectionDraft(
         inspection_id=identifier,
         timestamp=now,
-        filename=sanitize_filename(image.filename, extension),
+        filename=sanitize_filename(image.filename, decoded.extension),
         image_width=result.image_width,
         image_height=result.image_height,
         defects=defects_for_storage(result),
@@ -111,14 +94,13 @@ def inspect_image(
     )
     record = storage.create(
         draft,
-        original_bytes=payload,
+        original_bytes=decoded.payload,
         annotated_bytes=annotated_buffer.tobytes(),
-        extension=extension,
-        media_type=media_type,
+        extension=decoded.extension,
+        media_type=decoded.media_type,
     )
-    original_bytes, annotated_bytes = storage.read_media(record)
     return to_detail(
         record,
-        original_bytes=original_bytes,
-        annotated_bytes=annotated_bytes,
+        original_bytes=decoded.payload,
+        annotated_bytes=annotated_buffer.tobytes(),
     )

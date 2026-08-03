@@ -38,3 +38,18 @@ def test_invalid_model_device_is_rejected(value: str) -> None:
 def test_upload_limit_is_the_exact_contract_value() -> None:
     with pytest.raises(ValidationError):
         Settings(max_upload_bytes=1024)
+
+
+@pytest.mark.parametrize(
+    ("database_path", "media_dir"),
+    [
+        (Path("runtime"), Path("runtime/media")),
+        (Path("runtime/media/inspection.sqlite3"), Path("runtime/media")),
+    ],
+)
+def test_database_and_media_paths_must_not_overlap_in_either_direction(
+    database_path: Path,
+    media_dir: Path,
+) -> None:
+    with pytest.raises(ValidationError, match="must not overlap"):
+        Settings(database_path=database_path, media_dir=media_dir)

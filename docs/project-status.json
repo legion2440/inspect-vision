@@ -4,7 +4,7 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "main-api-persistence-runtime-verified-bonuses-planned",
+  "state": "api-bonuses-runtime-verified-samples-planned",
   "verified": [
     "frontend production build with Vite 8.2.0",
     "npm audit with zero known vulnerabilities",
@@ -26,14 +26,13 @@
     "loopback Uvicorn POST, list, detail, and delete evidence returned four real selected-model defects and left no media files",
     "byte-exact persisted original plus same-format original-size annotated image delivered through the dual data URL contract",
     "dependency-injected API tests cover PNG/JPEG, spoofed content, model failure, reopen, concurrency, filtering, and cleanup",
-    "ninety-two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests"
+    "stream accepts content-verified JPEG frames through the shared service and inference lock without changing history",
+    "CSV export reuses the canonical combined history filters and newest-first ordering with exact row parity",
+    "loopback Uvicorn bonus evidence returned four real stream defects, proved unchanged history, and matched two filtered history rows to CSV",
+    "detail media hydration is serialized with delete/clear and database/media path overlap is rejected symmetrically",
+    "one hundred two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests"
   ],
   "known_limitations": [
-    {
-      "id": "bonus-endpoints-not-implemented",
-      "area": "backend-api",
-      "detail": "The main inspection/history API is implemented; bonus /api/stream and /api/export endpoints remain planned."
-    },
     {
       "id": "alternative-service-mapping-not-implemented",
       "area": "defect-detection",
@@ -48,11 +47,6 @@
       "id": "samples-incomplete",
       "area": "audit-evidence",
       "detail": "The required ten-image manufacturing dataset and provenance manifest are not present."
-    },
-    {
-      "id": "bonus-runtime-evidence-missing",
-      "area": "audit-evidence",
-      "detail": "Core, inspection service, main HTTP API, SQLite, media, and delete cleanup are verified; live backend and server CSV paths remain unverified."
     },
     {
       "id": "api-evidence-commit-pointer-provisional",

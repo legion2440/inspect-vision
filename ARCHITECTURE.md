@@ -5,8 +5,8 @@
 The frontend application, reusable multiclass core, selected-model inspection
 service, SQLite/media persistence, and main FastAPI inspection/history API are
 implemented. Both registered models have core probe evidence. The selected model
-has full preprocessing, HTTP, persistence, and deletion evidence. Live stream,
-server CSV, and the final demo dataset remain planned. See
+has full preprocessing, HTTP, persistence, deletion, non-persisted stream, and
+filtered CSV evidence. The final demo dataset remains planned. See
 `docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
@@ -37,10 +37,12 @@ flowchart LR
 - Owns environment validation, lifespan composition, CORS, multipart/content
   validation, response serialization, inference locking, and error mapping.
 - Lifespan creates exactly one selected detector/service and one storage service.
-- Implements `POST /api/inspect`, list/detail/delete history, and history clear.
+- Implements `POST /api/inspect`, `POST /api/stream`, `GET /api/export`,
+  list/detail/delete history, and history clear.
+- Stream inference reuses the application service and lock without persistence;
+  export reuses the canonical history filters and newest-first query path.
 - Keeps model inference and persistence implementation behind their public
   service boundaries.
-- `/api/stream` and `/api/export` remain planned.
 
 ### Defect detection
 
@@ -74,7 +76,8 @@ flowchart LR
 - List responses omit image bodies; detail responses hydrate both image fields.
 - The HTTP layer persists original bytes unchanged and encodes the annotated copy
   in the detected source format; POST/detail expose both as data URLs.
-- Main history endpoints are implemented; CSV projection remains planned.
+- Main history endpoints and CSV projection are implemented through the same
+  `HistoryFilters` value and repository query.
 
 ### Shared contracts
 
@@ -119,5 +122,5 @@ sequenceDiagram
 ## Deferred decisions
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
-Live-frame semantics, CSV projection, production confidence calibration, and a
-redistributable ten-image demo dataset remain deferred.
+Production confidence calibration and a redistributable ten-image demo dataset
+remain deferred.

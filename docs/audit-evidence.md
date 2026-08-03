@@ -24,9 +24,9 @@ implementation claim.
 | Annotated backend image | PASS | DetectionService annotation is encoded in source format, persisted, and returned as `imageUrl`; original remains separate | Service outputs plus API persistence evidence |
 | Persisted timestamped records | PASS | SQLite record, relative media paths, byte-exact original, annotated dimensions, reopen, and cleanup are verified | API persistence evidence; storage/API tests |
 | Code quality and separation | PASS | Pydantic contract, API/detection/storage boundaries, dependency injection, failure tests, and real import checks exist | `.venv/Scripts/python.exe scripts/validate.py` |
-| Live detection bonus | PARTIAL | Actual dimensions and sequential frame client implemented; endpoint absent | Browser/build checks; backend runtime pending |
+| Live detection bonus | PASS | Content-verified JPEG frames use the selected service and shared inference lock without persistence | Saved loopback stream/history snapshots; API concurrency and failure tests |
 | Severity bonus | PASS | Backend-authoritative quality-v1 is persisted and delivered through POST/history/detail | Service and API evidence plus backend/frontend tests |
-| CSV export bonus | PARTIAL | Real endpoint integration plus mock fallback; endpoint absent | Frontend utility tests; server runtime pending |
+| CSV export bonus | PASS | Server export reuses all canonical history filters, newest-first query semantics, exact columns, escaping, and download headers | Saved filtered history/CSV parity evidence; unit/integration tests |
 
 README statements alone are not runtime evidence. Update a row to `PASS` only
 when the complete real path has repeatable evidence tied to a source commit.

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import ast
+import csv
 import hashlib
+import io
 import json
 import math
 import re
@@ -739,6 +741,132 @@ def _check_api_persistence_evidence(errors: list[str]) -> None:
         errors.append("API persistence acceptance flags are incomplete")
 
 
+def _check_api_bonus_evidence(errors: list[str]) -> None:
+    evidence = _load_json("docs/evidence/api-bonuses/api-bonuses-acceptance.json")
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("API bonus evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(f"API bonus evidence sourceCommit is not an ancestor: {source_commit}")
+
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append("API bonus evidence must record sourceFiles hashes")
+    else:
+        for relative_path, expected_hash in source_files.items():
+            if not _valid_repository_path(relative_path):
+                errors.append(f"API bonus evidence has invalid source path: {relative_path!r}")
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(f"API bonus evidence source file is missing: {relative_path}")
+                continue
+            if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
+                errors.append(f"API bonus evidence is stale for source file: {relative_path}")
+
+    artifact_values: dict[str, object] = {}
+    artifacts = evidence.get("artifacts")
+    if not isinstance(artifacts, list) or len(artifacts) != 5:
+        errors.append("API bonus evidence must record five response artifacts")
+    else:
+        for artifact in artifacts:
+            relative_path = artifact.get("path") if isinstance(artifact, dict) else None
+            if not _valid_repository_path(relative_path):
+                errors.append("API bonus evidence has an invalid artifact path")
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(f"API bonus evidence artifact is missing: {relative_path}")
+                continue
+            if hashlib.sha256(path.read_bytes()).hexdigest() != artifact.get("sha256"):
+                errors.append(f"API bonus evidence artifact hash mismatch: {relative_path}")
+            try:
+                if path.suffix == ".json":
+                    artifact_values[path.name] = json.loads(path.read_text(encoding="utf-8"))
+                elif path.suffix == ".csv":
+                    text_value = path.read_text(encoding="utf-8")
+                    artifact_values[path.name] = list(csv.DictReader(io.StringIO(text_value)))
+            except (UnicodeDecodeError, json.JSONDecodeError, csv.Error) as error:
+                errors.append(f"API bonus evidence artifact is invalid: {relative_path}: {error}")
+
+    history_before = artifact_values.get("history-before-stream.json")
+    history_after = artifact_values.get("history-after-stream.json")
+    stream = artifact_values.get("stream.json")
+    if history_before != [] or history_after != []:
+        errors.append("API bonus stream evidence must leave empty history unchanged")
+    if not isinstance(stream, dict):
+        errors.append("API bonus stream output is missing")
+    else:
+        defects = stream.get("defects")
+        if (
+            not isinstance(defects, list)
+            or not defects
+            or stream.get("totalDefects") != len(defects)
+            or stream.get("status") != "failed"
+        ):
+            errors.append("API bonus stream output must contain real non-persisted defects")
+        if not all(
+            isinstance(stream.get(field), int) and stream[field] > 0
+            for field in ("frameWidth", "frameHeight")
+        ):
+            errors.append("API bonus stream output has invalid frame dimensions")
+
+    history = artifact_values.get("filtered-history.json")
+    csv_rows = artifact_values.get("filtered-export.csv")
+    if not isinstance(history, list) or not isinstance(csv_rows, list):
+        errors.append("API bonus filtered history or CSV artifact is missing")
+    else:
+        projected_rows = [
+            {
+                "inspectionId": item.get("inspectionId", ""),
+                "timestamp": item.get("timestamp", ""),
+                "defectCount": str(item.get("totalDefects", "")),
+                "types": " | ".join(
+                    dict.fromkeys(
+                        defect.get("type", "")
+                        for defect in item.get("defects", [])
+                        if isinstance(defect, dict)
+                    )
+                ),
+                "qualityScore": str(item.get("qualityScore", "")),
+                "status": item.get("status", ""),
+            }
+            for item in history
+            if isinstance(item, dict)
+        ]
+        if len(history) != 2 or csv_rows != projected_rows:
+            errors.append("API bonus CSV rows/order do not match filtered history semantics")
+
+    export = evidence.get("export", {})
+    if export.get("contentType") != "text/csv; charset=utf-8" or export.get(
+        "contentDisposition"
+    ) != 'attachment; filename="inspection-history.csv"':
+        errors.append("API bonus CSV response headers violate the contract")
+    if export.get("historyInspectionIds") != export.get("csvInspectionIds"):
+        errors.append("API bonus CSV inspection IDs/order differ from history")
+
+    persistence = evidence.get("persistence", {})
+    if (
+        persistence.get("createdInspectionCount") != 3
+        or len(persistence.get("mediaFilesBeforeClear", [])) != 6
+        or persistence.get("clearResponse") != {"cleared": 3}
+        or persistence.get("mediaFilesAfterClear") != []
+    ):
+        errors.append("API bonus evidence does not prove cleanup after export setup")
+    acceptance = evidence.get("acceptance", {})
+    if not isinstance(acceptance, dict) or not acceptance or not all(
+        value is True for value in acceptance.values()
+    ):
+        errors.append("API bonus acceptance flags are incomplete")
+
+
 def _check_frontend_invariants(errors: list[str]) -> None:
     route_tree = (REPOSITORY_ROOT / "frontend/src/routeTree.gen.js").read_text(encoding="utf-8")
     forbidden_types = (" as any", "declare module", "export interface", "_addFileTypes")
@@ -764,6 +892,7 @@ def main() -> int:
         _check_detection_evidence(errors)
         _check_inspection_service_evidence(errors)
         _check_api_persistence_evidence(errors)
+        _check_api_bonus_evidence(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:

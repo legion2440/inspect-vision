@@ -1,7 +1,7 @@
 PYTHON ?= .venv/Scripts/python.exe
 NPM ?= npm
 
-.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service probe-api status
+.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service probe-api probe-bonuses status
 
 validate:
 	$(PYTHON) scripts/validate.py
@@ -30,6 +30,9 @@ probe-service:
 
 probe-api:
 	$(PYTHON) scripts/probe_api_persistence.py
+
+probe-bonuses:
+	$(PYTHON) scripts/probe_api_bonuses.py
 
 status:
 	$(PYTHON) scripts/show_status.py

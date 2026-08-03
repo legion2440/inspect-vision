@@ -12,7 +12,12 @@ Implemented routes:
 - `GET /api/history`: combined server-side date/type/query filters;
 - `GET /api/history/{id}`: persisted detail with dual data URLs;
 - `DELETE /api/history/{id}` and `POST /api/history/clear`: metadata plus media
-  cleanup.
+  cleanup;
+- `POST /api/stream`: JPEG-only content validation and serialized selected-model
+  inference without metadata or media persistence;
+- `GET /api/export`: canonical history filters, newest-first ordering, and
+  UTF-8 CSV projection.
 
-`/api/stream` and `/api/export` remain deferred. Detection and persistence logic
-stay in their owning modules.
+Image decoding and history-filter parsing are shared route utilities so inspect,
+stream, history, and export cannot silently diverge. Detection and persistence
+logic stay in their owning modules.

@@ -42,6 +42,8 @@ API mode and it must not be changed back to implicit mock mode.
 - Do not silently replace a missing or failing model with random, heuristic, or
   mock detections. `/api/inspect` and `/api/stream` return `Detection model error`.
 - Serialize inference with the application-owned lock.
+- `/api/inspect` and `/api/stream` share that same lock and service instance;
+  stream frames are never persisted.
 - Record the selected model ID on every persisted inspection; the tracked
   manifest remains authoritative for its weight hash.
 - Large weights remain untracked.

@@ -75,7 +75,11 @@ class Settings(BaseSettings):
                 setattr(self, field_name, (REPOSITORY_ROOT / path).resolve())
             else:
                 setattr(self, field_name, path.resolve())
-        if self.database_path == self.media_dir or self.media_dir in self.database_path.parents:
+        if (
+            self.database_path == self.media_dir
+            or self.media_dir in self.database_path.parents
+            or self.database_path in self.media_dir.parents
+        ):
             raise ValueError("database_path and media_dir must not overlap")
         return self
 

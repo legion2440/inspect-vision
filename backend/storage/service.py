@@ -95,10 +95,25 @@ class InspectionStorage:
         return self.repository.get(inspection_id)
 
     def read_media(self, record: InspectionRecord) -> tuple[bytes, bytes]:
-        return (
-            self.media.read(record.original_media_path),
-            self.media.read(record.annotated_media_path),
-        )
+        with self._write_lock:
+            return (
+                self.media.read(record.original_media_path),
+                self.media.read(record.annotated_media_path),
+            )
+
+    def get_with_media(
+        self,
+        inspection_id: str,
+    ) -> tuple[InspectionRecord, bytes, bytes] | None:
+        with self._write_lock:
+            record = self.repository.get(inspection_id)
+            if record is None:
+                return None
+            return (
+                record,
+                self.media.read(record.original_media_path),
+                self.media.read(record.annotated_media_path),
+            )
 
     def delete(self, inspection_id: str) -> InspectionRecord | None:
         with self._write_lock:

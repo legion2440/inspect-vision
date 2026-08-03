@@ -25,13 +25,13 @@
       "from": "backend-api",
       "to": "defect-detection",
       "type": "runtime",
-      "rationale": "The inspection route invokes the public detection service; stream remains deferred."
+      "rationale": "Inspection and stream routes invoke the public detection service through one application-owned lock."
     },
     {
       "from": "backend-api",
       "to": "inspection-history",
       "type": "runtime",
-      "rationale": "API routes persist, query, and delete inspection records through the history service; export remains deferred."
+      "rationale": "API routes persist, query, delete, and export inspection records through the history service."
     },
     {
       "from": "backend-api",

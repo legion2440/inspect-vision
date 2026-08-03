@@ -96,7 +96,10 @@ Clears all metadata and owned media and returns:
 ### `POST /api/stream`
 
 Accepts one JPEG frame in multipart field `frame`. Only one request at a time is
-issued by the frontend. The response uses frame pixel coordinates:
+issued by the frontend. Validation is content-based and rejects PNG or
+undecodable payloads even when their filename or MIME type says JPEG. The API
+uses the same `DetectionService` instance and inference lock as `/api/inspect`.
+The response uses frame pixel coordinates:
 
 ```json
 {
@@ -109,8 +112,7 @@ issued by the frontend. The response uses frame pixel coordinates:
 }
 ```
 
-Stream frames are not persisted unless a later explicit product decision changes
-the contract.
+Stream frames are not persisted in SQLite or media storage.
 
 ### `GET /api/export`
 
@@ -122,6 +124,10 @@ inspectionId,timestamp,defectCount,types,qualityScore,status
 ```
 
 Rows and ordering must match `GET /api/history` for the same filters.
+`types` contains unique defect types in first-appearance order separated by
+` | `. Output is UTF-8 without a BOM, uses LF line endings and standard CSV
+quoting, and returns exactly
+`Content-Disposition: attachment; filename="inspection-history.csv"`.
 
 ## Error contract
 

@@ -1,0 +1,3 @@
+inspectionId,timestamp,defectCount,types,qualityScore,status
+insp_20260803T190608084718Z_351e0a75,2026-08-03T19:06:08.084718Z,4,inclusion,62,failed
+insp_20260803T190607943049Z_d6eb4926,2026-08-03T19:06:07.943049Z,4,inclusion,62,failed
