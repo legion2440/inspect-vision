@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Local real-model probe only; source images are not redistributed by this repository.",
+  "upstreamDataset": "NEU-DET",
+  "upstreamUse": "Research use",
+  "sourceRepository": "https://github.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection",
+  "sourceRevision": "351bee21b56bbf97a1e1d18262bceb202eb7ef41",
+  "samples": [
+    {
+      "id": "neu-crazing-1",
+      "expectedClass": "crazing",
+      "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+      "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca"
+    },
+    {
+      "id": "neu-inclusion-1",
+      "expectedClass": "inclusion",
+      "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+      "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
+    },
+    {
+      "id": "neu-scratches-1",
+      "expectedClass": "scratches",
+      "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+      "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=80.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inspect-vision"
+version = "0.1.0"
+description = "Industrial visual inspection application"
+requires-python = "==3.13.*"
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["backend*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -p no:cacheprovider"
+markers = [
+  "integration: exercises local model weights or external runtimes",
+]

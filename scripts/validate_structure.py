@@ -34,8 +34,13 @@ REQUIRED_FILES = (
     "ARCHITECTURE.md",
     "Makefile",
     "README.md",
+    ".python-version",
     "dependency-graph.json",
     "module-map.json",
+    "pyproject.toml",
+    "requirements-detection.txt",
+    "backend/models/model-manifest.json",
+    "backend/samples/model-probe-samples.json",
     "docs/api-contract.md",
     "docs/audit-evidence.md",
     "docs/env-model-contract.md",
@@ -46,8 +51,10 @@ REQUIRED_FILES = (
     "frontend/src/routeTree.gen.js",
     "frontend/tests/utils.test.js",
     "schemas/dependency-graph.schema.json",
+    "schemas/model-manifest.schema.json",
     "schemas/module-map.schema.json",
     "scripts/generate_dependency_graph.py",
+    "scripts/probe_models.py",
     "scripts/show_status.py",
     "scripts/validate.py",
     "scripts/validate_architecture.py",
@@ -57,10 +64,13 @@ REQUIRED_FILES = (
 JSON_FILES = (
     "dependency-graph.json",
     "module-map.json",
+    "backend/models/model-manifest.json",
+    "backend/samples/model-probe-samples.json",
     "docs/project-status.json",
     "frontend/package.json",
     "frontend/package-lock.json",
     "schemas/dependency-graph.schema.json",
+    "schemas/model-manifest.schema.json",
     "schemas/module-map.schema.json",
 )
 
@@ -79,7 +89,17 @@ TEXT_SUFFIXES = {
     ".yml",
 }
 TEXT_NAMES = {"Makefile", ".env.example", ".gitattributes", ".gitignore"}
-SKIPPED_DIRECTORIES = {".git", "node_modules", "dist", ".vite", "__pycache__"}
+SKIPPED_DIRECTORIES = {
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    ".vite",
+}
 
 
 def _is_skipped(path: Path) -> bool:

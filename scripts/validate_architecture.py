@@ -9,6 +9,8 @@ import sys
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from jsonschema import Draft202012Validator, FormatChecker
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 REFERENCE_FIELDS = (
     "entrypoints",
@@ -191,6 +193,25 @@ def _check_status(errors: list[str]) -> None:
         errors.append(f"Recorded frontend baseline is not an ancestor of HEAD: {baseline}")
 
 
+def _check_model_manifest(errors: list[str]) -> None:
+    manifest = _load_json("backend/models/model-manifest.json")
+    schema = _load_json("schemas/model-manifest.schema.json")
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    for validation_error in sorted(validator.iter_errors(manifest), key=lambda error: list(error.path)):
+        location = ".".join(str(part) for part in validation_error.path) or "<root>"
+        errors.append(f"Model manifest {location}: {validation_error.message}")
+
+    models = manifest.get("models", [])
+    model_ids = [model.get("id") for model in models if isinstance(model, dict)]
+    filenames = [model.get("filename") for model in models if isinstance(model, dict)]
+    for label, values in (("IDs", model_ids), ("filenames", filenames)):
+        duplicates = sorted({value for value in values if value and values.count(value) > 1})
+        if duplicates:
+            errors.append(f"Duplicate model {label}: {', '.join(duplicates)}")
+    if manifest.get("selectedModelId") not in model_ids:
+        errors.append("selectedModelId does not reference a registered model")
+
+
 def _check_frontend_invariants(errors: list[str]) -> None:
     route_tree = (REPOSITORY_ROOT / "frontend/src/routeTree.gen.js").read_text(encoding="utf-8")
     forbidden_types = (" as any", "declare module", "export interface", "_addFileTypes")
@@ -210,6 +231,7 @@ def main() -> int:
         graph = _load_json("dependency-graph.json")
         module_ids = _check_module_map(module_map, errors)
         _check_graph(graph, module_ids, errors)
+        _check_model_manifest(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:

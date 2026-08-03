@@ -81,12 +81,13 @@
       ],
       "docs": [
         { "path": "backend/detection/README.md", "status": "implemented" },
+        { "path": "backend/models/README.md", "status": "implemented" },
         { "path": "docs/env-model-contract.md", "status": "implemented" }
       ],
-      "generated_artifacts": [
-        { "path": "backend/models/model-manifest.json", "status": "planned" }
-      ],
-      "owned_configuration": []
+      "generated_artifacts": [],
+      "owned_configuration": [
+        { "path": "backend/models/model-manifest.json", "status": "implemented" }
+      ]
     },
     {
       "id": "inspection-history",
@@ -142,7 +143,8 @@
       "entrypoints": [
         { "path": "scripts/validate.py", "status": "implemented" },
         { "path": "scripts/validate_structure.py", "status": "implemented" },
-        { "path": "scripts/validate_architecture.py", "status": "implemented" }
+        { "path": "scripts/validate_architecture.py", "status": "implemented" },
+        { "path": "scripts/probe_models.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "docs/audit-evidence.md", "status": "implemented" },
@@ -153,10 +155,13 @@
         { "path": "tests/unit/evidence", "status": "planned" }
       ],
       "docs": [
-        { "path": "docs/evidence/README.md", "status": "implemented" }
+        { "path": "docs/evidence/README.md", "status": "implemented" },
+        { "path": "backend/samples/README.md", "status": "implemented" }
       ],
       "generated_artifacts": [],
-      "owned_configuration": []
+      "owned_configuration": [
+        { "path": "backend/samples/model-probe-samples.json", "status": "implemented" }
+      ]
     }
   ],
   "repository_artifacts": [
@@ -164,9 +169,13 @@
     { "path": "ARCHITECTURE.md", "status": "implemented" },
     { "path": "README.md", "status": "implemented" },
     { "path": "Makefile", "status": "implemented" },
+    { "path": ".python-version", "status": "implemented" },
     { "path": "dependency-graph.json", "status": "implemented" },
+    { "path": "pyproject.toml", "status": "implemented" },
+    { "path": "requirements-detection.txt", "status": "implemented" },
     { "path": "schemas/module-map.schema.json", "status": "implemented" },
     { "path": "schemas/dependency-graph.schema.json", "status": "implemented" },
+    { "path": "schemas/model-manifest.schema.json", "status": "implemented" },
     {
       "path": "docs/generated/dependency-graph.md",
       "status": "generated",
