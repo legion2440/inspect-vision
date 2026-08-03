@@ -871,6 +871,8 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
     evidence = _load_json("docs/evidence/demo-samples/demo-samples-acceptance.json")
     sample_manifest = _load_json("backend/samples/demo-samples.json")
     model_manifest = _load_json("backend/models/model-manifest.json")
+    if evidence.get("schemaVersion") != 2:
+        errors.append("Demo sample evidence must use schemaVersion 2")
     source_commit = evidence.get("sourceCommit")
     if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
         errors.append("Demo sample evidence has an invalid sourceCommit")
@@ -899,6 +901,21 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
             if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
                 errors.append(f"Demo sample evidence is stale for source file: {relative_path}")
 
+    required_bound_paths = {
+        "backend/samples/demo-samples.json",
+        "backend/samples/VISA-NOTICE.md",
+        "scripts/prepare_demo_samples.py",
+        "scripts/probe_demo_samples.py",
+        "scripts/validate_demo_samples.py",
+        *(item.get("path") for item in sample_manifest.get("files", [])),
+        *(
+            item.get("path")
+            for item in sample_manifest.get("dataset", {}).get("annotationFiles", [])
+        ),
+    }
+    if not isinstance(source_files, dict) or not required_bound_paths.issubset(source_files):
+        errors.append("Demo sample evidence does not hash-bind all images and annotations")
+
     if evidence.get("dataset") != sample_manifest.get("dataset"):
         errors.append("Demo sample evidence provenance differs from the sample manifest")
     selected_model_id = model_manifest.get("selectedModelId")
@@ -910,18 +927,19 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
         ),
         None,
     )
-    model = evidence.get("model", {})
+    model = evidence.get("modelObservationContract", {})
     if (
         selected_model is None
         or model.get("modelId") != selected_model_id
-        or model.get("sha256") != selected_model.get("sha256")
-        or model.get("classes") != selected_model.get("classes")
-        or model.get("confidence") != 0.25
+        or model.get("modelSha256") != selected_model.get("sha256")
+        or model.get("nativeClasses") != selected_model.get("classes")
+        or model.get("confidenceThreshold") != 0.25
+        or model.get("groundTruth") is not False
+        or model.get("accuracyClaim") is not False
+        or model != sample_manifest.get("modelObservationContract")
+        or evidence.get("accuracyClaim") is not False
     ):
         errors.append("Demo sample evidence has an invalid selected-model contract")
-        native_classes: set[str] = set()
-    else:
-        native_classes = set(selected_model["classes"])
 
     manifest_files = {
         item.get("id"): item
@@ -932,67 +950,87 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
     if (
         not isinstance(samples, list)
         or len(samples) < 10
-        or evidence.get("sampleCount") != len(samples)
+        or evidence.get("summary", {}).get("sampleCount") != len(samples)
         or {sample.get("sampleId") for sample in samples if isinstance(sample, dict)}
         != set(manifest_files)
     ):
-        errors.append("Demo sample evidence does not cover the complete ten-image manifest")
+        errors.append("Demo sample evidence does not cover the complete source-balanced manifest")
         return
 
     total_detections = 0
     observed_types: set[str] = set()
+    ground_truth_split = {"normal": 0, "anomaly": 0}
+    source_categories: set[str] = set()
+    source_defect_labels: set[str] = set()
+    normal_detection_counts: list[int] = []
+    anomaly_detection_counts: list[int] = []
     for sample in samples:
         manifest_item = manifest_files.get(sample.get("sampleId"))
         if manifest_item is None:
             continue
-        dimensions = sample.get("dimensions", {})
-        defects = sample.get("defects")
         if (
             sample.get("path") != manifest_item.get("path")
             or sample.get("sha256") != manifest_item.get("sha256")
-            or sample.get("sourceArchivePath")
-            != manifest_item.get("source", {}).get("archivePath")
-            or sample.get("sourceCategory") != manifest_item.get("source", {}).get("category")
-            or sample.get("sourceAnomalyLabel")
-            != manifest_item.get("source", {}).get("anomalyLabel")
-            or sample.get("expectedNativeClass") != manifest_item.get("expectedNativeClass")
-            or sample.get("actualNativeTypes") != manifest_item.get("expectedNativeTypes")
-            or dimensions != manifest_item.get("dimensions")
+            or sample.get("dimensions") != manifest_item.get("dimensions")
+            or sample.get("sourceGroundTruth") != manifest_item.get("sourceGroundTruth")
+            or sample.get("modelObservation") != manifest_item.get("modelObservation")
         ):
             errors.append(f"Demo sample evidence differs from manifest: {sample.get('sampleId')}")
-        if not isinstance(defects, list) or not defects or sample.get("totalDefects") != len(defects):
-            errors.append(f"Demo sample has no real detections: {sample.get('sampleId')}")
             continue
-        total_detections += len(defects)
-        width, height = dimensions.get("width"), dimensions.get("height")
-        for defect in defects:
-            defect_type = defect.get("type")
-            observed_types.add(defect_type)
-            confidence = defect.get("confidence")
-            box = defect.get("boundingBox", {})
-            x, y = box.get("x"), box.get("y")
-            box_width, box_height = box.get("width"), box.get("height")
-            values = (confidence, x, y, box_width, box_height)
-            if (
-                defect_type not in native_classes
-                or not all(
-                    isinstance(value, (int, float))
-                    and not isinstance(value, bool)
-                    and math.isfinite(value)
-                    for value in values
-                )
-                or not 0.0 <= confidence <= 1.0
-                or not (0.0 <= x < x + box_width <= width)
-                or not (0.0 <= y < y + box_height <= height)
-            ):
-                errors.append(f"Demo sample has an invalid detection: {sample.get('sampleId')}")
-        if sample.get("status") != "failed":
-            errors.append(f"Detected demo sample must have failed status: {sample.get('sampleId')}")
+        ground_truth = sample["sourceGroundTruth"]
+        source_label = ground_truth.get("label")
+        if source_label not in ground_truth_split:
+            errors.append(f"Demo sample evidence has invalid source label: {sample.get('sampleId')}")
+            continue
+        ground_truth_split[source_label] += 1
+        source_categories.add(ground_truth.get("category"))
+        source_defect_labels.update(ground_truth.get("defectLabels", []))
+        observation = sample["modelObservation"]
+        detections = observation.get("detections")
+        if not isinstance(detections, list) or observation.get("totalDetections") != len(
+            detections
+        ):
+            errors.append(f"Demo sample evidence has invalid model output: {sample.get('sampleId')}")
+            continue
+        total_detections += len(detections)
+        observed_types.update(observation.get("observedNativeClasses", []))
+        if source_label == "normal":
+            normal_detection_counts.append(len(detections))
+        else:
+            anomaly_detection_counts.append(len(detections))
 
-    if evidence.get("totalDetections") != total_detections or total_detections < len(samples):
-        errors.append("Demo sample evidence has an inconsistent total detection count")
-    if evidence.get("observedNativeTypes") != sorted(observed_types):
-        errors.append("Demo sample evidence has inconsistent observed native types")
+    expected_summary = {
+        "sampleCount": len(samples),
+        "groundTruthSplit": ground_truth_split,
+        "sourceCategories": sorted(source_categories),
+        "sourceCategoryCount": len(source_categories),
+        "sourceDefectLabels": sorted(source_defect_labels, key=str.casefold),
+        "sourceDefectLabelCount": len(source_defect_labels),
+        "observedNativeClasses": sorted(observed_types),
+        "totalModelDetections": total_detections,
+        "zeroDetectionSampleCount": sum(
+            count == 0 for count in [*normal_detection_counts, *anomaly_detection_counts]
+        ),
+        "normalModelOutcomes": {
+            "sampleCount": len(normal_detection_counts),
+            "zeroDetections": sum(count == 0 for count in normal_detection_counts),
+            "falsePositiveSamples": sum(count > 0 for count in normal_detection_counts),
+        },
+        "anomalyModelOutcomes": {
+            "sampleCount": len(anomaly_detection_counts),
+            "zeroDetections": sum(count == 0 for count in anomaly_detection_counts),
+            "samplesWithDetections": sum(count > 0 for count in anomaly_detection_counts),
+        },
+    }
+    if evidence.get("summary") != expected_summary:
+        errors.append("Demo sample evidence summary does not match source truth/model outputs")
+    if (
+        ground_truth_split["normal"] < 3
+        or ground_truth_split["anomaly"] < 3
+        or len(source_categories) < 4
+        or len(source_defect_labels) < 4
+    ):
+        errors.append("Demo sample evidence does not prove source-ground-truth diversity")
     acceptance = evidence.get("acceptance", {})
     if not isinstance(acceptance, dict) or not acceptance or not all(
         value is True for value in acceptance.values()

@@ -6,8 +6,9 @@ The frontend application, reusable multiclass core, selected-model inspection
 service, SQLite/media persistence, and main FastAPI inspection/history API are
 implemented. Both registered models have core probe evidence. The selected model
 has full preprocessing, HTTP, persistence, deletion, non-persisted stream, and
-filtered CSV evidence. Ten redistributed VisA anomalies have license, hash,
-decode, dimension, provenance, and real selected-model evidence. See
+filtered CSV evidence. Twelve redistributed VisA samples have license, hash,
+decode, dimension, source-annotation provenance, and separate selected-model
+observations. See
 `docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
@@ -63,9 +64,9 @@ flowchart LR
   scheduling, media encoding, or persistence.
 - Core inference is runtime-verified for both models; full service inference is
   runtime-verified for the selected six-class model at confidence `0.25`.
-- The selected service is also runtime-verified against all ten tracked VisA
-  anomaly samples; the generic dataset label remains separate from native model
-  class output.
+- The selected service is also runtime-verified against all twelve tracked VisA
+  samples selected by source quotas. Four source-normal samples retain all model
+  false positives; source labels never become native model class claims.
 
 ### Inspection history
 
@@ -96,8 +97,10 @@ flowchart LR
   `docs/audit-evidence.md`.
 - Evidence is immutable per verified milestone and may not contain secrets, host
   paths, large model weights, or personal data.
-- The demo-sample manifest and CC BY 4.0 attribution bind ten unmodified source
-  images to archive paths, hashes, dimensions, and real model results.
+- The demo manifest and CC BY 4.0 attribution bind twelve unmodified images to
+  archive paths, hashes, dimensions, and four tracked `image_anno.csv` files.
+- `sourceGroundTruth` is annotation-backed; `modelObservation` is reproduced at
+  confidence `0.25` and explicitly makes no accuracy claim.
 
 ## Boundary rules
 

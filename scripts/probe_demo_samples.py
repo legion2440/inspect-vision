@@ -1,4 +1,4 @@
-"""Run every tracked demo image through the selected DetectionService."""
+"""Reproduce model observations for the source-balanced tracked demo dataset."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import json
 import platform
 import subprocess
 import sys
+from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -23,9 +24,11 @@ SOURCE_PATHS = (
     "backend/detection/quality.py",
     "backend/detection/service.py",
     "backend/models/model-manifest.json",
+    "backend/samples/VISA-NOTICE.md",
     "backend/samples/demo-samples.json",
     "backend/utils/model_loader.py",
     "backend/utils/preprocessing.py",
+    "scripts/prepare_demo_samples.py",
     "scripts/probe_demo_samples.py",
     "scripts/validate_demo_samples.py",
 )
@@ -79,6 +82,34 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _observation(result: Any, *, model_id: str, model_sha256: str) -> dict[str, Any]:
+    detections = [
+        {
+            "type": defect.type,
+            "confidence": round(defect.confidence, 6),
+            "boundingBox": {
+                "x": round(defect.bounding_box.x, 4),
+                "y": round(defect.bounding_box.y, 4),
+                "width": round(defect.bounding_box.width, 4),
+                "height": round(defect.bounding_box.height, 4),
+            },
+        }
+        for defect in result.defects
+    ]
+    return {
+        "modelId": model_id,
+        "modelSha256": model_sha256,
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": list(
+            dict.fromkeys(detection["type"] for detection in detections)
+        ),
+        "detections": detections,
+        "totalDetections": result.total_defects,
+        "qualityScore": result.quality_score,
+        "status": result.status,
+    }
+
+
 def main() -> int:
     args = _parse_args()
     if str(REPOSITORY_ROOT) not in sys.path:
@@ -101,57 +132,47 @@ def main() -> int:
     samples: list[dict[str, Any]] = []
     total_detections = 0
     observed_types: set[str] = set()
+    ground_truth_split: Counter[str] = Counter()
+    source_categories: set[str] = set()
+    source_defect_labels: set[str] = set()
     for item in manifest["files"]:
         sample_path = REPOSITORY_ROOT / item["path"]
         image = decode_image(sample_path.read_bytes())
         result = service.inspect(image)
-        actual_types = list(dict.fromkeys(defect.type for defect in result.defects))
-        if item["expectedNativeClass"] not in actual_types:
-            raise RuntimeError(
-                f"Expected native class missing for {item['id']}: {actual_types}"
-            )
-        if actual_types != item["expectedNativeTypes"]:
-            raise RuntimeError(
-                f"Native output changed for {item['id']}: "
-                f"expected {item['expectedNativeTypes']}, got {actual_types}"
-            )
-        total_detections += result.total_defects
-        observed_types.update(actual_types)
+        actual_observation = _observation(
+            result,
+            model_id=model_spec.model_id,
+            model_sha256=model_spec.sha256,
+        )
+        if actual_observation != item["modelObservation"]:
+            raise RuntimeError(f"Tracked model observation changed for {item['id']}")
+        ground_truth = item["sourceGroundTruth"]
+        ground_truth_split[ground_truth["label"]] += 1
+        source_categories.add(ground_truth["category"])
+        source_defect_labels.update(ground_truth["defectLabels"])
+        total_detections += actual_observation["totalDetections"]
+        observed_types.update(actual_observation["observedNativeClasses"])
         samples.append(
             {
                 "sampleId": item["id"],
                 "path": item["path"],
                 "sha256": item["sha256"],
-                "sourceArchivePath": item["source"]["archivePath"],
-                "sourceCategory": item["source"]["category"],
-                "sourceAnomalyLabel": item["source"]["anomalyLabel"],
-                "expectedNativeClass": item["expectedNativeClass"],
-                "actualNativeTypes": actual_types,
-                "dimensions": {
-                    "width": result.image_width,
-                    "height": result.image_height,
-                },
-                "defects": [
-                    {
-                        "type": defect.type,
-                        "confidence": round(defect.confidence, 6),
-                        "boundingBox": {
-                            "x": round(defect.bounding_box.x, 4),
-                            "y": round(defect.bounding_box.y, 4),
-                            "width": round(defect.bounding_box.width, 4),
-                            "height": round(defect.bounding_box.height, 4),
-                        },
-                    }
-                    for defect in result.defects
-                ],
-                "totalDefects": result.total_defects,
-                "qualityScore": result.quality_score,
-                "status": result.status,
+                "dimensions": item["dimensions"],
+                "sourceGroundTruth": ground_truth,
+                "modelObservation": actual_observation,
             }
         )
 
-    if len(samples) < 10 or total_detections < len(samples):
-        raise RuntimeError("Every tracked demo sample must produce a real detection")
+    normal_samples = [
+        sample
+        for sample in samples
+        if sample["sourceGroundTruth"]["label"] == "normal"
+    ]
+    anomaly_samples = [
+        sample
+        for sample in samples
+        if sample["sourceGroundTruth"]["label"] == "anomaly"
+    ]
     source_files = {
         relative_path: _sha256_file(REPOSITORY_ROOT / relative_path)
         for relative_path in SOURCE_PATHS
@@ -159,8 +180,52 @@ def main() -> int:
     source_files.update(
         {item["path"]: item["sha256"] for item in manifest["files"]}
     )
+    source_files.update(
+        {
+            annotation["path"]: annotation["sha256"]
+            for annotation in manifest["dataset"]["annotationFiles"]
+        }
+    )
+    summary = {
+        "sampleCount": len(samples),
+        "groundTruthSplit": {
+            "normal": ground_truth_split["normal"],
+            "anomaly": ground_truth_split["anomaly"],
+        },
+        "sourceCategories": sorted(source_categories),
+        "sourceCategoryCount": len(source_categories),
+        "sourceDefectLabels": sorted(source_defect_labels, key=str.casefold),
+        "sourceDefectLabelCount": len(source_defect_labels),
+        "observedNativeClasses": sorted(observed_types),
+        "totalModelDetections": total_detections,
+        "zeroDetectionSampleCount": sum(
+            sample["modelObservation"]["totalDetections"] == 0 for sample in samples
+        ),
+        "normalModelOutcomes": {
+            "sampleCount": len(normal_samples),
+            "zeroDetections": sum(
+                sample["modelObservation"]["totalDetections"] == 0
+                for sample in normal_samples
+            ),
+            "falsePositiveSamples": sum(
+                sample["modelObservation"]["totalDetections"] > 0
+                for sample in normal_samples
+            ),
+        },
+        "anomalyModelOutcomes": {
+            "sampleCount": len(anomaly_samples),
+            "zeroDetections": sum(
+                sample["modelObservation"]["totalDetections"] == 0
+                for sample in anomaly_samples
+            ),
+            "samplesWithDetections": sum(
+                sample["modelObservation"]["totalDetections"] > 0
+                for sample in anomaly_samples
+            ),
+        },
+    }
     evidence = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "recordedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "sourceCommit": _current_commit(),
         "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
@@ -175,35 +240,33 @@ def main() -> int:
             },
         },
         "dataset": manifest["dataset"],
-        "model": {
-            "modelId": model_spec.model_id,
-            "sha256": model_spec.sha256,
-            "classes": list(model_spec.classes),
-            "confidence": 0.25,
-        },
-        "sampleCount": len(samples),
-        "totalDetections": total_detections,
-        "observedNativeTypes": sorted(observed_types),
+        "modelObservationContract": manifest["modelObservationContract"],
+        "accuracyClaim": False,
+        "summary": summary,
         "samples": samples,
         "acceptance": {
             "atLeastTenDecodedSamples": len(samples) >= 10,
-            "allSourceHashesMatch": True,
-            "allSourceDimensionsMatch": True,
-            "completePinnedProvenance": True,
+            "severalNormalSamples": ground_truth_split["normal"] >= 3,
+            "severalAnomalySamples": ground_truth_split["anomaly"] >= 3,
+            "sourceCategoryDiversity": len(source_categories) >= 4,
+            "sourceDefectCaseDiversity": len(source_defect_labels) >= 4,
+            "selectionIndependentOfModel": manifest["selection"]["modelIndependent"]
+            is True,
+            "groundTruthSeparatedFromModelObservation": True,
+            "allSourceHashesAndAnnotationsMatch": True,
             "redistributionLicenseVerified": manifest["dataset"]["license"]
             == "CC BY 4.0",
             "noSyntheticImages": manifest["selection"]["syntheticImages"] is False,
             "noFakeDetections": manifest["selection"]["fakeDetections"] is False,
-            "everySampleHasRealSelectedModelDetection": all(
-                sample["totalDefects"] > 0 for sample in samples
-            ),
-            "nativeClassExpectationsMatch": True,
+            "allModelObservationsReproduced": True,
+            "noAccuracyClaim": True,
         },
     }
     _write_json(args.output, evidence)
     print(
-        f"[OK] Probed {len(samples)} real demo samples with {total_detections} "
-        f"selected-model detection(s); wrote {args.output.resolve()}",
+        f"[OK] Probed {len(samples)} samples: {ground_truth_split['normal']} normal, "
+        f"{ground_truth_split['anomaly']} anomaly, {len(source_categories)} categories, "
+        f"{total_detections} observed model detection(s); no accuracy claim",
         flush=True,
     )
     return 0

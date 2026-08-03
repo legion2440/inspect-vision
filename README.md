@@ -4,8 +4,8 @@ Visual quality-control system for manufacturing images. The React/Vite frontend,
 selected-model inspection service, crash-recoverable SQLite/media persistence,
 and main FastAPI inspection/history API are implemented and verified. Live
 stream inference and server CSV export are also implemented and verified. The
-tracked ten-image VisA anomaly dataset is hash/provenance validated and verified
-through the selected model.
+tracked source-balanced VisA demo dataset is hash/provenance validated and its
+separate selected-model observations are reproducible.
 
 ## Current state
 
@@ -30,8 +30,9 @@ through the selected model.
   JPEG/PNG format; POST/detail use the dual-image data URL contract.
 - `/api/stream` reuses the selected service and inference lock without
   persistence; `/api/export` reuses the canonical history filters and ordering.
-- Ten unmodified CC BY 4.0 VisA anomaly images are tracked with exact archive
-  paths, hashes, dimensions, attribution, and real native-model outputs.
+- Twelve unmodified CC BY 4.0 VisA images cover four normal and eight anomaly
+  cases across four products and ten source defect labels. Ground truth comes
+  from tracked `image_anno.csv` files; model observations remain separate.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
 
@@ -86,9 +87,10 @@ selected-model evidence:
 .venv/Scripts/python.exe scripts/probe_demo_samples.py
 ```
 
-`scripts/prepare_demo_samples.py` reproducibly streams the official VisA
-archive, preserves ten original anomaly-image byte sequences with nonzero model
-output, and rebuilds the manifest. It is not required for normal setup.
+`scripts/prepare_demo_samples.py` reads bounded ranges from the official VisA
+archive, applies normal/anomaly/category quotas before inference, preserves the
+selected image bytes and annotation CSVs, then records model observations. It
+is not required for normal setup.
 
 ## Run
 

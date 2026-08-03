@@ -1,8 +1,8 @@
 # VisA demo image notice
 
-The ten files in `backend/samples/demo/` are unmodified anomaly images from the
-Visual Anomaly (VisA) dataset by Yang Zou, Jongheon Jeong, Latha Pemula,
-Dongqing Zhang, and Onkar Dabeer.
+The twelve files in `backend/samples/demo/` are unmodified normal and anomaly
+images from the Visual Anomaly (VisA) dataset by Yang Zou, Jongheon Jeong,
+Latha Pemula, Dongqing Zhang, and Onkar Dabeer.
 
 - Source project: https://github.com/amazon-science/spot-diff
 - Pinned source revision: `2a692ab575001cbde74d402d897a7286086c6199`
@@ -13,5 +13,7 @@ Dongqing Zhang, and Onkar Dabeer.
   Anomaly Detection and Segmentation*, ECCV 2022.
 
 `demo-samples.json` identifies the exact archive member, SHA-256, dimensions,
-license, and selected-model native output for every redistributed file. No demo
-image is synthetic, and the source image bytes have not been modified.
+license, source ground truth, and separate selected-model observation for every
+redistributed file. The tracked category annotation CSVs are normalized only to
+UTF-8/LF and retain their values. No demo image is synthetic, and source image
+bytes have not been modified.

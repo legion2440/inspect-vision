@@ -49,10 +49,13 @@ API bonus evidence is under `api-bonuses/`:
 
 Demo-dataset evidence is under `demo-samples/`:
 
-- `demo-samples-acceptance.json` binds all ten tracked VisA anomaly images to
-  their manifest hashes, dimensions, archive paths, CC BY 4.0 provenance, and
-  selected-model output at confidence `0.25`.
-- Every image decodes at `1284 × 1168`; the full service produced 40 real
-  detections across the inventory. Recorded native classes are model outputs,
-  not replacements for VisA's source-level anomaly label.
+- `demo-samples-acceptance.json` binds twelve tracked VisA images and four
+  category annotation CSVs to hashes, dimensions, archive paths, and CC BY 4.0
+  provenance.
+- Source truth contains four normal and eight anomaly samples, four product
+  categories, and ten distinct source defect labels. It is selected before any
+  model call.
+- The full service reproduced 65 observations at confidence `0.25`. All four
+  source-normal samples produced false positives; they are retained exactly as
+  observed. This run is not an accuracy benchmark and makes no accuracy claim.
 - Static validation does not require model weights; the runtime probe does.

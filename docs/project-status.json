@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-08-03",
+  "recorded_at": "2026-08-04",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
@@ -31,8 +31,9 @@
     "loopback Uvicorn bonus evidence returned four real stream defects, proved unchanged history, and matched two filtered history rows to CSV",
     "detail media hydration is serialized with delete/clear and database/media path overlap is rejected symmetrically",
     "one hundred two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests",
-    "ten unmodified VisA industrial anomaly images have pinned CC BY 4.0 provenance, exact hashes, byte sizes, decode, and 1284 by 1168 dimensions",
-    "the selected DetectionService produced forty real detections across all ten tracked demo samples at production confidence 0.25"
+    "twelve unmodified VisA images have pinned CC BY 4.0 provenance: four normal and eight anomaly samples across four products and ten source defect labels",
+    "four tracked VisA image_anno.csv files make source ground truth executable and separate from model observations",
+    "the selected DetectionService reproduced sixty-five observations across all twelve samples at production confidence 0.25; all four source-normal samples retained their observed false positives"
   ],
   "known_limitations": [
     {
@@ -46,9 +47,14 @@
       "detail": "The 17-class alternative required a 0.05 diagnostic threshold and produced two detections on one of three NEU-DET probe images; the stronger six-class model is selected."
     },
     {
-      "id": "api-evidence-commit-pointer-provisional",
+      "id": "runtime-evidence-commit-pointers-provisional",
       "area": "audit-evidence",
-      "detail": "API evidence is authoritatively bound by executed source-file hashes; its sourceCommit convenience pointer will be rebased in the final evidence commit."
+      "detail": "Runtime evidence is authoritatively bound by executed source-file hashes; sourceCommit convenience pointers will be rebased in the final evidence commit."
+    },
+    {
+      "id": "demo-observations-not-an-accuracy-benchmark",
+      "area": "audit-evidence",
+      "detail": "The source-balanced demo run records predictions, including false positives, but does not compute or claim benchmark accuracy; accurate boxes/types/confidence remains PARTIAL."
     },
     {
       "id": "automated-coverage-partial",

@@ -1,28 +1,36 @@
 {
-  "schemaVersion": 1,
-  "recordedAt": "2026-08-03T19:18:54.249745Z",
-  "sourceCommit": "64f40035e133ad3b8c700dfa0943fcd0957cb4c4",
+  "schemaVersion": 2,
+  "recordedAt": "2026-08-03T19:59:15.428289Z",
+  "sourceCommit": "47d611ec402666cec5e7c97ba48bde7d330ae00e",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
     "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
     "backend/detection/quality.py": "838854adb6a3505a945259df46df2a6fec5914be45ec306220918c39cf9f197e",
     "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
     "backend/models/model-manifest.json": "661946c6010515196f399c788a9096394699e3ae66fcc7f5874ac0ee31eda9a9",
-    "backend/samples/demo-samples.json": "2022038b44f76c3b96e88779ca8527e7137e2001f9409d073c6a28b6fbe1d1c5",
+    "backend/samples/VISA-NOTICE.md": "6649927fed8284c73479aa6392980cb60e5d9c3e02737eb90109ac825db87f7d",
+    "backend/samples/demo-samples.json": "d74941f073d906403015af1a863de90c5e472f68d1b9d47133d307f0f0bc1c60",
     "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
     "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
-    "scripts/probe_demo_samples.py": "c21612e5cffdd3f304d0c4bf8583b752d9c50b67b34b0d9756aa147eadcaa48b",
-    "scripts/validate_demo_samples.py": "cd97dcb8339f6f3ef732c5fa5200d2ce32b1bf5b57295c9035d2bad60aa83900",
-    "backend/samples/demo/visa-candle-001.jpg": "c697ce4e2176c0de5d9f3ba8f38cd5acf99c61be5f91656ebb49c86652875f9a",
-    "backend/samples/demo/visa-candle-098.jpg": "8da7702e989f8382558fcb931697861a029c8fc56e20c583eb18c0a5d96143ec",
-    "backend/samples/demo/visa-candle-089.jpg": "9e4d2c8c036eaa492b9ea6c225f5ed52be1c5e9a27bb97dc3b10c0628261ed12",
-    "backend/samples/demo/visa-candle-010.jpg": "7001b2b9d7d67ba54a908ff14b989dc2ab3a7f8ab020bfabad0b7c77827b9706",
-    "backend/samples/demo/visa-candle-045.jpg": "ff5a330c70afcc311f80c21c5ede46f79577d04d589a9993918bd045bbf23a7b",
-    "backend/samples/demo/visa-candle-081.jpg": "4fab3cac2dc2702d1b9bf8c13b60a8110be3cca20f8a706e2aee23b39d73b62b",
-    "backend/samples/demo/visa-candle-009.jpg": "a015ce85aa10281bccc26b963c9400aef6882ad92dec2db5d934e79c1a1e44d8",
-    "backend/samples/demo/visa-candle-063.jpg": "6a11d6df145c1908d2a574a037424c16948a65d25bd09c6728b9b6ae8e1f691d",
-    "backend/samples/demo/visa-candle-027.jpg": "6c48743e09af766c5693ae27c8c4ac07a877cb43fd5f0e63321eba3d10bf762a",
-    "backend/samples/demo/visa-candle-054.jpg": "4b441eba2eb7f9714bae59e8d3bfc21a4fc121c8aff89036704a12bb4a2434b0"
+    "scripts/prepare_demo_samples.py": "08bb4328d2d2e129c74d804ee99bf803a8eef5a559ce28ed2261ff3beaeadc24",
+    "scripts/probe_demo_samples.py": "34f28f33b8295435f86d67ac8e2d61e300353cbd249bd81adc458c80c00a4585",
+    "scripts/validate_demo_samples.py": "b7b76e5a535222bd123c068a53a695c972da4f693361f8c65c00624ee37f7674",
+    "backend/samples/demo/visa-candle-normal-0000.jpg": "223a16caac5a91232f7c52552dea5c7c7f096ef882e626c5908b4539a43dc131",
+    "backend/samples/demo/visa-candle-anomaly-000.jpg": "c004dbc05698f01cf415e07d2a8cf8fef48aa19516eece6600e13f92f1f788b7",
+    "backend/samples/demo/visa-candle-anomaly-005.jpg": "db4d13adb2b47930feb10e0f6cd88ded671dca71987ab35cff50785081bc31fc",
+    "backend/samples/demo/visa-capsules-normal-000.jpg": "c5ffa21822a8759621e81deedfcbd94cfae213667044f995fbaa6d9affbc1a4f",
+    "backend/samples/demo/visa-capsules-anomaly-000.jpg": "c7e81efefcdb31b22bf6087ad74575446013eb2f3925c0e3265d467a2caaad7c",
+    "backend/samples/demo/visa-capsules-anomaly-030.jpg": "ff763ee3a3c247dd0d2f32f0badc30e3a2d50de8e68472263c07db2ced971c33",
+    "backend/samples/demo/visa-cashew-normal-000.jpg": "5de461535f04175ac89dde90c4d662894aec6eef8ba946b6bc521ddeb5bdf885",
+    "backend/samples/demo/visa-cashew-anomaly-000.jpg": "f28c4dad19810bc27bd38389a430dcc77c4aace06a5350e74c66c9ccb38affbd",
+    "backend/samples/demo/visa-cashew-anomaly-001.jpg": "1ed3b61cb81c75ffebf65bb8cbf49282f488ad634846b78c039b429c9aea61af",
+    "backend/samples/demo/visa-chewinggum-normal-000.jpg": "d6d40b52237586bf27e20bc9299600379b5fc9ad483d4f6a03f532af4b37cd10",
+    "backend/samples/demo/visa-chewinggum-anomaly-000.jpg": "cf54dc3b8aee8cc4c60b83553a5934d847e9f8fcf94406c359fe2fea17810dd9",
+    "backend/samples/demo/visa-chewinggum-anomaly-001.jpg": "e47e6d72e8f55160d0d47273ae6f7670b5b308e53c1ccf601726b4daf2d24ada",
+    "backend/samples/provenance/candle-image_anno.csv": "49baf317c8adfdf4c45ca074071811b2bc317adcfe87f1cefcb44be34762f020",
+    "backend/samples/provenance/capsules-image_anno.csv": "a5f7cf9d17386b5d56ad9e400a84b69218797be53bf61c2afc9a02366afe29ce",
+    "backend/samples/provenance/cashew-image_anno.csv": "48c16e4329565d4af1c2a2eadc79e66837e431c3904237059f3369ca3ecfe678",
+    "backend/samples/provenance/chewinggum-image_anno.csv": "2441088872d52694360ca267f26e1240f85aa86b9c8b9bd4f91464eee761602f"
   },
   "runtime": {
     "python": "3.13.5",
@@ -36,6 +44,7 @@
     }
   },
   "dataset": {
+    "id": "visa",
     "name": "Visual Anomaly (VisA)",
     "authors": [
       "Yang Zou",
@@ -51,651 +60,1317 @@
     "archiveLastModified": "Thu, 22 Sep 2022 19:23:39 GMT",
     "license": "CC BY 4.0",
     "licenseUrl": "https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET",
-    "citation": "SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation, ECCV 2022"
+    "citation": "SPot-the-Difference Self-Supervised Pre-training for Anomaly Detection and Segmentation, ECCV 2022",
+    "annotationFiles": [
+      {
+        "category": "candle",
+        "path": "backend/samples/provenance/candle-image_anno.csv",
+        "sha256": "49baf317c8adfdf4c45ca074071811b2bc317adcfe87f1cefcb44be34762f020",
+        "sourceArchivePath": "candle/image_anno.csv",
+        "sourceSha256": "b36840f2ac00f2ed22718a32a14bd246ec1080a194b4b4a3bc9c7178c00328be",
+        "normalization": "UTF-8 with LF line endings; CSV values unchanged"
+      },
+      {
+        "category": "capsules",
+        "path": "backend/samples/provenance/capsules-image_anno.csv",
+        "sha256": "a5f7cf9d17386b5d56ad9e400a84b69218797be53bf61c2afc9a02366afe29ce",
+        "sourceArchivePath": "capsules/image_anno.csv",
+        "sourceSha256": "8fced5b5b02528695d0724395d685770adcc971f514816d654177ee885f4f409",
+        "normalization": "UTF-8 with LF line endings; CSV values unchanged"
+      },
+      {
+        "category": "cashew",
+        "path": "backend/samples/provenance/cashew-image_anno.csv",
+        "sha256": "48c16e4329565d4af1c2a2eadc79e66837e431c3904237059f3369ca3ecfe678",
+        "sourceArchivePath": "cashew/image_anno.csv",
+        "sourceSha256": "062f4cd85ec509d32473b8511964485db91394bdcf5fdba1b880c6edbc840af9",
+        "normalization": "UTF-8 with LF line endings; CSV values unchanged"
+      },
+      {
+        "category": "chewinggum",
+        "path": "backend/samples/provenance/chewinggum-image_anno.csv",
+        "sha256": "2441088872d52694360ca267f26e1240f85aa86b9c8b9bd4f91464eee761602f",
+        "sourceArchivePath": "chewinggum/image_anno.csv",
+        "sourceSha256": "e1f145727ad7d03c1dc1c42e18f2642d0099a28734b50976dfd401be5ce7f790",
+        "normalization": "UTF-8 with LF line endings; CSV values unchanged"
+      }
+    ]
   },
-  "model": {
+  "modelObservationContract": {
+    "groundTruth": false,
+    "accuracyClaim": false,
     "modelId": "neu-defect-yolov8",
-    "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
-    "classes": [
+    "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+    "confidenceThreshold": 0.25,
+    "nativeClasses": [
       "crazing",
       "inclusion",
       "patches",
       "pitted_surface",
       "rolled-in_scale",
       "scratches"
-    ],
-    "confidence": 0.25
+    ]
   },
-  "sampleCount": 10,
-  "totalDetections": 40,
-  "observedNativeTypes": [
-    "inclusion",
-    "patches"
-  ],
+  "accuracyClaim": false,
+  "summary": {
+    "sampleCount": 12,
+    "groundTruthSplit": {
+      "normal": 4,
+      "anomaly": 8
+    },
+    "sourceCategories": [
+      "candle",
+      "capsules",
+      "cashew",
+      "chewinggum"
+    ],
+    "sourceCategoryCount": 4,
+    "sourceDefectLabels": [
+      "bubble",
+      "burnt",
+      "chunk of gum missing",
+      "chunk of wax missing",
+      "corner missing",
+      "corner or edge breakage",
+      "discolor",
+      "foreign particals on candle",
+      "scratches",
+      "small cracks"
+    ],
+    "sourceDefectLabelCount": 10,
+    "observedNativeClasses": [
+      "inclusion",
+      "patches",
+      "pitted_surface",
+      "rolled-in_scale"
+    ],
+    "totalModelDetections": 65,
+    "zeroDetectionSampleCount": 0,
+    "normalModelOutcomes": {
+      "sampleCount": 4,
+      "zeroDetections": 0,
+      "falsePositiveSamples": 4
+    },
+    "anomalyModelOutcomes": {
+      "sampleCount": 8,
+      "zeroDetections": 0,
+      "samplesWithDetections": 8
+    }
+  },
   "samples": [
     {
-      "sampleId": "visa-candle-001",
-      "path": "backend/samples/demo/visa-candle-001.jpg",
-      "sha256": "c697ce4e2176c0de5d9f3ba8f38cd5acf99c61be5f91656ebb49c86652875f9a",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/001.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-candle-normal-0000",
+      "path": "backend/samples/demo/visa-candle-normal-0000.jpg",
+      "sha256": "223a16caac5a91232f7c52552dea5c7c7f096ef882e626c5908b4539a43dc131",
       "dimensions": {
         "width": 1284,
         "height": 1168
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.81381,
-          "boundingBox": {
-            "x": 453.337,
-            "y": 129.672,
-            "width": 189.265,
-            "height": 385.9693
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.659559,
-          "boundingBox": {
-            "x": 460.5565,
-            "y": 673.1683,
-            "width": 191.7997,
-            "height": 375.3713
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.495759,
-          "boundingBox": {
-            "x": 1012.8901,
-            "y": 676.921,
-            "width": 202.2844,
-            "height": 386.9117
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.381124,
-          "boundingBox": {
-            "x": 996.4356,
-            "y": 127.4021,
-            "width": 197.0901,
-            "height": 392.1818
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "candle",
+        "label": "normal",
+        "defectLabels": [],
+        "imageArchivePath": "candle/Data/Images/Normal/0000.JPG",
+        "maskArchivePath": null,
+        "annotation": {
+          "category": "candle",
+          "path": "backend/samples/provenance/candle-image_anno.csv",
+          "sha256": "49baf317c8adfdf4c45ca074071811b2bc317adcfe87f1cefcb44be34762f020",
+          "sourceArchivePath": "candle/image_anno.csv",
+          "sourceSha256": "b36840f2ac00f2ed22718a32a14bd246ec1080a194b4b4a3bc9c7178c00328be",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "candle/Data/Images/Normal/0000.JPG",
+            "label": "normal",
+            "mask": ""
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 69,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.805533,
+            "boundingBox": {
+              "x": 434.595,
+              "y": 90.085,
+              "width": 205.5114,
+              "height": 390.9503
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.779279,
+            "boundingBox": {
+              "x": 1029.3918,
+              "y": 83.3942,
+              "width": 188.3789,
+              "height": 389.9149
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.776246,
+            "boundingBox": {
+              "x": 455.4837,
+              "y": 631.4609,
+              "width": 186.6373,
+              "height": 376.1807
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.604428,
+            "boundingBox": {
+              "x": 1035.6713,
+              "y": 637.8219,
+              "width": 187.4353,
+              "height": 371.6791
+            }
+          }
+        ],
+        "totalDetections": 4,
+        "qualityScore": 62,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-098",
-      "path": "backend/samples/demo/visa-candle-098.jpg",
-      "sha256": "8da7702e989f8382558fcb931697861a029c8fc56e20c583eb18c0a5d96143ec",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/098.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-candle-anomaly-000",
+      "path": "backend/samples/demo/visa-candle-anomaly-000.jpg",
+      "sha256": "c004dbc05698f01cf415e07d2a8cf8fef48aa19516eece6600e13f92f1f788b7",
       "dimensions": {
         "width": 1284,
         "height": 1168
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.83477,
-          "boundingBox": {
-            "x": 446.3752,
-            "y": 110.7543,
-            "width": 196.662,
-            "height": 395.3676
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.697351,
-          "boundingBox": {
-            "x": 463.9093,
-            "y": 675.1303,
-            "width": 184.3499,
-            "height": 378.4175
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.520457,
-          "boundingBox": {
-            "x": 1026.3365,
-            "y": 102.8996,
-            "width": 187.7175,
-            "height": 392.7322
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "candle",
+        "label": "anomaly",
+        "defectLabels": [
+          "chunk of wax missing"
+        ],
+        "imageArchivePath": "candle/Data/Images/Anomaly/000.JPG",
+        "maskArchivePath": "candle/Data/Masks/Anomaly/000.png",
+        "annotation": {
+          "category": "candle",
+          "path": "backend/samples/provenance/candle-image_anno.csv",
+          "sha256": "49baf317c8adfdf4c45ca074071811b2bc317adcfe87f1cefcb44be34762f020",
+          "sourceArchivePath": "candle/image_anno.csv",
+          "sourceSha256": "b36840f2ac00f2ed22718a32a14bd246ec1080a194b4b4a3bc9c7178c00328be",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "candle/Data/Images/Anomaly/000.JPG",
+            "label": "chunk of wax missing",
+            "mask": "candle/Data/Masks/Anomaly/000.png"
           }
         }
-      ],
-      "totalDefects": 3,
-      "qualityScore": 73,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.802361,
+            "boundingBox": {
+              "x": 464.8269,
+              "y": 118.5552,
+              "width": 184.9723,
+              "height": 383.6952
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.783131,
+            "boundingBox": {
+              "x": 454.7399,
+              "y": 671.6884,
+              "width": 184.9109,
+              "height": 382.317
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.49958,
+            "boundingBox": {
+              "x": 1014.231,
+              "y": 105.0736,
+              "width": 203.5707,
+              "height": 403.8499
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.257042,
+            "boundingBox": {
+              "x": 1036.4174,
+              "y": 668.3914,
+              "width": 183.5911,
+              "height": 375.8329
+            }
+          }
+        ],
+        "totalDetections": 4,
+        "qualityScore": 70,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-089",
-      "path": "backend/samples/demo/visa-candle-089.jpg",
-      "sha256": "9e4d2c8c036eaa492b9ea6c225f5ed52be1c5e9a27bb97dc3b10c0628261ed12",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/089.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches",
-        "inclusion"
-      ],
+      "sampleId": "visa-candle-anomaly-005",
+      "path": "backend/samples/demo/visa-candle-anomaly-005.jpg",
+      "sha256": "db4d13adb2b47930feb10e0f6cd88ded671dca71987ab35cff50785081bc31fc",
       "dimensions": {
         "width": 1284,
         "height": 1168
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.820648,
-          "boundingBox": {
-            "x": 462.8898,
-            "y": 102.1321,
-            "width": 182.7538,
-            "height": 391.709
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.691807,
-          "boundingBox": {
-            "x": 446.4459,
-            "y": 640.9662,
-            "width": 189.5719,
-            "height": 383.0795
-          }
-        },
-        {
-          "type": "inclusion",
-          "confidence": 0.505349,
-          "boundingBox": {
-            "x": 1015.3088,
-            "y": 86.1537,
-            "width": 205.6291,
-            "height": 401.163
-          }
-        },
-        {
-          "type": "inclusion",
-          "confidence": 0.305803,
-          "boundingBox": {
-            "x": 1027.774,
-            "y": 610.2666,
-            "width": 194.0342,
-            "height": 379.7966
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.253811,
-          "boundingBox": {
-            "x": 1026.4679,
-            "y": 609.1468,
-            "width": 195.0114,
-            "height": 380.5452
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "candle",
+        "label": "anomaly",
+        "defectLabels": [
+          "chunk of wax missing",
+          "foreign particals on candle"
+        ],
+        "imageArchivePath": "candle/Data/Images/Anomaly/005.JPG",
+        "maskArchivePath": "candle/Data/Masks/Anomaly/005.png",
+        "annotation": {
+          "category": "candle",
+          "path": "backend/samples/provenance/candle-image_anno.csv",
+          "sha256": "49baf317c8adfdf4c45ca074071811b2bc317adcfe87f1cefcb44be34762f020",
+          "sourceArchivePath": "candle/image_anno.csv",
+          "sourceSha256": "b36840f2ac00f2ed22718a32a14bd246ec1080a194b4b4a3bc9c7178c00328be",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "candle/Data/Images/Anomaly/005.JPG",
+            "label": "chunk of wax missing,foreign particals on candle",
+            "mask": "candle/Data/Masks/Anomaly/005.png"
           }
         }
-      ],
-      "totalDefects": 5,
-      "qualityScore": 64,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "inclusion",
+          "patches"
+        ],
+        "detections": [
+          {
+            "type": "inclusion",
+            "confidence": 0.511428,
+            "boundingBox": {
+              "x": 775.873,
+              "y": 231.095,
+              "width": 52.659,
+              "height": 140.0392
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.447062,
+            "boundingBox": {
+              "x": 474.6224,
+              "y": 668.8792,
+              "width": 195.7595,
+              "height": 371.7917
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.40444,
+            "boundingBox": {
+              "x": 1019.0092,
+              "y": 698.1205,
+              "width": 192.1078,
+              "height": 383.2249
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.370791,
+            "boundingBox": {
+              "x": 989.8961,
+              "y": 130.4618,
+              "width": 199.6404,
+              "height": 386.2021
+            }
+          }
+        ],
+        "totalDetections": 4,
+        "qualityScore": 77,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-010",
-      "path": "backend/samples/demo/visa-candle-010.jpg",
-      "sha256": "7001b2b9d7d67ba54a908ff14b989dc2ab3a7f8ab020bfabad0b7c77827b9706",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/010.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches",
-        "inclusion"
-      ],
+      "sampleId": "visa-capsules-normal-000",
+      "path": "backend/samples/demo/visa-capsules-normal-000.jpg",
+      "sha256": "c5ffa21822a8759621e81deedfcbd94cfae213667044f995fbaa6d9affbc1a4f",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1500,
+        "height": 1000
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.77854,
-          "boundingBox": {
-            "x": 449.4415,
-            "y": 117.4981,
-            "width": 192.2788,
-            "height": 385.6273
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.704048,
-          "boundingBox": {
-            "x": 458.7354,
-            "y": 669.0038,
-            "width": 183.6442,
-            "height": 378.568
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.700022,
-          "boundingBox": {
-            "x": 1041.2423,
-            "y": 105.883,
-            "width": 180.8392,
-            "height": 384.9865
-          }
-        },
-        {
-          "type": "inclusion",
-          "confidence": 0.301784,
-          "boundingBox": {
-            "x": 1035.3542,
-            "y": 672.8132,
-            "width": 187.374,
-            "height": 384.3033
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "capsules",
+        "label": "normal",
+        "defectLabels": [],
+        "imageArchivePath": "capsules/Data/Images/Normal/000.JPG",
+        "maskArchivePath": null,
+        "annotation": {
+          "category": "capsules",
+          "path": "backend/samples/provenance/capsules-image_anno.csv",
+          "sha256": "a5f7cf9d17386b5d56ad9e400a84b69218797be53bf61c2afc9a02366afe29ce",
+          "sourceArchivePath": "capsules/image_anno.csv",
+          "sourceSha256": "8fced5b5b02528695d0724395d685770adcc971f514816d654177ee885f4f409",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "capsules/Data/Images/Normal/000.JPG",
+            "label": "normal",
+            "mask": ""
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 67,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches",
+          "inclusion",
+          "rolled-in_scale"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.738176,
+            "boundingBox": {
+              "x": 395.2328,
+              "y": 601.9396,
+              "width": 205.3521,
+              "height": 191.782
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.720452,
+            "boundingBox": {
+              "x": 984.2017,
+              "y": 700.3759,
+              "width": 244.6547,
+              "height": 145.5685
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.524957,
+            "boundingBox": {
+              "x": 242.4854,
+              "y": 571.9214,
+              "width": 113.1472,
+              "height": 283.7823
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.481722,
+            "boundingBox": {
+              "x": 779.647,
+              "y": 506.6438,
+              "width": 241.4154,
+              "height": 150.1205
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.445741,
+            "boundingBox": {
+              "x": 1252.8026,
+              "y": 601.1594,
+              "width": 113.2784,
+              "height": 266.3594
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.438018,
+            "boundingBox": {
+              "x": 942.544,
+              "y": 31.2871,
+              "width": 241.618,
+              "height": 250.357
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.435262,
+            "boundingBox": {
+              "x": 918.779,
+              "y": 230.6927,
+              "width": 203.5284,
+              "height": 238.8578
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.420201,
+            "boundingBox": {
+              "x": 1253.9857,
+              "y": 597.5219,
+              "width": 113.7668,
+              "height": 278.9543
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.399628,
+            "boundingBox": {
+              "x": 480.8144,
+              "y": 209.0669,
+              "width": 301.9559,
+              "height": 331.2824
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.387233,
+            "boundingBox": {
+              "x": 646.5192,
+              "y": 386.8386,
+              "width": 158.5107,
+              "height": 128.1091
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.383287,
+            "boundingBox": {
+              "x": 1194.215,
+              "y": 324.0822,
+              "width": 210.5834,
+              "height": 253.4688
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.373011,
+            "boundingBox": {
+              "x": 229.5647,
+              "y": 564.1518,
+              "width": 109.305,
+              "height": 291.7966
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.28849,
+            "boundingBox": {
+              "x": 375.0146,
+              "y": 98.1769,
+              "width": 194.2221,
+              "height": 445.1928
+            }
+          },
+          {
+            "type": "rolled-in_scale",
+            "confidence": 0.274848,
+            "boundingBox": {
+              "x": 651.5575,
+              "y": 723.0978,
+              "width": 239.0739,
+              "height": 152.3621
+            }
+          }
+        ],
+        "totalDetections": 14,
+        "qualityScore": 19,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-045",
-      "path": "backend/samples/demo/visa-candle-045.jpg",
-      "sha256": "ff5a330c70afcc311f80c21c5ede46f79577d04d589a9993918bd045bbf23a7b",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/045.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-capsules-anomaly-000",
+      "path": "backend/samples/demo/visa-capsules-anomaly-000.jpg",
+      "sha256": "c7e81efefcdb31b22bf6087ad74575446013eb2f3925c0e3265d467a2caaad7c",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1500,
+        "height": 1000
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.82686,
-          "boundingBox": {
-            "x": 455.7944,
-            "y": 120.464,
-            "width": 191.6586,
-            "height": 385.4031
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.823441,
-          "boundingBox": {
-            "x": 448.6395,
-            "y": 653.2006,
-            "width": 194.4439,
-            "height": 375.7881
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.761924,
-          "boundingBox": {
-            "x": 1033.2397,
-            "y": 126.6969,
-            "width": 186.62,
-            "height": 385.4875
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.25232,
-          "boundingBox": {
-            "x": 1018.6147,
-            "y": 663.1709,
-            "width": 197.2045,
-            "height": 375.0148
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "capsules",
+        "label": "anomaly",
+        "defectLabels": [
+          "bubble"
+        ],
+        "imageArchivePath": "capsules/Data/Images/Anomaly/000.JPG",
+        "maskArchivePath": "capsules/Data/Masks/Anomaly/000.png",
+        "annotation": {
+          "category": "capsules",
+          "path": "backend/samples/provenance/capsules-image_anno.csv",
+          "sha256": "a5f7cf9d17386b5d56ad9e400a84b69218797be53bf61c2afc9a02366afe29ce",
+          "sourceArchivePath": "capsules/image_anno.csv",
+          "sourceSha256": "8fced5b5b02528695d0724395d685770adcc971f514816d654177ee885f4f409",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "capsules/Data/Images/Anomaly/000.JPG",
+            "label": "bubble",
+            "mask": "capsules/Data/Masks/Anomaly/000.png"
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 66,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches",
+          "inclusion"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.789548,
+            "boundingBox": {
+              "x": 356.2687,
+              "y": 571.2689,
+              "width": 145.3869,
+              "height": 279.2524
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.742267,
+            "boundingBox": {
+              "x": 1167.0281,
+              "y": 326.8253,
+              "width": 251.1638,
+              "height": 149.2655
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.667569,
+            "boundingBox": {
+              "x": 539.1183,
+              "y": 727.145,
+              "width": 257.2108,
+              "height": 140.3046
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.6408,
+            "boundingBox": {
+              "x": 838.3102,
+              "y": 737.6984,
+              "width": 248.9951,
+              "height": 147.7598
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.630398,
+            "boundingBox": {
+              "x": 608.5166,
+              "y": 176.4439,
+              "width": 258.3049,
+              "height": 245.416
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.620698,
+            "boundingBox": {
+              "x": 133.7527,
+              "y": 188.4184,
+              "width": 111.0492,
+              "height": 289.0446
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.51521,
+            "boundingBox": {
+              "x": 502.0934,
+              "y": 422.8716,
+              "width": 125.5753,
+              "height": 276.7502
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.508791,
+            "boundingBox": {
+              "x": 259.8466,
+              "y": 387.0788,
+              "width": 236.8442,
+              "height": 163.8749
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.439123,
+            "boundingBox": {
+              "x": 131.5284,
+              "y": 570.2067,
+              "width": 119.7497,
+              "height": 280.9347
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.383991,
+            "boundingBox": {
+              "x": 1160.7018,
+              "y": 199.9295,
+              "width": 244.3314,
+              "height": 112.405
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.381006,
+            "boundingBox": {
+              "x": 1134.0287,
+              "y": 632.7894,
+              "width": 208.049,
+              "height": 231.5473
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.365239,
+            "boundingBox": {
+              "x": 999.8326,
+              "y": 423.3536,
+              "width": 105.2235,
+              "height": 265.8005
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.291637,
+            "boundingBox": {
+              "x": 698.2773,
+              "y": 439.3002,
+              "width": 118.5156,
+              "height": 244.3783
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.272208,
+            "boundingBox": {
+              "x": 129.322,
+              "y": 571.1124,
+              "width": 122.4469,
+              "height": 280.4514
+            }
+          }
+        ],
+        "totalDetections": 14,
+        "qualityScore": 7,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-081",
-      "path": "backend/samples/demo/visa-candle-081.jpg",
-      "sha256": "4fab3cac2dc2702d1b9bf8c13b60a8110be3cca20f8a706e2aee23b39d73b62b",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/081.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-capsules-anomaly-030",
+      "path": "backend/samples/demo/visa-capsules-anomaly-030.jpg",
+      "sha256": "ff763ee3a3c247dd0d2f32f0badc30e3a2d50de8e68472263c07db2ced971c33",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1500,
+        "height": 1000
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.81932,
-          "boundingBox": {
-            "x": 458.1382,
-            "y": 124.2664,
-            "width": 195.8903,
-            "height": 388.8189
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.684747,
-          "boundingBox": {
-            "x": 450.874,
-            "y": 660.1909,
-            "width": 191.0498,
-            "height": 382.4719
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.58405,
-          "boundingBox": {
-            "x": 1005.5762,
-            "y": 111.0345,
-            "width": 206.1906,
-            "height": 396.8567
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.319623,
-          "boundingBox": {
-            "x": 1010.8873,
-            "y": 653.5046,
-            "width": 198.8077,
-            "height": 379.4818
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "capsules",
+        "label": "anomaly",
+        "defectLabels": [
+          "bubble",
+          "discolor"
+        ],
+        "imageArchivePath": "capsules/Data/Images/Anomaly/030.JPG",
+        "maskArchivePath": "capsules/Data/Masks/Anomaly/030.png",
+        "annotation": {
+          "category": "capsules",
+          "path": "backend/samples/provenance/capsules-image_anno.csv",
+          "sha256": "a5f7cf9d17386b5d56ad9e400a84b69218797be53bf61c2afc9a02366afe29ce",
+          "sourceArchivePath": "capsules/image_anno.csv",
+          "sourceSha256": "8fced5b5b02528695d0724395d685770adcc971f514816d654177ee885f4f409",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "capsules/Data/Images/Anomaly/030.JPG",
+            "label": "bubble,discolor",
+            "mask": "capsules/Data/Masks/Anomaly/030.png"
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 68,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "inclusion",
+          "patches",
+          "rolled-in_scale"
+        ],
+        "detections": [
+          {
+            "type": "inclusion",
+            "confidence": 0.798741,
+            "boundingBox": {
+              "x": 919.9197,
+              "y": 189.4285,
+              "width": 331.4398,
+              "height": 292.2051
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.698904,
+            "boundingBox": {
+              "x": 943.3709,
+              "y": 497.9037,
+              "width": 153.5615,
+              "height": 277.9288
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.613594,
+            "boundingBox": {
+              "x": 1274.2373,
+              "y": 469.3117,
+              "width": 177.0599,
+              "height": 253.7397
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.528454,
+            "boundingBox": {
+              "x": 778.3233,
+              "y": 610.8902,
+              "width": 157.4678,
+              "height": 240.0623
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.50121,
+            "boundingBox": {
+              "x": 1278.4426,
+              "y": 235.1218,
+              "width": 175.0826,
+              "height": 266.0881
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.488114,
+            "boundingBox": {
+              "x": 749.1142,
+              "y": 353.4211,
+              "width": 151.2656,
+              "height": 262.9535
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.48552,
+            "boundingBox": {
+              "x": 129.4655,
+              "y": 473.1621,
+              "width": 139.3691,
+              "height": 251.0938
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.464189,
+            "boundingBox": {
+              "x": 1089.9065,
+              "y": 483.9535,
+              "width": 184.8948,
+              "height": 222.9192
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.447762,
+            "boundingBox": {
+              "x": 572.8277,
+              "y": 703.2361,
+              "width": 203.2272,
+              "height": 228.5474
+            }
+          },
+          {
+            "type": "rolled-in_scale",
+            "confidence": 0.382722,
+            "boundingBox": {
+              "x": 1153.5532,
+              "y": 70.3207,
+              "width": 236.7917,
+              "height": 143.393
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.361839,
+            "boundingBox": {
+              "x": 857.2983,
+              "y": 45.3655,
+              "width": 240.0073,
+              "height": 266.1662
+            }
+          },
+          {
+            "type": "inclusion",
+            "confidence": 0.322983,
+            "boundingBox": {
+              "x": 298.8401,
+              "y": 661.1141,
+              "width": 251.8774,
+              "height": 172.8473
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.287097,
+            "boundingBox": {
+              "x": 438.3342,
+              "y": 249.4217,
+              "width": 131.1519,
+              "height": 261.5032
+            }
+          }
+        ],
+        "totalDetections": 13,
+        "qualityScore": 19,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-009",
-      "path": "backend/samples/demo/visa-candle-009.jpg",
-      "sha256": "a015ce85aa10281bccc26b963c9400aef6882ad92dec2db5d934e79c1a1e44d8",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/009.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-cashew-normal-000",
+      "path": "backend/samples/demo/visa-cashew-normal-000.jpg",
+      "sha256": "5de461535f04175ac89dde90c4d662894aec6eef8ba946b6bc521ddeb5bdf885",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1274,
+        "height": 1176
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.590408,
-          "boundingBox": {
-            "x": 1035.6134,
-            "y": 694.2224,
-            "width": 180.3866,
-            "height": 373.514
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.423534,
-          "boundingBox": {
-            "x": 983.2816,
-            "y": 133.0023,
-            "width": 204.9252,
-            "height": 394.6988
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.329879,
-          "boundingBox": {
-            "x": 467.5522,
-            "y": 130.1719,
-            "width": 204.0862,
-            "height": 388.6569
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.310736,
-          "boundingBox": {
-            "x": 470.6942,
-            "y": 669.6193,
-            "width": 192.1704,
-            "height": 380.2501
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "cashew",
+        "label": "normal",
+        "defectLabels": [],
+        "imageArchivePath": "cashew/Data/Images/Normal/000.JPG",
+        "maskArchivePath": null,
+        "annotation": {
+          "category": "cashew",
+          "path": "backend/samples/provenance/cashew-image_anno.csv",
+          "sha256": "48c16e4329565d4af1c2a2eadc79e66837e431c3904237059f3369ca3ecfe678",
+          "sourceArchivePath": "cashew/image_anno.csv",
+          "sourceSha256": "062f4cd85ec509d32473b8511964485db91394bdcf5fdba1b880c6edbc840af9",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "cashew/Data/Images/Normal/000.JPG",
+            "label": "normal",
+            "mask": ""
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 78,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches",
+          "pitted_surface"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.701649,
+            "boundingBox": {
+              "x": 774.9813,
+              "y": 531.37,
+              "width": 243.6637,
+              "height": 355.163
+            }
+          },
+          {
+            "type": "pitted_surface",
+            "confidence": 0.54347,
+            "boundingBox": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 387.0775,
+              "height": 1176.0
+            }
+          },
+          {
+            "type": "pitted_surface",
+            "confidence": 0.275769,
+            "boundingBox": {
+              "x": 1011.6916,
+              "y": 0.0,
+              "width": 261.2443,
+              "height": 1139.6819
+            }
+          }
+        ],
+        "totalDetections": 3,
+        "qualityScore": 62,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-063",
-      "path": "backend/samples/demo/visa-candle-063.jpg",
-      "sha256": "6a11d6df145c1908d2a574a037424c16948a65d25bd09c6728b9b6ae8e1f691d",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/063.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches",
-        "inclusion"
-      ],
+      "sampleId": "visa-cashew-anomaly-000",
+      "path": "backend/samples/demo/visa-cashew-anomaly-000.jpg",
+      "sha256": "f28c4dad19810bc27bd38389a430dcc77c4aace06a5350e74c66c9ccb38affbd",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1274,
+        "height": 1176
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.819704,
-          "boundingBox": {
-            "x": 455.5447,
-            "y": 672.4142,
-            "width": 188.8776,
-            "height": 376.2662
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.817427,
-          "boundingBox": {
-            "x": 452.6684,
-            "y": 117.5031,
-            "width": 191.0397,
-            "height": 384.5323
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.780759,
-          "boundingBox": {
-            "x": 1034.3715,
-            "y": 155.0494,
-            "width": 192.7642,
-            "height": 380.5266
-          }
-        },
-        {
-          "type": "inclusion",
-          "confidence": 0.304793,
-          "boundingBox": {
-            "x": 1028.8182,
-            "y": 678.2603,
-            "width": 189.8694,
-            "height": 382.4402
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "cashew",
+        "label": "anomaly",
+        "defectLabels": [
+          "burnt",
+          "corner or edge breakage"
+        ],
+        "imageArchivePath": "cashew/Data/Images/Anomaly/000.JPG",
+        "maskArchivePath": "cashew/Data/Masks/Anomaly/000.png",
+        "annotation": {
+          "category": "cashew",
+          "path": "backend/samples/provenance/cashew-image_anno.csv",
+          "sha256": "48c16e4329565d4af1c2a2eadc79e66837e431c3904237059f3369ca3ecfe678",
+          "sourceArchivePath": "cashew/image_anno.csv",
+          "sourceSha256": "062f4cd85ec509d32473b8511964485db91394bdcf5fdba1b880c6edbc840af9",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "cashew/Data/Images/Anomaly/000.JPG",
+            "label": "burnt,corner or edge breakage",
+            "mask": "cashew/Data/Masks/Anomaly/000.png"
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 64,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "pitted_surface",
+          "patches"
+        ],
+        "detections": [
+          {
+            "type": "pitted_surface",
+            "confidence": 0.711394,
+            "boundingBox": {
+              "x": 0.0,
+              "y": 0.0,
+              "width": 353.316,
+              "height": 1176.0
+            }
+          },
+          {
+            "type": "patches",
+            "confidence": 0.317786,
+            "boundingBox": {
+              "x": 731.4828,
+              "y": 611.5945,
+              "width": 286.8638,
+              "height": 284.233
+            }
+          }
+        ],
+        "totalDetections": 2,
+        "qualityScore": 71,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-027",
-      "path": "backend/samples/demo/visa-candle-027.jpg",
-      "sha256": "6c48743e09af766c5693ae27c8c4ac07a877cb43fd5f0e63321eba3d10bf762a",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/027.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-cashew-anomaly-001",
+      "path": "backend/samples/demo/visa-cashew-anomaly-001.jpg",
+      "sha256": "1ed3b61cb81c75ffebf65bb8cbf49282f488ad634846b78c039b429c9aea61af",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1274,
+        "height": 1176
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.820132,
-          "boundingBox": {
-            "x": 443.9751,
-            "y": 121.7933,
-            "width": 200.9637,
-            "height": 386.5433
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.663763,
-          "boundingBox": {
-            "x": 450.6415,
-            "y": 668.7591,
-            "width": 189.1782,
-            "height": 379.1519
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.571759,
-          "boundingBox": {
-            "x": 1024.4005,
-            "y": 117.6534,
-            "width": 194.1223,
-            "height": 389.3118
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.292786,
-          "boundingBox": {
-            "x": 1016.9553,
-            "y": 661.6053,
-            "width": 200.2274,
-            "height": 380.9697
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "cashew",
+        "label": "anomaly",
+        "defectLabels": [
+          "burnt"
+        ],
+        "imageArchivePath": "cashew/Data/Images/Anomaly/001.JPG",
+        "maskArchivePath": "cashew/Data/Masks/Anomaly/001.png",
+        "annotation": {
+          "category": "cashew",
+          "path": "backend/samples/provenance/cashew-image_anno.csv",
+          "sha256": "48c16e4329565d4af1c2a2eadc79e66837e431c3904237059f3369ca3ecfe678",
+          "sourceArchivePath": "cashew/image_anno.csv",
+          "sourceSha256": "062f4cd85ec509d32473b8511964485db91394bdcf5fdba1b880c6edbc840af9",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "cashew/Data/Images/Anomaly/001.JPG",
+            "label": "burnt",
+            "mask": "cashew/Data/Masks/Anomaly/001.png"
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 69,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches",
+          "pitted_surface"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.646562,
+            "boundingBox": {
+              "x": 779.9753,
+              "y": 539.5118,
+              "width": 238.0129,
+              "height": 349.2419
+            }
+          },
+          {
+            "type": "pitted_surface",
+            "confidence": 0.561599,
+            "boundingBox": {
+              "x": 0.0,
+              "y": 14.4964,
+              "width": 417.5082,
+              "height": 1161.5036
+            }
+          }
+        ],
+        "totalDetections": 2,
+        "qualityScore": 69,
+        "status": "failed"
+      }
     },
     {
-      "sampleId": "visa-candle-054",
-      "path": "backend/samples/demo/visa-candle-054.jpg",
-      "sha256": "4b441eba2eb7f9714bae59e8d3bfc21a4fc121c8aff89036704a12bb4a2434b0",
-      "sourceArchivePath": "candle/Data/Images/Anomaly/054.JPG",
-      "sourceCategory": "candle",
-      "sourceAnomalyLabel": "anomaly",
-      "expectedNativeClass": "patches",
-      "actualNativeTypes": [
-        "patches"
-      ],
+      "sampleId": "visa-chewinggum-normal-000",
+      "path": "backend/samples/demo/visa-chewinggum-normal-000.jpg",
+      "sha256": "d6d40b52237586bf27e20bc9299600379b5fc9ad483d4f6a03f532af4b37cd10",
       "dimensions": {
-        "width": 1284,
-        "height": 1168
+        "width": 1342,
+        "height": 1118
       },
-      "defects": [
-        {
-          "type": "patches",
-          "confidence": 0.787017,
-          "boundingBox": {
-            "x": 458.1574,
-            "y": 100.0207,
-            "width": 195.9933,
-            "height": 393.3473
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.749609,
-          "boundingBox": {
-            "x": 453.7701,
-            "y": 672.9736,
-            "width": 188.6187,
-            "height": 376.6334
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.524838,
-          "boundingBox": {
-            "x": 1028.0197,
-            "y": 124.0162,
-            "width": 196.2456,
-            "height": 391.4923
-          }
-        },
-        {
-          "type": "patches",
-          "confidence": 0.254091,
-          "boundingBox": {
-            "x": 1017.6588,
-            "y": 120.047,
-            "width": 166.7823,
-            "height": 233.6075
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "chewinggum",
+        "label": "normal",
+        "defectLabels": [],
+        "imageArchivePath": "chewinggum/Data/Images/Normal/000.JPG",
+        "maskArchivePath": null,
+        "annotation": {
+          "category": "chewinggum",
+          "path": "backend/samples/provenance/chewinggum-image_anno.csv",
+          "sha256": "2441088872d52694360ca267f26e1240f85aa86b9c8b9bd4f91464eee761602f",
+          "sourceArchivePath": "chewinggum/image_anno.csv",
+          "sourceSha256": "e1f145727ad7d03c1dc1c42e18f2642d0099a28734b50976dfd401be5ce7f790",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "chewinggum/Data/Images/Normal/000.JPG",
+            "label": "normal",
+            "mask": ""
           }
         }
-      ],
-      "totalDefects": 4,
-      "qualityScore": 70,
-      "status": "failed"
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.463185,
+            "boundingBox": {
+              "x": 368.9109,
+              "y": 283.7796,
+              "width": 573.1429,
+              "height": 172.4677
+            }
+          }
+        ],
+        "totalDetections": 1,
+        "qualityScore": 93,
+        "status": "failed"
+      }
+    },
+    {
+      "sampleId": "visa-chewinggum-anomaly-000",
+      "path": "backend/samples/demo/visa-chewinggum-anomaly-000.jpg",
+      "sha256": "cf54dc3b8aee8cc4c60b83553a5934d847e9f8fcf94406c359fe2fea17810dd9",
+      "dimensions": {
+        "width": 1342,
+        "height": 1118
+      },
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "chewinggum",
+        "label": "anomaly",
+        "defectLabels": [
+          "chunk of gum missing",
+          "scratches",
+          "small cracks"
+        ],
+        "imageArchivePath": "chewinggum/Data/Images/Anomaly/000.JPG",
+        "maskArchivePath": "chewinggum/Data/Masks/Anomaly/000.png",
+        "annotation": {
+          "category": "chewinggum",
+          "path": "backend/samples/provenance/chewinggum-image_anno.csv",
+          "sha256": "2441088872d52694360ca267f26e1240f85aa86b9c8b9bd4f91464eee761602f",
+          "sourceArchivePath": "chewinggum/image_anno.csv",
+          "sourceSha256": "e1f145727ad7d03c1dc1c42e18f2642d0099a28734b50976dfd401be5ce7f790",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "chewinggum/Data/Images/Anomaly/000.JPG",
+            "label": "chunk of gum missing,scratches,small cracks",
+            "mask": "chewinggum/Data/Masks/Anomaly/000.png"
+          }
+        }
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches",
+          "pitted_surface"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.373248,
+            "boundingBox": {
+              "x": 385.9461,
+              "y": 300.8288,
+              "width": 600.102,
+              "height": 168.3478
+            }
+          },
+          {
+            "type": "pitted_surface",
+            "confidence": 0.341561,
+            "boundingBox": {
+              "x": 0.0,
+              "y": 140.6769,
+              "width": 316.9008,
+              "height": 977.3231
+            }
+          }
+        ],
+        "totalDetections": 2,
+        "qualityScore": 85,
+        "status": "failed"
+      }
+    },
+    {
+      "sampleId": "visa-chewinggum-anomaly-001",
+      "path": "backend/samples/demo/visa-chewinggum-anomaly-001.jpg",
+      "sha256": "e47e6d72e8f55160d0d47273ae6f7670b5b308e53c1ccf601726b4daf2d24ada",
+      "dimensions": {
+        "width": 1342,
+        "height": 1118
+      },
+      "sourceGroundTruth": {
+        "datasetId": "visa",
+        "category": "chewinggum",
+        "label": "anomaly",
+        "defectLabels": [
+          "corner missing",
+          "small cracks"
+        ],
+        "imageArchivePath": "chewinggum/Data/Images/Anomaly/001.JPG",
+        "maskArchivePath": "chewinggum/Data/Masks/Anomaly/001.png",
+        "annotation": {
+          "category": "chewinggum",
+          "path": "backend/samples/provenance/chewinggum-image_anno.csv",
+          "sha256": "2441088872d52694360ca267f26e1240f85aa86b9c8b9bd4f91464eee761602f",
+          "sourceArchivePath": "chewinggum/image_anno.csv",
+          "sourceSha256": "e1f145727ad7d03c1dc1c42e18f2642d0099a28734b50976dfd401be5ce7f790",
+          "normalization": "UTF-8 with LF line endings; CSV values unchanged",
+          "row": {
+            "image": "chewinggum/Data/Images/Anomaly/001.JPG",
+            "label": "corner missing,small cracks",
+            "mask": "chewinggum/Data/Masks/Anomaly/001.png"
+          }
+        }
+      },
+      "modelObservation": {
+        "modelId": "neu-defect-yolov8",
+        "modelSha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+        "confidenceThreshold": 0.25,
+        "observedNativeClasses": [
+          "patches",
+          "pitted_surface"
+        ],
+        "detections": [
+          {
+            "type": "patches",
+            "confidence": 0.679522,
+            "boundingBox": {
+              "x": 372.0065,
+              "y": 478.8379,
+              "width": 194.7964,
+              "height": 97.6405
+            }
+          },
+          {
+            "type": "pitted_surface",
+            "confidence": 0.547983,
+            "boundingBox": {
+              "x": 0.0,
+              "y": 1.6331,
+              "width": 277.0114,
+              "height": 1116.3669
+            }
+          }
+        ],
+        "totalDetections": 2,
+        "qualityScore": 78,
+        "status": "failed"
+      }
     }
   ],
   "acceptance": {
     "atLeastTenDecodedSamples": true,
-    "allSourceHashesMatch": true,
-    "allSourceDimensionsMatch": true,
-    "completePinnedProvenance": true,
+    "severalNormalSamples": true,
+    "severalAnomalySamples": true,
+    "sourceCategoryDiversity": true,
+    "sourceDefectCaseDiversity": true,
+    "selectionIndependentOfModel": true,
+    "groundTruthSeparatedFromModelObservation": true,
+    "allSourceHashesAndAnnotationsMatch": true,
     "redistributionLicenseVerified": true,
     "noSyntheticImages": true,
     "noFakeDetections": true,
-    "everySampleHasRealSelectedModelDetection": true,
-    "nativeClassExpectationsMatch": true
+    "allModelObservationsReproduced": true,
+    "noAccuracyClaim": true
   }
 }

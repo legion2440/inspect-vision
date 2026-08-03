@@ -347,6 +347,7 @@
             "backend/models/model-manifest.json",
             "backend/samples/demo-samples.json",
             "backend/samples/demo",
+            "backend/samples/provenance",
             "backend/detection/service.py",
             "scripts/validate_demo_samples.py"
           ]
@@ -355,7 +356,8 @@
       "owned_configuration": [
         { "path": "backend/samples/model-probe-samples.json", "status": "implemented" },
         { "path": "backend/samples/demo-samples.json", "status": "implemented" },
-        { "path": "backend/samples/demo", "status": "implemented" }
+        { "path": "backend/samples/demo", "status": "implemented" },
+        { "path": "backend/samples/provenance", "status": "implemented" }
       ]
     }
   ],
