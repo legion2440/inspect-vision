@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://inspect-vision.local/schemas/module-map.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository", "path_policy", "modules", "repository_artifacts"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "repository": { "type": "string", "minLength": 1 },
+    "path_policy": { "const": "repository-relative-posix" },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/module" }
+    },
+    "repository_artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/reference" }
+    }
+  },
+  "$defs": {
+    "status": { "enum": ["planned", "implemented", "generated"] },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "status"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "generator": { "type": "string", "minLength": 1 },
+        "sources": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "generated" } }, "required": ["status"] },
+          "then": { "required": ["generator", "sources"] }
+        }
+      ]
+    },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "module_type",
+        "root",
+        "entrypoints",
+        "public_interfaces",
+        "tests",
+        "docs",
+        "generated_artifacts",
+        "owned_configuration"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "description": { "type": "string", "minLength": 1 },
+        "module_type": { "enum": ["application", "service", "library", "contracts", "verification", "artifact", "tooling"] },
+        "root": { "type": "string", "minLength": 1 },
+        "entrypoints": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+        "public_interfaces": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+        "tests": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+        "docs": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+        "generated_artifacts": { "type": "array", "items": { "$ref": "#/$defs/reference" } },
+        "owned_configuration": { "type": "array", "items": { "$ref": "#/$defs/reference" } }
+      }
+    }
+  }
+}

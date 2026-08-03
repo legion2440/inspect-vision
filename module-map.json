@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "repository": "inspect-vision",
+  "path_policy": "repository-relative-posix",
+  "modules": [
+    {
+      "id": "frontend-app",
+      "description": "Provides the operator dashboard, upload and live inspection UI, history, details, Canvas overlays, and HTTP client boundary.",
+      "module_type": "application",
+      "root": "frontend",
+      "entrypoints": [
+        { "path": "frontend/src/main.jsx", "status": "implemented" },
+        { "path": "frontend/src/App.jsx", "status": "implemented" }
+      ],
+      "public_interfaces": [
+        { "path": "frontend/src/utils/apiClient.js", "status": "implemented" },
+        { "path": "frontend/src/context/InspectionProvider.jsx", "status": "implemented" }
+      ],
+      "tests": [
+        { "path": "frontend/tests/utils.test.js", "status": "implemented" }
+      ],
+      "docs": [
+        { "path": "frontend/README.md", "status": "implemented" },
+        { "path": "docs/api-contract.md", "status": "implemented" }
+      ],
+      "generated_artifacts": [
+        {
+          "path": "frontend/src/routeTree.gen.js",
+          "status": "generated",
+          "generator": "frontend/vite.config.js",
+          "sources": ["frontend/src/routes"]
+        }
+      ],
+      "owned_configuration": [
+        { "path": "frontend/.env.example", "status": "implemented" },
+        { "path": "frontend/package.json", "status": "implemented" },
+        { "path": "frontend/package-lock.json", "status": "implemented" },
+        { "path": "frontend/vite.config.js", "status": "implemented" }
+      ]
+    },
+    {
+      "id": "backend-api",
+      "description": "Owns FastAPI composition, HTTP validation, endpoint serialization, CORS, and error mapping.",
+      "module_type": "service",
+      "root": "backend/routes",
+      "entrypoints": [
+        { "path": "backend/main.py", "status": "planned" }
+      ],
+      "public_interfaces": [
+        { "path": "backend/routes/detect.py", "status": "planned" },
+        { "path": "backend/routes/history.py", "status": "planned" },
+        { "path": "backend/routes/stream.py", "status": "planned" },
+        { "path": "backend/routes/export.py", "status": "planned" }
+      ],
+      "tests": [
+        { "path": "tests/unit/backend_api", "status": "planned" },
+        { "path": "tests/integration/api", "status": "planned" }
+      ],
+      "docs": [
+        { "path": "backend/routes/README.md", "status": "implemented" },
+        { "path": "docs/api-contract.md", "status": "implemented" }
+      ],
+      "generated_artifacts": [],
+      "owned_configuration": []
+    },
+    {
+      "id": "defect-detection",
+      "description": "Owns OpenCV preprocessing, model lifecycle, inference, coordinate mapping, annotation, and quality scoring.",
+      "module_type": "library",
+      "root": "backend/detection",
+      "entrypoints": [
+        { "path": "backend/detection/service.py", "status": "planned" }
+      ],
+      "public_interfaces": [
+        { "path": "backend/utils/preprocessing.py", "status": "planned" },
+        { "path": "backend/utils/model_loader.py", "status": "planned" }
+      ],
+      "tests": [
+        { "path": "tests/unit/detection", "status": "planned" },
+        { "path": "tests/integration/detection", "status": "planned" }
+      ],
+      "docs": [
+        { "path": "backend/detection/README.md", "status": "implemented" },
+        { "path": "docs/env-model-contract.md", "status": "implemented" }
+      ],
+      "generated_artifacts": [
+        { "path": "backend/models/model-manifest.json", "status": "planned" }
+      ],
+      "owned_configuration": []
+    },
+    {
+      "id": "inspection-history",
+      "description": "Owns SQLite metadata, media lifecycle, filtering, record deletion, clearing, and CSV projection.",
+      "module_type": "library",
+      "root": "backend/storage",
+      "entrypoints": [
+        { "path": "backend/storage/repository.py", "status": "planned" }
+      ],
+      "public_interfaces": [
+        { "path": "backend/storage/service.py", "status": "planned" }
+      ],
+      "tests": [
+        { "path": "tests/unit/history", "status": "planned" },
+        { "path": "tests/integration/history", "status": "planned" }
+      ],
+      "docs": [
+        { "path": "backend/storage/README.md", "status": "implemented" },
+        { "path": "docs/api-contract.md", "status": "implemented" }
+      ],
+      "generated_artifacts": [],
+      "owned_configuration": []
+    },
+    {
+      "id": "shared-contracts",
+      "description": "Defines stable DTOs, schemas, and environment semantics shared across frontend and backend boundaries.",
+      "module_type": "contracts",
+      "root": "shared",
+      "entrypoints": [
+        { "path": "backend/models/record.py", "status": "planned" }
+      ],
+      "public_interfaces": [
+        { "path": "shared/inspection-record.schema.json", "status": "planned" },
+        { "path": "docs/api-contract.md", "status": "implemented" },
+        { "path": "docs/env-model-contract.md", "status": "implemented" }
+      ],
+      "tests": [
+        { "path": "tests/unit/contracts", "status": "planned" }
+      ],
+      "docs": [
+        { "path": "shared/README.md", "status": "implemented" }
+      ],
+      "generated_artifacts": [],
+      "owned_configuration": [
+        { "path": ".env.example", "status": "implemented" }
+      ]
+    },
+    {
+      "id": "audit-evidence",
+      "description": "Maps audit criteria to executable checks and sanitized runtime evidence tied to source commits.",
+      "module_type": "verification",
+      "root": "docs/evidence",
+      "entrypoints": [
+        { "path": "scripts/validate.py", "status": "implemented" },
+        { "path": "scripts/validate_structure.py", "status": "implemented" },
+        { "path": "scripts/validate_architecture.py", "status": "implemented" }
+      ],
+      "public_interfaces": [
+        { "path": "docs/audit-evidence.md", "status": "implemented" },
+        { "path": "docs/project-status.json", "status": "implemented" }
+      ],
+      "tests": [
+        { "path": "frontend/tests/utils.test.js", "status": "implemented" },
+        { "path": "tests/unit/evidence", "status": "planned" }
+      ],
+      "docs": [
+        { "path": "docs/evidence/README.md", "status": "implemented" }
+      ],
+      "generated_artifacts": [],
+      "owned_configuration": []
+    }
+  ],
+  "repository_artifacts": [
+    { "path": "AGENTS.md", "status": "implemented" },
+    { "path": "ARCHITECTURE.md", "status": "implemented" },
+    { "path": "README.md", "status": "implemented" },
+    { "path": "Makefile", "status": "implemented" },
+    { "path": "dependency-graph.json", "status": "implemented" },
+    { "path": "schemas/module-map.schema.json", "status": "implemented" },
+    { "path": "schemas/dependency-graph.schema.json", "status": "implemented" },
+    {
+      "path": "docs/generated/dependency-graph.md",
+      "status": "generated",
+      "generator": "scripts/generate_dependency_graph.py",
+      "sources": ["dependency-graph.json"]
+    }
+  ]
+}

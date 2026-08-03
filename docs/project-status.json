@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-08-03",
+  "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
+  "current_commit_command": "git rev-parse HEAD",
+  "state": "frontend-verified-backend-planned",
+  "verified": [
+    "frontend production build with Vite 8.2.0",
+    "npm audit with zero known vulnerabilities",
+    "dashboard, history, filtering, details, and upload mock browser smoke",
+    "generated JavaScript route tree contains no TypeScript syntax"
+  ],
+  "known_limitations": [
+    {
+      "id": "backend-not-implemented",
+      "area": "backend-api",
+      "detail": "FastAPI endpoints and end-to-end real API integration are planned."
+    },
+    {
+      "id": "model-not-selected",
+      "area": "defect-detection",
+      "detail": "No licensed manufacturing-defect model, manifest, weights, or real inference evidence exists yet."
+    },
+    {
+      "id": "storage-not-implemented",
+      "area": "inspection-history",
+      "detail": "SQLite metadata, media persistence, real filtering, deletion, clearing, and CSV export are planned."
+    },
+    {
+      "id": "samples-incomplete",
+      "area": "audit-evidence",
+      "detail": "The required ten-image manufacturing dataset and provenance manifest are not present."
+    },
+    {
+      "id": "runtime-evidence-missing",
+      "area": "audit-evidence",
+      "detail": "Real model, live camera/backend, annotated image, and server CSV paths are not runtime-verified."
+    },
+    {
+      "id": "automated-coverage-partial",
+      "area": "frontend-app",
+      "detail": "Pure frontend utility tests and build checks exist; component and end-to-end automation remain planned."
+    }
+  ]
+}

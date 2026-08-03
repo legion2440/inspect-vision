@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "nodes": [
+    "frontend-app",
+    "backend-api",
+    "defect-detection",
+    "inspection-history",
+    "shared-contracts",
+    "audit-evidence"
+  ],
+  "allowed_edges": [
+    {
+      "from": "frontend-app",
+      "to": "backend-api",
+      "type": "runtime",
+      "rationale": "The frontend calls only the documented FastAPI HTTP surface."
+    },
+    {
+      "from": "frontend-app",
+      "to": "shared-contracts",
+      "type": "contract",
+      "rationale": "The frontend consumes stable inspection and error DTO semantics."
+    },
+    {
+      "from": "backend-api",
+      "to": "defect-detection",
+      "type": "runtime",
+      "rationale": "Inspection and stream routes invoke the public detection service."
+    },
+    {
+      "from": "backend-api",
+      "to": "inspection-history",
+      "type": "runtime",
+      "rationale": "API routes persist, query, export, and delete inspection records through the history service."
+    },
+    {
+      "from": "backend-api",
+      "to": "shared-contracts",
+      "type": "contract",
+      "rationale": "FastAPI validates and serializes the shared DTOs."
+    },
+    {
+      "from": "defect-detection",
+      "to": "shared-contracts",
+      "type": "contract",
+      "rationale": "Detection emits normalized defects independent of model-library objects."
+    },
+    {
+      "from": "inspection-history",
+      "to": "shared-contracts",
+      "type": "contract",
+      "rationale": "Persistence stores and returns shared inspection semantics."
+    },
+    {
+      "from": "audit-evidence",
+      "to": "frontend-app",
+      "type": "verification",
+      "rationale": "Audit checks verify the public frontend build and behavior."
+    },
+    {
+      "from": "audit-evidence",
+      "to": "backend-api",
+      "type": "verification",
+      "rationale": "Future integration evidence verifies the public API."
+    },
+    {
+      "from": "audit-evidence",
+      "to": "defect-detection",
+      "type": "verification",
+      "rationale": "Future model evidence verifies preprocessing and inference."
+    },
+    {
+      "from": "audit-evidence",
+      "to": "inspection-history",
+      "type": "verification",
+      "rationale": "Future evidence verifies history and CSV persistence behavior."
+    }
+  ],
+  "forbidden_edges": [
+    {
+      "from": "frontend-app",
+      "to": "defect-detection",
+      "reason": "The browser must use the backend API and never run or import server detection code."
+    },
+    {
+      "from": "frontend-app",
+      "to": "inspection-history",
+      "reason": "The browser must not access backend persistence directly."
+    },
+    {
+      "from": "backend-api",
+      "to": "frontend-app",
+      "reason": "The backend must remain independent of React implementation."
+    },
+    {
+      "from": "defect-detection",
+      "to": "backend-api",
+      "reason": "Detection is a lower-level service and must not import HTTP routes."
+    },
+    {
+      "from": "defect-detection",
+      "to": "inspection-history",
+      "reason": "Detection returns results and does not persist records."
+    },
+    {
+      "from": "inspection-history",
+      "to": "backend-api",
+      "reason": "Persistence is a lower-level service and must not import HTTP routes."
+    },
+    {
+      "from": "inspection-history",
+      "to": "defect-detection",
+      "reason": "History never loads or executes a model."
+    },
+    {
+      "from": "shared-contracts",
+      "to": "frontend-app",
+      "reason": "Shared contracts must remain independent of application code."
+    },
+    {
+      "from": "shared-contracts",
+      "to": "backend-api",
+      "reason": "Shared contracts must remain independent of API implementation."
+    }
+  ],
+  "acyclic_edge_types": ["runtime", "contract"]
+}

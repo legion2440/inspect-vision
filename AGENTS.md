@@ -1,0 +1,95 @@
+# Repository instructions
+
+This repository is organized around explicit feature boundaries. Work inside the
+smallest owning module and update architecture metadata as part of any boundary
+change.
+
+## Environment
+
+- The primary host is Windows 11.
+- Use Git Bash for repository commands. Use PowerShell for Windows-specific work
+  and WSL only when a Linux runtime is genuinely required.
+- Repository text files use LF endings. Use repository-relative POSIX paths in
+  metadata and documentation.
+
+## Navigation order
+
+1. Read `module-map.json`.
+2. Find the module that owns the requested behavior.
+3. Read the matching section in `ARCHITECTURE.md`.
+4. Read the module entrypoint or public interface.
+5. Read only its related configuration, implementation, tests, and evidence.
+6. Cross a module boundary only through an edge allowed by
+   `dependency-graph.json`.
+
+`dependency-graph.json` is the editable source for dependency rules.
+`docs/generated/dependency-graph.md` is generated and must not be edited by hand.
+
+## Fixed modules
+
+- `frontend-app`
+- `backend-api`
+- `defect-detection`
+- `inspection-history`
+- `shared-contracts`
+- `audit-evidence`
+
+Do not move detection logic into API routes, persistence into React, or backend
+implementation details into shared contracts. The frontend communicates with
+the backend only through the documented HTTP contract.
+
+## File statuses
+
+- `planned`: may be absent and must never be described as implemented.
+- `implemented`: must exist and have an executable validation path.
+- `generated`: must exist, name its generator and sources, and pass freshness
+  validation.
+
+Documentation is not runtime evidence. A feature is runtime-verified only when a
+recorded command or evidence artifact proves the real path executed.
+
+## Contract invariants
+
+- `imageUrl` is the annotated backend image used for Download.
+- `originalImageUrl` is the original image used by the Canvas viewer.
+- Bounding boxes use original-image pixel coordinates with a top-left origin.
+- History and CSV use the same inclusive `from`, `to`, `type`, and `q` filters.
+- `qualityScore` is authoritative when returned by the backend; the browser score
+  is only a UI fallback.
+- Real API mode is the default. Mock inference must be explicitly enabled and
+  must never hide a backend or model failure.
+- Live detection processes at most one frame request at a time and uses actual
+  video dimensions.
+- Invalid type, oversize input, model failure, and missing record errors preserve
+  the messages defined in `docs/api-contract.md`.
+- Model paths and runtime tuning belong in environment configuration. Model
+  weights, local databases, media, secrets, and `.env` files are never committed.
+
+## Change workflow
+
+1. Change implementation and scoped tests together.
+2. Update the owning documentation and API/env contracts when behavior changes.
+3. Update `module-map.json` for path, status, interface, test, or artifact changes.
+4. Update `dependency-graph.json` when dependencies change.
+5. Regenerate architecture documentation.
+6. Update `docs/audit-evidence.md` only with evidence that actually exists.
+7. Update `docs/project-status.json` after a material milestone.
+8. Run scoped checks, then `make validate`.
+
+## Commands
+
+```text
+python scripts/validate.py
+make validate
+make validate-architecture
+make validate-frontend
+make test
+make architecture
+make check-architecture
+make status
+```
+
+Backend run, model preparation, end-to-end, and runtime-evidence commands are
+reserved for later work. Do not document them as working before implementation.
+GNU Make is optional on Windows; `python scripts/validate.py` is the canonical
+cross-platform full check.

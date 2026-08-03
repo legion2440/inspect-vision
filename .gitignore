@@ -6,8 +6,23 @@ frontend/.env
 frontend/.env.*
 !frontend/.env.example
 
+# Backend environment, local data, and model artifacts
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+backend/storage/*.sqlite3
+backend/storage/*.json
+backend/storage/media/
+backend/models/weights/
+*.onnx
+*.pt
+*.pth
+
 # Local runtime files
 *.log
 .DS_Store
 Thumbs.db
-
