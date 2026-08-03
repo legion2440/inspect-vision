@@ -1,9 +1,9 @@
 # Inspect-Vision
 
 Visual quality-control system for manufacturing images. The React/Vite frontend
-and reusable multiclass detection core are implemented and runtime-verified.
-FastAPI, inspection preprocessing/service logic, persistence, and end-to-end
-application evidence remain planned.
+and the complete selected-model inspection service are implemented and
+runtime-verified. FastAPI, persistence, and end-to-end HTTP application evidence
+remain planned.
 
 ## Current state
 
@@ -13,10 +13,14 @@ application evidence remain planned.
 - Two local Ultralytics detection models are registered by source revision,
   license, SHA-256, input size, and native classes; `.pt` files remain ignored.
 - The Python core accepts a BGR `numpy.ndarray` and returns normalized multiclass
-  detections with `class_id`, `class_name`, `confidence`, and original-image
-  `xyxy` coordinates.
-- Backend endpoints, grayscale/CLAHE service preprocessing, annotation, severity,
-  and persistence are not implemented yet.
+  detections with `class_id`, `class_name`, `confidence`, and input-image `xyxy`
+  coordinates.
+- `DetectionService` owns the production inspection path: 640-square letterbox,
+  grayscale, CLAHE, three-channel YOLO input, one original-coordinate restore,
+  six-class identity mapping, positive-area filtering, original-size annotation,
+  `quality-v1`, and the passed/failed verdict.
+- Backend HTTP endpoints, JPEG/data URL encoding, SQLite, and media persistence
+  are not implemented yet.
 - The authoritative limitations and baseline SHA are in
   `docs/project-status.json`.
 
@@ -42,6 +46,13 @@ models through the detection core with:
 .venv/Scripts/python.exe scripts/probe_models.py --engine core --device cpu --confidence 0.05
 ```
 
+Run the selected model through the complete inspection service at production
+confidence and regenerate JSON plus annotated PNG evidence with:
+
+```bash
+.venv/Scripts/python.exe scripts/probe_inspection_service.py
+```
+
 ## Commands
 
 ```bash
@@ -57,6 +68,7 @@ make validate-frontend
 make test
 make architecture
 make check-architecture
+make probe-service
 make status
 ```
 

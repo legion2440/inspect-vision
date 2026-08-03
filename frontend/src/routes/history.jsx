@@ -6,10 +6,11 @@ import HistoryTable from '../components/HistoryTable.jsx';
 import { useInspection } from '../hooks/useInspection.js';
 import { exportHistory, usingMock } from '../utils/apiClient.js';
 import { downloadBlob, downloadCsv } from '../utils/csv.js';
+import { DEFECT_TYPES } from '../utils/defectTypes.js';
 
 export const Route = createFileRoute('/history')({ component: History });
 
-const TYPES = ['all', 'scratch', 'dent', 'crack', 'discoloration'];
+const TYPES = ['all', ...DEFECT_TYPES];
 
 function History() {
   const { history, historyStatus, error, loadHistory, removeInspection, clearAll } = useInspection();

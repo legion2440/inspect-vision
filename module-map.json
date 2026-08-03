@@ -76,12 +76,14 @@
       ],
       "entrypoints": [
         { "path": "backend/detection/__init__.py", "status": "implemented" },
-        { "path": "backend/detection/service.py", "status": "planned" }
+        { "path": "backend/detection/service.py", "status": "implemented" }
       ],
       "public_interfaces": [
+        { "path": "backend/detection/annotation.py", "status": "implemented" },
         { "path": "backend/detection/base.py", "status": "implemented" },
         { "path": "backend/detection/dto.py", "status": "implemented" },
         { "path": "backend/detection/device.py", "status": "implemented" },
+        { "path": "backend/detection/quality.py", "status": "implemented" },
         { "path": "backend/detection/ultralytics_backend.py", "status": "implemented" },
         { "path": "backend/utils/preprocessing.py", "status": "implemented" },
         { "path": "backend/utils/model_loader.py", "status": "implemented" }
@@ -155,7 +157,8 @@
         { "path": "scripts/validate.py", "status": "implemented" },
         { "path": "scripts/validate_structure.py", "status": "implemented" },
         { "path": "scripts/validate_architecture.py", "status": "implemented" },
-        { "path": "scripts/probe_models.py", "status": "implemented" }
+        { "path": "scripts/probe_models.py", "status": "implemented" },
+        { "path": "scripts/probe_inspection_service.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "docs/audit-evidence.md", "status": "implemented" },
@@ -188,6 +191,46 @@
             "backend/samples/model-probe-samples.json",
             "backend/detection",
             "backend/utils/model_loader.py"
+          ]
+        },
+        {
+          "path": "docs/evidence/inspection-service/inspection-service-acceptance.json",
+          "status": "generated",
+          "generator": "scripts/probe_inspection_service.py",
+          "sources": [
+            "backend/models/model-manifest.json",
+            "backend/samples/model-probe-samples.json",
+            "backend/detection/service.py",
+            "backend/detection/annotation.py",
+            "backend/detection/quality.py",
+            "backend/utils/preprocessing.py"
+          ]
+        },
+        {
+          "path": "docs/evidence/inspection-service/neu-crazing-1-annotated.png",
+          "status": "generated",
+          "generator": "scripts/probe_inspection_service.py",
+          "sources": [
+            "backend/samples/model-probe-samples.json",
+            "backend/detection/service.py"
+          ]
+        },
+        {
+          "path": "docs/evidence/inspection-service/neu-inclusion-1-annotated.png",
+          "status": "generated",
+          "generator": "scripts/probe_inspection_service.py",
+          "sources": [
+            "backend/samples/model-probe-samples.json",
+            "backend/detection/service.py"
+          ]
+        },
+        {
+          "path": "docs/evidence/inspection-service/neu-scratches-1-annotated.png",
+          "status": "generated",
+          "generator": "scripts/probe_inspection_service.py",
+          "sources": [
+            "backend/samples/model-probe-samples.json",
+            "backend/detection/service.py"
           ]
         }
       ],

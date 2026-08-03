@@ -108,6 +108,8 @@ class UltralyticsBackend(DetectorBackend):
                     min(max(x2, 0.0), float(width)),
                     min(max(y2, 0.0), float(height)),
                 )
+                if clamped[2] <= clamped[0] or clamped[3] <= clamped[1]:
+                    continue
                 detections.append(
                     Detection(
                         class_id=class_id,

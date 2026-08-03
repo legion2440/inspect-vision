@@ -1,6 +1,20 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
+  "recordedAt": "2026-08-03T14:44:12.356887Z",
+  "sourceCommit": "aaa88cee95484c638357064468b16d52eef884df",
+  "sourceFiles": {
+    "backend/detection/__init__.py": "e989452c7d5263e8f438d31f774bba6f8bdc836799e1b433e7c52fee16ad7de4",
+    "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
+    "backend/detection/base.py": "a4c4d13fe3f2258502665e78f695be8108639c3e69529493a3389e04f839dd13",
+    "backend/detection/device.py": "1c44fe186de0a5bbd1e6578c8c334142ef3c978e501a88a4662199b89e5156d1",
+    "backend/detection/dto.py": "55e5ca348afd4839b9a9e5b3572d77ffa347939dc47f95e2899ae0343cd0f234",
+    "backend/detection/quality.py": "838854adb6a3505a945259df46df2a6fec5914be45ec306220918c39cf9f197e",
+    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
+    "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
+    "backend/utils/model_loader.py": "95d9ad0eea3bae84e3494afed09aac91e9210fbf6246dc0f5d2828a50551a9c2",
+    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
+    "scripts/probe_models.py": "9b0b21de9e190fc74d9c5fa3b591a93d2b4e5be6f74148850ba97fb0ffa3b036"
+  },
   "runtime": {
     "python": "3.13.5",
     "platform": "Windows",
@@ -14,6 +28,7 @@
     }
   },
   "probe": {
+    "engine": "ultralytics",
     "confidence": 0.05,
     "iou": 0.5,
     "sampleCount": 3
@@ -33,8 +48,8 @@
         "scratches"
       ],
       "device": "cpu",
-      "loadMs": 27.074,
-      "inferenceMs": 160.273,
+      "loadMs": 37.374,
+      "inferenceMs": 145.171,
       "totalDetections": 11,
       "samples": [
         {
@@ -221,8 +236,8 @@
         "capsule_defect"
       ],
       "device": "cpu",
-      "loadMs": 34.244,
-      "inferenceMs": 367.917,
+      "loadMs": 31.147,
+      "inferenceMs": 295.281,
       "totalDetections": 2,
       "samples": [
         {

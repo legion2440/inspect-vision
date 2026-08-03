@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-03T14:43:55.420392Z",
+  "sourceCommit": "aaa88cee95484c638357064468b16d52eef884df",
+  "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
+  "sourceFiles": {
+    "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
+    "backend/detection/base.py": "a4c4d13fe3f2258502665e78f695be8108639c3e69529493a3389e04f839dd13",
+    "backend/detection/dto.py": "55e5ca348afd4839b9a9e5b3572d77ffa347939dc47f95e2899ae0343cd0f234",
+    "backend/detection/quality.py": "838854adb6a3505a945259df46df2a6fec5914be45ec306220918c39cf9f197e",
+    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
+    "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
+    "backend/utils/model_loader.py": "95d9ad0eea3bae84e3494afed09aac91e9210fbf6246dc0f5d2828a50551a9c2",
+    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
+    "scripts/probe_inspection_service.py": "291175bba32de66c91400f6872966d4816876b17f3cff64bab851117981c685d"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "packages": {
+      "numpy": "2.4.6",
+      "opencv-python": "4.13.0.92",
+      "torch": "2.12.1+cpu",
+      "torchvision": "0.27.1+cpu",
+      "ultralytics": "8.4.78"
+    }
+  },
+  "pipeline": {
+    "path": [
+      "decode_image(bytes)->BGR",
+      "letterbox(640x640)",
+      "grayscale",
+      "CLAHE(clipLimit=2.0,tileGridSize=8x8)",
+      "grayscale_to_bgr(3-channel)",
+      "selected YOLO inference(confidence=0.25)",
+      "adapter clamp/drop zero-area",
+      "restore_boxes(original coordinates, once)",
+      "identity service class mapping",
+      "quality-v1(original bbox area ratio)",
+      "annotation(original-size BGR copy)"
+    ],
+    "modelInput": {
+      "width": 640,
+      "height": 640,
+      "channels": 3,
+      "dtype": "uint8"
+    },
+    "clahe": {
+      "clipLimit": 2.0,
+      "tileGridSize": [
+        8,
+        8
+      ]
+    },
+    "confidence": 0.25,
+    "iou": 0.5,
+    "coordinateRestoreCount": 1
+  },
+  "quality": {
+    "version": "quality-v1",
+    "formula": "clamp(round(100 - sum(classWeight * confidence * (10 + 90 * originalBboxAreaRatio))), 0, 100)",
+    "classWeights": {
+      "crazing": 1.25,
+      "inclusion": 1.1,
+      "patches": 0.9,
+      "pitted_surface": 1.0,
+      "rolled-in_scale": 1.2,
+      "scratches": 0.85
+    },
+    "heuristic": true
+  },
+  "model": {
+    "modelId": "neu-defect-yolov8",
+    "filename": "defect_neu_yolov8.pt",
+    "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+    "classes": [
+      "crazing",
+      "inclusion",
+      "patches",
+      "pitted_surface",
+      "rolled-in_scale",
+      "scratches"
+    ],
+    "serviceClassMapping": {
+      "crazing": "crazing",
+      "inclusion": "inclusion",
+      "patches": "patches",
+      "pitted_surface": "pitted_surface",
+      "rolled-in_scale": "rolled-in_scale",
+      "scratches": "scratches"
+    },
+    "device": "cpu"
+  },
+  "sampleCount": 3,
+  "totalDetections": 7,
+  "samples": [
+    {
+      "sampleId": "neu-crazing-1",
+      "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+      "sourceSha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
+      "expectedClass": "crazing",
+      "originalDimensions": {
+        "width": 200,
+        "height": 200
+      },
+      "modelInputDimensions": {
+        "width": 640,
+        "height": 640,
+        "channels": 3
+      },
+      "defects": [
+        {
+          "type": "crazing",
+          "confidence": 0.326266,
+          "boundingBox": {
+            "x": 133.0394,
+            "y": 0.0,
+            "width": 66.9489,
+            "height": 37.8237
+          }
+        },
+        {
+          "type": "crazing",
+          "confidence": 0.318305,
+          "boundingBox": {
+            "x": 5.9693,
+            "y": 116.7834,
+            "width": 193.4742,
+            "height": 56.6868
+          }
+        }
+      ],
+      "totalDefects": 2,
+      "qualityScore": 80,
+      "status": "failed",
+      "modelId": "neu-defect-yolov8",
+      "annotatedOutput": {
+        "path": "docs/evidence/inspection-service/neu-crazing-1-annotated.png",
+        "sha256": "45c471ce01d514b69070a523973269df586b473be187c215b1b11020bf041837",
+        "dimensions": {
+          "width": 200,
+          "height": 200
+        }
+      }
+    },
+    {
+      "sampleId": "neu-inclusion-1",
+      "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+      "sourceSha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+      "expectedClass": "inclusion",
+      "originalDimensions": {
+        "width": 200,
+        "height": 200
+      },
+      "modelInputDimensions": {
+        "width": 640,
+        "height": 640,
+        "channels": 3
+      },
+      "defects": [
+        {
+          "type": "inclusion",
+          "confidence": 0.864431,
+          "boundingBox": {
+            "x": 115.0593,
+            "y": 73.0292,
+            "width": 25.3485,
+            "height": 41.7529
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.852118,
+          "boundingBox": {
+            "x": 114.2481,
+            "y": 113.4898,
+            "width": 20.2402,
+            "height": 86.5102
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.605073,
+          "boundingBox": {
+            "x": 118.8128,
+            "y": 35.9367,
+            "width": 13.2717,
+            "height": 28.2057
+          }
+        },
+        {
+          "type": "inclusion",
+          "confidence": 0.49906,
+          "boundingBox": {
+            "x": 34.2017,
+            "y": 6.5798,
+            "width": 13.3165,
+            "height": 28.9851
+          }
+        }
+      ],
+      "totalDefects": 4,
+      "qualityScore": 62,
+      "status": "failed",
+      "modelId": "neu-defect-yolov8",
+      "annotatedOutput": {
+        "path": "docs/evidence/inspection-service/neu-inclusion-1-annotated.png",
+        "sha256": "f78c264a63bdb0ec8fc949fdbb9dd9e6c460a279557f32770492fdcba4b7e52e",
+        "dimensions": {
+          "width": 200,
+          "height": 200
+        }
+      }
+    },
+    {
+      "sampleId": "neu-scratches-1",
+      "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+      "sourceSha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c",
+      "expectedClass": "scratches",
+      "originalDimensions": {
+        "width": 200,
+        "height": 200
+      },
+      "modelInputDimensions": {
+        "width": 640,
+        "height": 640,
+        "channels": 3
+      },
+      "defects": [
+        {
+          "type": "scratches",
+          "confidence": 0.69744,
+          "boundingBox": {
+            "x": 26.8889,
+            "y": 18.6851,
+            "width": 13.856,
+            "height": 148.8411
+          }
+        }
+      ],
+      "totalDefects": 1,
+      "qualityScore": 91,
+      "status": "failed",
+      "modelId": "neu-defect-yolov8",
+      "annotatedOutput": {
+        "path": "docs/evidence/inspection-service/neu-scratches-1-annotated.png",
+        "sha256": "1e8ee9d75894959b88da3498cb819f36ecaae33a40d9b50367cb6e5d9206d3d8",
+        "dimensions": {
+          "width": 200,
+          "height": 200
+        }
+      }
+    }
+  ]
+}

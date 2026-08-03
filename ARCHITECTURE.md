@@ -2,10 +2,11 @@
 
 ## Status
 
-The frontend application, its real-API boundary, and the reusable multiclass
-detection core are implemented. Both registered local models have runtime probe
-evidence. Backend API, inspection-service preprocessing, annotation, severity,
-persistence, and the final demo dataset remain planned. See
+The frontend application, its real-API boundary, reusable multiclass core, and
+selected-model inspection service are implemented. Both registered models have
+core probe evidence, and the selected model has full preprocessing, annotation,
+and quality-score evidence. Backend API, persistence, and the final demo dataset
+remain planned. See
 `docs/project-status.json` for the precise baseline and limitations.
 
 ## System context
@@ -44,13 +45,18 @@ flowchart LR
 - Also owns the required `backend/utils/preprocessing.py` and
   `backend/utils/model_loader.py` paths declared explicitly in `module-map.json`.
 - Implements model integrity checks, `auto | cpu | cuda | cuda:N` selection,
-  Ultralytics loading, multiclass inference, original-coordinate bbox clamping,
-  and normalized DTOs independent of Ultralytics result objects.
-- Passes original BGR arrays directly to Ultralytics; manual letterbox utilities
-  are reserved for adapters that need them and are not applied twice.
+  Ultralytics loading, multiclass inference, bbox clamping, and normalized core
+  DTOs independent of Ultralytics result objects.
+- Implements the production `DetectionService`: one 640-square letterbox,
+  grayscale, CLAHE, three-channel conversion, selected-model inference, one
+  restore to original coordinates, explicit identity class mapping, annotation,
+  `quality-v1`, and passed/failed verdict.
+- Rejects the 17-class alternative at the service boundary unless a separate
+  explicit mapping is supplied; the generic core continues to support it.
 - Does not own HTTP routes, inspection history, video processing, tracking,
-  scheduling, annotation, or severity in this milestone.
-- Implemented and runtime-verified for both registered models.
+  scheduling, media encoding, or persistence.
+- Core inference is runtime-verified for both models; full service inference is
+  runtime-verified for the selected six-class model at confidence `0.25`.
 
 ### Inspection history
 
@@ -93,7 +99,7 @@ sequenceDiagram
     participant DB as History
     UI->>API: POST /api/inspect image
     API->>CV: validated image bytes
-    CV-->>API: defects, score, original, annotated
+    CV-->>API: service DTO with defects, score, verdict, annotated BGR
     API->>DB: persist metadata and media
     DB-->>API: inspection ID and timestamp
     API-->>UI: inspection detail contract
@@ -103,6 +109,5 @@ sequenceDiagram
 ## Deferred decisions
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
-Production confidence tuning, grayscale/CLAHE service integration, annotation,
-severity, and a redistributable ten-image demo dataset remain deferred until the
-inspection-service milestone.
+FastAPI serialization, JPEG/data URL encoding, production confidence calibration,
+storage, and a redistributable ten-image demo dataset remain deferred.

@@ -1,4 +1,4 @@
-"""Reusable geometry and normalization utilities for future model adapters."""
+"""OpenCV decoding, inspection preprocessing, and coordinate utilities."""
 
 from __future__ import annotations
 
@@ -17,7 +17,34 @@ class LetterboxInfo:
     pad_y: float
 
 
-def _validate_bgr_image(image: np.ndarray) -> None:
+@dataclass(frozen=True, slots=True)
+class InspectionPreprocessingConfig:
+    input_size: int = 640
+    clahe_clip_limit: float = 2.0
+    clahe_tile_grid_size: tuple[int, int] = (8, 8)
+
+    def __post_init__(self) -> None:
+        if self.input_size <= 0:
+            raise ValueError("input_size must be positive")
+        if self.clahe_clip_limit <= 0.0:
+            raise ValueError("clahe_clip_limit must be positive")
+        if (
+            len(self.clahe_tile_grid_size) != 2
+            or self.clahe_tile_grid_size[0] <= 0
+            or self.clahe_tile_grid_size[1] <= 0
+        ):
+            raise ValueError("clahe_tile_grid_size must contain two positive integers")
+
+
+@dataclass(frozen=True, slots=True)
+class InspectionPreprocessingResult:
+    model_input: np.ndarray
+    grayscale: np.ndarray
+    contrast_adjusted: np.ndarray
+    letterbox_info: LetterboxInfo
+
+
+def validate_bgr_image(image: np.ndarray) -> None:
     if not isinstance(image, np.ndarray):
         raise TypeError("image must be a numpy.ndarray")
     if image.dtype != np.uint8:
@@ -28,12 +55,31 @@ def _validate_bgr_image(image: np.ndarray) -> None:
         raise ValueError("image must not be empty")
 
 
+def decode_image(encoded: bytes | bytearray | memoryview) -> np.ndarray:
+    """Decode image bytes into a validated three-channel BGR array."""
+
+    if not isinstance(encoded, (bytes, bytearray, memoryview)):
+        raise TypeError("encoded image must be bytes-like")
+    payload = bytes(encoded)
+    if not payload:
+        raise ValueError("encoded image must not be empty")
+    is_png = payload.startswith(b"\x89PNG\r\n\x1a\n")
+    is_jpeg = payload.startswith(b"\xff\xd8")
+    if not (is_png or is_jpeg):
+        raise ValueError("encoded image must be JPEG or PNG content")
+    image = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError("encoded image could not be decoded")
+    validate_bgr_image(image)
+    return image
+
+
 def letterbox(
     image: np.ndarray,
     size: int | tuple[int, int] = 640,
     color: tuple[int, int, int] = (114, 114, 114),
 ) -> tuple[np.ndarray, LetterboxInfo]:
-    _validate_bgr_image(image)
+    validate_bgr_image(image)
     target_h, target_w = (size, size) if isinstance(size, int) else size
     if target_h <= 0 or target_w <= 0:
         raise ValueError("letterbox size must be positive")
@@ -63,6 +109,67 @@ def letterbox(
         scale=scale,
         pad_x=float(left),
         pad_y=float(top),
+    )
+
+
+def to_grayscale(image: np.ndarray) -> np.ndarray:
+    validate_bgr_image(image)
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+def apply_clahe(
+    grayscale: np.ndarray,
+    *,
+    clip_limit: float = 2.0,
+    tile_grid_size: tuple[int, int] = (8, 8),
+) -> np.ndarray:
+    if not isinstance(grayscale, np.ndarray):
+        raise TypeError("grayscale image must be a numpy.ndarray")
+    if grayscale.dtype != np.uint8 or grayscale.ndim != 2:
+        raise ValueError("grayscale image must have shape HxW with uint8 pixels")
+    if grayscale.shape[0] <= 0 or grayscale.shape[1] <= 0:
+        raise ValueError("grayscale image must not be empty")
+    if clip_limit <= 0.0:
+        raise ValueError("clip_limit must be positive")
+    if len(tile_grid_size) != 2 or tile_grid_size[0] <= 0 or tile_grid_size[1] <= 0:
+        raise ValueError("tile_grid_size must contain two positive integers")
+    clahe = cv2.createCLAHE(
+        clipLimit=float(clip_limit),
+        tileGridSize=(int(tile_grid_size[0]), int(tile_grid_size[1])),
+    )
+    return clahe.apply(grayscale)
+
+
+def grayscale_to_bgr(grayscale: np.ndarray) -> np.ndarray:
+    if not isinstance(grayscale, np.ndarray):
+        raise TypeError("grayscale image must be a numpy.ndarray")
+    if grayscale.dtype != np.uint8 or grayscale.ndim != 2:
+        raise ValueError("grayscale image must have shape HxW with uint8 pixels")
+    if grayscale.shape[0] <= 0 or grayscale.shape[1] <= 0:
+        raise ValueError("grayscale image must not be empty")
+    return cv2.cvtColor(grayscale, cv2.COLOR_GRAY2BGR)
+
+
+def preprocess_inspection_image(
+    image: np.ndarray,
+    config: InspectionPreprocessingConfig = InspectionPreprocessingConfig(),
+) -> InspectionPreprocessingResult:
+    """Build the single 640-square geometry used by the inspection service."""
+
+    validate_bgr_image(image)
+    padded, info = letterbox(image, config.input_size)
+    grayscale = to_grayscale(padded)
+    contrast_adjusted = apply_clahe(
+        grayscale,
+        clip_limit=config.clahe_clip_limit,
+        tile_grid_size=config.clahe_tile_grid_size,
+    )
+    model_input = grayscale_to_bgr(contrast_adjusted)
+    return InspectionPreprocessingResult(
+        model_input=model_input,
+        grayscale=grayscale,
+        contrast_adjusted=contrast_adjusted,
+        letterbox_info=info,
     )
 
 

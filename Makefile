@@ -1,7 +1,7 @@
 PYTHON ?= .venv/Scripts/python.exe
 NPM ?= npm
 
-.PHONY: validate validate-architecture validate-frontend test architecture check-architecture status
+.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service status
 
 validate:
 	$(PYTHON) scripts/validate.py
@@ -24,6 +24,9 @@ architecture:
 
 check-architecture:
 	$(PYTHON) scripts/generate_dependency_graph.py --check
+
+probe-service:
+	$(PYTHON) scripts/probe_inspection_service.py
 
 status:
 	$(PYTHON) scripts/show_status.py

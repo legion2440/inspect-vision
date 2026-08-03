@@ -4,7 +4,7 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "detection-core-verified-api-planned",
+  "state": "inspection-detection-service-verified-api-planned",
   "verified": [
     "frontend production build with Vite 8.2.0",
     "npm audit with zero known vulnerabilities",
@@ -13,8 +13,11 @@
     "Python 3.13.5 detection environment with pinned CPU dependencies",
     "both local model hashes match immutable remote model revisions",
     "both checkpoints load through Ultralytics with task=detect and native multiclass names",
-    "detection core returns bounded original-image xyxy, confidence, class_id, and class_name for both models",
-    "nineteen detection unit tests and architecture import-boundary test"
+    "detection core returns bounded positive-area input-image xyxy, confidence, class_id, and class_name for both models",
+    "selected model returns seven detections at confidence 0.25 through letterbox, grayscale, CLAHE, three-channel inference, and one original-coordinate restore",
+    "DetectionService returns explicit six-class defects, original-size annotated BGR, quality-v1, and passed/failed without Ultralytics result objects",
+    "three annotated PNG evidence outputs preserve original dimensions",
+    "forty-nine detection unit tests, four frontend utility tests, and architecture import-boundary test"
   ],
   "known_limitations": [
     {
@@ -23,9 +26,9 @@
       "detail": "FastAPI endpoints and end-to-end real API integration are planned."
     },
     {
-      "id": "inspection-detection-service-not-implemented",
+      "id": "alternative-service-mapping-not-implemented",
       "area": "defect-detection",
-      "detail": "Grayscale, CLAHE, annotation, severity, and the composed inspection service are deferred to the next milestone."
+      "detail": "DetectionService intentionally supports only the selected six-class model; the generic 17-class alternative requires a separate explicit mapping."
     },
     {
       "id": "broad-model-low-probe-confidence",
@@ -45,12 +48,12 @@
     {
       "id": "runtime-evidence-missing",
       "area": "audit-evidence",
-      "detail": "Real model inference is verified; live backend, annotated image, persistence, and server CSV paths are not runtime-verified."
+      "detail": "Core and inspection-service inference plus annotated outputs are verified; HTTP, live backend, persistence, and server CSV paths are not runtime-verified."
     },
     {
       "id": "automated-coverage-partial",
       "area": "audit-evidence",
-      "detail": "Detection unit tests, import-boundary checks, frontend utility tests, and builds exist; component, API, and end-to-end automation remain planned."
+      "detail": "Detection service unit tests, evidence freshness checks, import-boundary checks, frontend utility tests, and builds exist; component, API, and end-to-end automation remain planned."
     }
   ]
 }

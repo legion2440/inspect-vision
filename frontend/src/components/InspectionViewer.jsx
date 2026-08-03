@@ -44,7 +44,7 @@ export default function InspectionViewer({
             {meta?.name || 'image'} · {dims.w}×{dims.h}
             {meta?.size ? ' · ' + (meta.size / 1048576).toFixed(1) + ' MB' : ''}
           </span>
-          <span className="qc-mono">{caption || 'preprocess: resize 640² · grayscale · CLAHE'}</span>
+          <span className="qc-mono">{caption || 'preprocess: letterbox 640² · grayscale · CLAHE'}</span>
         </figcaption>
       </Blueprint>
     </figure>

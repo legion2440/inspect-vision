@@ -37,12 +37,36 @@ class PredictionStub:
     boxes = BoxesStub()
 
 
+class ZeroAreaAfterClampBoxesStub:
+    def __init__(self) -> None:
+        self.xyxy = TensorStub([[-10.0, 5.0, -2.0, 20.0], [10.0, 10.0, 20.0, 20.0]])
+        self.conf = TensorStub([0.95, 0.8])
+        self.cls = TensorStub([0, 1])
+
+    def __len__(self) -> int:
+        return 2
+
+
+class ZeroAreaAfterClampPredictionStub:
+    boxes = ZeroAreaAfterClampBoxesStub()
+
+
 class ModelStub:
     task = "detect"
     names = {0: "scratch", 1: "dent"}
 
     def predict(self, *, source: list[np.ndarray], **_: object) -> list[PredictionStub]:
         return [PredictionStub() for _frame in source]
+
+
+class ZeroAreaAfterClampModelStub(ModelStub):
+    def predict(
+        self,
+        *,
+        source: list[np.ndarray],
+        **_: object,
+    ) -> list[ZeroAreaAfterClampPredictionStub]:
+        return [ZeroAreaAfterClampPredictionStub() for _frame in source]
 
 
 def _weight(tmp_path: Path) -> Path:
@@ -95,3 +119,18 @@ def test_adapter_rejects_non_bgr_frame(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="HxWx3"):
         backend.infer(np.zeros((100, 200), dtype=np.uint8))
+
+
+def test_adapter_drops_bbox_that_collapses_after_clamp(tmp_path: Path) -> None:
+    backend = UltralyticsBackend(
+        model_id="test-model",
+        model_path=_weight(tmp_path),
+        device=DeviceInfo("cpu", "cpu", "CPU", "PyTorch CPU"),
+        expected_class_names=("scratch", "dent"),
+        model_factory=lambda *_args, **_kwargs: ZeroAreaAfterClampModelStub(),
+    )
+
+    result = backend.infer(np.zeros((100, 200, 3), dtype=np.uint8))
+
+    assert len(result.detections) == 1
+    assert result.detections[0].class_name == "dent"

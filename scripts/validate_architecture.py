@@ -5,12 +5,14 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import math
 import re
 import subprocess
 import sys
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+import cv2
 from jsonschema import Draft202012Validator, FormatChecker
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -450,10 +452,163 @@ def _check_detection_evidence(errors: list[str]) -> None:
                     or not isinstance(height, int)
                     or not isinstance(xyxy, list)
                     or len(xyxy) != 4
-                    or not (0 <= xyxy[0] <= xyxy[2] <= width)
-                    or not (0 <= xyxy[1] <= xyxy[3] <= height)
+                    or not (0 <= xyxy[0] < xyxy[2] <= width)
+                    or not (0 <= xyxy[1] < xyxy[3] <= height)
                 ):
                     errors.append(f"Detection evidence has invalid bbox for model: {model_id}")
+
+
+def _check_inspection_service_evidence(errors: list[str]) -> None:
+    evidence_path = "docs/evidence/inspection-service/inspection-service-acceptance.json"
+    evidence = _load_json(evidence_path)
+    manifest = _load_json("backend/models/model-manifest.json")
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("Inspection-service evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(
+                f"Inspection-service evidence sourceCommit is not an ancestor: {source_commit}"
+            )
+
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append("Inspection-service evidence must record sourceFiles hashes")
+    else:
+        for relative_path, expected_hash in source_files.items():
+            if not _valid_repository_path(relative_path):
+                errors.append(
+                    f"Inspection-service evidence has invalid source path: {relative_path!r}"
+                )
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if not path.is_file():
+                errors.append(
+                    f"Inspection-service evidence source file is missing: {relative_path}"
+                )
+                continue
+            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual_hash != expected_hash:
+                errors.append(
+                    f"Inspection-service evidence is stale for source file: {relative_path}"
+                )
+
+    selected_model_id = manifest.get("selectedModelId")
+    selected_model = next(
+        (model for model in manifest.get("models", []) if model.get("id") == selected_model_id),
+        None,
+    )
+    model = evidence.get("model", {})
+    if selected_model is None or model.get("modelId") != selected_model_id:
+        errors.append("Inspection-service evidence does not use the selected model")
+        allowed_types: set[str] = set()
+    else:
+        if model.get("sha256") != selected_model.get("sha256"):
+            errors.append("Inspection-service evidence model hash does not match the manifest")
+        if model.get("classes") != selected_model.get("classes"):
+            errors.append("Inspection-service evidence classes do not match the manifest")
+        expected_mapping = {name: name for name in selected_model.get("classes", [])}
+        if model.get("serviceClassMapping") != expected_mapping:
+            errors.append("Inspection-service evidence must use the selected identity mapping")
+        allowed_types = set(expected_mapping.values())
+
+    pipeline = evidence.get("pipeline", {})
+    if pipeline.get("confidence") != 0.25:
+        errors.append("Inspection-service evidence must use production confidence 0.25")
+    if pipeline.get("coordinateRestoreCount") != 1:
+        errors.append("Inspection-service evidence must restore coordinates exactly once")
+    if pipeline.get("modelInput") != {
+        "width": 640,
+        "height": 640,
+        "channels": 3,
+        "dtype": "uint8",
+    }:
+        errors.append("Inspection-service evidence has an invalid model input contract")
+    if pipeline.get("clahe") != {"clipLimit": 2.0, "tileGridSize": [8, 8]}:
+        errors.append("Inspection-service evidence has an invalid CLAHE contract")
+
+    quality = evidence.get("quality", {})
+    if quality.get("version") != "quality-v1" or quality.get("heuristic") is not True:
+        errors.append("Inspection-service evidence has an invalid quality contract")
+    if quality.get("classWeights") != {
+        "crazing": 1.25,
+        "inclusion": 1.10,
+        "patches": 0.90,
+        "pitted_surface": 1.00,
+        "rolled-in_scale": 1.20,
+        "scratches": 0.85,
+    }:
+        errors.append("Inspection-service evidence has invalid quality-v1 class weights")
+
+    samples = evidence.get("samples")
+    if not isinstance(samples, list) or len(samples) < 3:
+        errors.append("Inspection-service evidence must contain at least three samples")
+        return
+    counted_detections = 0
+    for sample in samples:
+        dimensions = sample.get("originalDimensions", {})
+        width = dimensions.get("width")
+        height = dimensions.get("height")
+        defects = sample.get("defects")
+        if not isinstance(width, int) or width <= 0 or not isinstance(height, int) or height <= 0:
+            errors.append("Inspection-service evidence has invalid original dimensions")
+            continue
+        if not isinstance(defects, list):
+            errors.append("Inspection-service evidence sample has invalid defects")
+            continue
+        counted_detections += len(defects)
+        if sample.get("totalDefects") != len(defects):
+            errors.append("Inspection-service evidence has inconsistent totalDefects")
+        expected_status = "passed" if not defects else "failed"
+        if sample.get("status") != expected_status:
+            errors.append("Inspection-service evidence has inconsistent status")
+        score = sample.get("qualityScore")
+        if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 100:
+            errors.append("Inspection-service evidence has invalid qualityScore")
+        for defect in defects:
+            if defect.get("type") not in allowed_types:
+                errors.append("Inspection-service evidence contains an unmapped defect type")
+            confidence = defect.get("confidence")
+            box = defect.get("boundingBox", {})
+            x, y = box.get("x"), box.get("y")
+            box_width, box_height = box.get("width"), box.get("height")
+            numeric_values = (confidence, x, y, box_width, box_height)
+            if not all(
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and math.isfinite(value)
+                for value in numeric_values
+            ):
+                errors.append("Inspection-service evidence contains a non-numeric defect")
+                continue
+            if not 0.0 <= confidence <= 1.0:
+                errors.append("Inspection-service evidence contains invalid confidence")
+            if not (0.0 <= x < x + box_width <= width and 0.0 <= y < y + box_height <= height):
+                errors.append("Inspection-service evidence contains invalid original-space bbox")
+
+        annotated = sample.get("annotatedOutput", {})
+        relative_output = annotated.get("path")
+        if not _valid_repository_path(relative_output):
+            errors.append("Inspection-service evidence has an invalid annotated output path")
+            continue
+        output_path = REPOSITORY_ROOT / relative_output
+        if not output_path.is_file():
+            errors.append(f"Inspection-service annotated output is missing: {relative_output}")
+            continue
+        if hashlib.sha256(output_path.read_bytes()).hexdigest() != annotated.get("sha256"):
+            errors.append(f"Inspection-service annotated output hash mismatch: {relative_output}")
+        annotated_image = cv2.imread(str(output_path), cv2.IMREAD_COLOR)
+        if annotated_image is None or annotated_image.shape != (height, width, 3):
+            errors.append(f"Inspection-service annotated output dimensions changed: {relative_output}")
+
+    if counted_detections < 1 or evidence.get("totalDetections") != counted_detections:
+        errors.append("Inspection-service evidence must contain real selected-model detections")
 
 
 def _check_frontend_invariants(errors: list[str]) -> None:
@@ -479,6 +634,7 @@ def main() -> int:
         _check_javascript_imports(module_map, graph, errors)
         _check_model_manifest(errors)
         _check_detection_evidence(errors)
+        _check_inspection_service_evidence(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:

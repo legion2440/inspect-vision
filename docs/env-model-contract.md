@@ -20,6 +20,8 @@ Streamlit, supervision, tracking, and video runtimes.
 | `INSPECT_VISION_MODEL_INPUT_SIZE` | yes | Square model input size, initially 640 |
 | `INSPECT_VISION_MODEL_CONFIDENCE` | yes | Inclusive detection threshold from 0 to 1 |
 | `INSPECT_VISION_MODEL_DEVICE` | yes | Exactly `auto`, `cpu`, `cuda`, or `cuda:N` |
+| `INSPECT_VISION_CLAHE_CLIP_LIMIT` | yes | CLAHE clip limit; fixed baseline is `2.0` |
+| `INSPECT_VISION_CLAHE_TILE_GRID_SIZE` | yes | Square CLAHE tile grid edge; fixed baseline is `8`, meaning `8 × 8` |
 | `INSPECT_VISION_DATABASE_PATH` | yes | SQLite database path |
 | `INSPECT_VISION_MEDIA_DIR` | yes | Original and annotated image directory |
 
@@ -44,31 +46,58 @@ API mode and it must not be changed back to implicit mock mode.
 
 ## Preprocessing and coordinates
 
-The current detection core accepts `uint8 H × W × 3` BGR arrays. For Ultralytics
-`.pt` inference it passes the original array to the library without an additional
-letterbox; Ultralytics returns boxes in original-image coordinates.
+`decode_image(bytes)` decodes future HTTP-boundary JPEG/PNG payloads into a
+validated, non-empty `uint8 H × W × 3` BGR array. `DetectionService` itself
+accepts only that already-decoded array and applies the fixed production path:
 
-The next inspection-service milestone will make OpenCV own the required stages:
+1. Preserve original width, height, and pixels.
+2. Letterbox once to `640 × 640` with padding value `(114, 114, 114)`.
+3. Convert the padded BGR image to one grayscale channel.
+4. Apply CLAHE with `clipLimit=2.0` and `tileGridSize=(8, 8)`.
+5. Convert the adjusted grayscale image back to three identical BGR channels.
+6. Pass exactly `uint8 640 × 640 × 3` to the selected Ultralytics adapter at
+   production confidence `0.25`.
+7. Let Ultralytics perform tensor conversion and normalization. Its internal
+   640-square geometry step is a no-op for this already-sized input.
+8. Clamp/drop invalid adapter boxes and restore valid boxes exactly once from the
+   640-square coordinate space to original-image pixels.
+9. Map native classes through the explicit selected-model identity mapping.
+10. Draw annotations on a copy of the original BGR image.
 
-1. Decode JPEG/PNG and reject invalid content.
-2. Preserve the original width and height.
-3. Produce grayscale and contrast-adjusted representations for the configured
-   pipeline.
-4. Resize or letterbox to model input dimensions and normalize as required.
-5. Run inference.
-6. Map boxes back to original-image pixels and clamp them to bounds.
-7. Draw annotations on a copy of the original BGR image.
-8. Encode original and annotated images for the API contract.
+Image encoding remains outside the detection service and belongs to the future
+API/media boundary.
 
 The adapter boundary returns normalized detections independent of YOLO library
 objects. API routes never parse raw model tensors.
 
 ## Quality score
 
-The backend score is authoritative and uses defect count, configured class
-weights, confidence, and box area divided by `imageWidth * imageHeight`. The
-formula and weights must be unit-tested and versioned. Clean images score 100;
-the result is clamped to the inclusive 0–100 range.
+The backend score is authoritative. `quality-v1` is an explicitly heuristic,
+versioned score calculated only after coordinate restoration:
+
+```text
+bboxAreaRatio = originalBBoxArea / (originalImageWidth * originalImageHeight)
+penalty = sum(classWeight * confidence * (10 + 90 * bboxAreaRatio))
+qualityScore = clamp(round(100 - penalty), 0, 100)
+```
+
+`round` means nearest-integer rounding with half values rounded upward, matching
+the browser fallback.
+
+| Native/service type | Weight |
+| --- | ---: |
+| `crazing` | 1.25 |
+| `inclusion` | 1.10 |
+| `patches` | 0.90 |
+| `pitted_surface` | 1.00 |
+| `rolled-in_scale` | 1.20 |
+| `scratches` | 0.85 |
+
+Each detection contributes a count baseline through the constant `10`, then
+confidence and original-image area scale its penalty. Clean images score 100;
+the result is an integer clamped to the inclusive 0–100 range. This heuristic is
+authoritative for application behavior but is not a calibrated safety or
+metrology measurement.
 
 ## Storage
 

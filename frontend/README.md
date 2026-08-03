@@ -52,7 +52,7 @@ computed client-side when absent):
   "imageWidth": 1920,
   "imageHeight": 1080,
   "fileName": "housing_04_2b.jpg",
-  "defects": [{ "type": "scratch", "confidence": 0.92, "boundingBox": { "x": 120, "y": 85, "width": 45, "height": 30 } }],
+  "defects": [{ "type": "scratches", "confidence": 0.92, "boundingBox": { "x": 120, "y": 85, "width": 45, "height": 30 } }],
   "totalDefects": 1,
   "qualityScore": 71,
   "status": "failed"
@@ -88,4 +88,8 @@ src/
   `ResizeObserver` — accurate at any viewport. Live mode uses the camera's actual
   `videoWidth` and `videoHeight` and processes only one frame request at a time.
 - Confidence is color-coded >90% / 70-90% / <70%; severity score 0-100 falls back
-  to `utils/severity.js` if the backend does not send one.
+  to the matching `quality-v1` calculation in `utils/severity.js` if the backend
+  does not send one. A backend `qualityScore`, including zero, is authoritative.
+- Defect filters and mock fixtures use the selected model's six native type names:
+  `crazing`, `inclusion`, `patches`, `pitted_surface`, `rolled-in_scale`, and
+  `scratches`.

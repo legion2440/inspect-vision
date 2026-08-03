@@ -67,7 +67,7 @@
       "from": "audit-evidence",
       "to": "defect-detection",
       "type": "verification",
-      "rationale": "Future model evidence verifies preprocessing and inference."
+      "rationale": "Audit evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs."
     },
     {
       "from": "audit-evidence",

@@ -8,7 +8,7 @@ test('CSV export keeps the canonical columns and escapes values', () => {
     {
       inspectionId: 'insp_1',
       timestamp: '2026-08-03T10:00:00Z',
-      defects: [{ type: 'scratch,deep' }],
+      defects: [{ type: 'scratches,deep' }],
       totalDefects: 1,
       qualityScore: 84,
       status: 'failed',
@@ -20,17 +20,17 @@ test('CSV export keeps the canonical columns and escapes values', () => {
     header,
     'inspectionId,timestamp,defectCount,types,qualityScore,status',
   );
-  assert.match(row, /^insp_1,2026-08-03T10:00:00Z,1,"scratch,deep",84,failed$/);
+  assert.match(row, /^insp_1,2026-08-03T10:00:00Z,1,"scratches,deep",84,failed$/);
 });
 
 test('backend quality score is authoritative, including zero', () => {
   assert.equal(scoreOf({ qualityScore: 0, defects: [] }), 0);
-  assert.equal(scoreOf({ qualityScore: 91, defects: [{ type: 'crack' }] }), 91);
+  assert.equal(scoreOf({ qualityScore: 91, defects: [{ type: 'crazing' }] }), 91);
 });
 
 test('severity fallback uses real image area when available', () => {
   const defect = {
-    type: 'crack',
+    type: 'crazing',
     confidence: 0.9,
     boundingBox: { x: 0, y: 0, width: 100, height: 100 },
   };
@@ -43,4 +43,14 @@ test('severity fallback uses real image area when available', () => {
 
   assert.ok(smallFrameScore < largeFrameScore);
   assert.equal(severityScore([], 1), 100);
+});
+
+test('client fallback mirrors backend quality-v1', () => {
+  const defect = {
+    type: 'crazing',
+    confidence: 0.8,
+    boundingBox: { x: 0, y: 0, width: 10, height: 10 },
+  };
+
+  assert.equal(severityScore([defect], 100 * 100), 89);
 });

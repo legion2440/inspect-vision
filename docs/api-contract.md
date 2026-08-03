@@ -17,7 +17,7 @@ pixels with `(0, 0)` at the top-left.
   "imageHeight": 1080,
   "defects": [
     {
-      "type": "scratch",
+      "type": "scratches",
       "confidence": 0.92,
       "boundingBox": { "x": 120, "y": 85, "width": 45, "height": 30 }
     }
@@ -40,6 +40,8 @@ Contract invariants:
 - `totalDefects` equals `defects.length`.
 - `status` is `passed` only when `totalDefects` is zero; otherwise it is `failed`.
 - `qualityScore` is an integer from `0` to `100` and is authoritative.
+- `type` preserves one of the selected model's native names: `crazing`,
+  `inclusion`, `patches`, `pitted_surface`, `rolled-in_scale`, or `scratches`.
 
 ## Endpoints
 
