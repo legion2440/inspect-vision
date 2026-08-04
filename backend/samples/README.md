@@ -27,13 +27,22 @@ all images through the selected production service at confidence `0.25` with
 the source-quota inventory from the official archive; no synthetic image or fake
 detection is used.
 
-`showcase/` is a separate operator-facing collection of nine original source
+`showcase/` is a separate operator-facing collection of nine source-derived
 images: three PCB images from DefectDet V1, three blade-surface images from the
 GKN Blade Surface Defect Dataset V1, and three pavement/wall crack contexts from
 HU Infrastructure Cracks V1. All three sources are pinned to a published
 version under CC BY 4.0. `showcase-samples.json` records source paths, dataset
 labels, attribution, hashes, dimensions, media types, and a recommended
-registered model. It never stores model predictions.
+registered model. The PCB and HU files were downscaled and are marked as
+modified in the manifest and UI; GKN files retain their selected source bytes.
+It never stores model predictions.
+
+`provenance/showcase/defectdet-selected-coco.json` and
+`provenance/showcase/hu-selected-metadata.json` are minimal excerpts of the selected
+records from the pinned source metadata. The validator reconstructs every PCB
+and HU label from those excerpts; blade labels are reconstructed from the
+source archive folder path. A label written only in the showcase manifest is
+therefore insufficient.
 
 The `/api/samples` metadata endpoint and `/api/samples/{id}/image` asset endpoint
 serve this offline collection by manifest ID. Running one from the frontend

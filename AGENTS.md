@@ -81,7 +81,10 @@ recorded command or evidence artifact proves the real path executed.
   registry; the persisted model ID is also the display-name fallback.
 - Dashboard Quick Upload, Inspect, live stream, and Samples share one explicit
   model selection. A sample recommendation must never switch it automatically.
+- Changing the Samples model aborts any pending source-image load before stale
+  inference can start or navigate.
 - Showcase source labels are dataset metadata, never predictions. Showcase
+  labels are reconstructed from tracked source excerpts or source folder labels;
   images are served only by manifest ID, and inspection reuses the ordinary
   persisted `/api/inspect` path.
 - `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by

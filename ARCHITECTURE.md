@@ -39,7 +39,8 @@ flowchart LR
 - The same global model selector drives Dashboard Quick Upload, the Inspect
   page, and the Samples page. Sample recommendations never auto-switch it.
 - Sample cards fetch original bytes and call the ordinary persisted inspection
-  workflow; there is no sample-specific prediction endpoint.
+  workflow; model changes abort pending sample loads before inference, and there
+  is no sample-specific prediction endpoint.
 - Calls only interfaces defined in `docs/api-contract.md`.
 - Implemented and build-verified.
 
@@ -123,9 +124,11 @@ flowchart LR
   archive paths, hashes, dimensions, and four tracked `image_anno.csv` files.
 - `sourceGroundTruth` is annotation-backed; `modelObservation` is reproduced at
   confidence `0.25` and explicitly makes no accuracy claim.
-- The showcase validator enforces three images per registered model, pinned
-  source/license metadata, source-label vocabularies, hashes, dimensions,
-  decodeability, the upload-size limit, and absence of prediction fields.
+- The showcase validator reconstructs PCB labels from a tracked COCO excerpt,
+  crack labels from a tracked HU metadata excerpt, and blade labels from source
+  folders. It also enforces three images per model, pinned license metadata,
+  hashes, dimensions, declared downscaling, decodeability, the upload-size
+  limit, and absence of prediction fields.
 
 ## Boundary rules
 

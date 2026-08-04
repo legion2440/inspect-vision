@@ -38,7 +38,7 @@ def main() -> int:
         ],
         [npm, "--prefix", "frontend", "test"],
         [npm, "--prefix", "frontend", "run", "build"],
-        [npm, "--prefix", "frontend", "audit", "--audit-level=high"],
+        [sys.executable, "scripts/check_frontend_dependencies.py"],
     )
     for command in commands:
         _run(command)

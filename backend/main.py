@@ -17,6 +17,7 @@ from backend.routes import (
     export_router,
     history_router,
     models_router,
+    samples_router,
     stream_router,
 )
 from backend.storage.media import MediaStore
@@ -75,6 +76,7 @@ def create_app(
     application.include_router(stream_router)
     application.include_router(export_router)
     application.include_router(models_router)
+    application.include_router(samples_router)
     return application
 
 

@@ -1,0 +1,56 @@
+{
+  "excerptSchemaVersion": 1,
+  "datasetId": "hu-infrastructure-cracks-v1",
+  "datasetVersion": "1",
+  "datasetDoi": "10.5281/zenodo.20829348",
+  "sourceFile": {
+    "filename": "metadata.json",
+    "sizeBytes": 33857,
+    "md5": "ab26c24bcc0af5996937bd32303bfaa2",
+    "sha256": "a4578be877e981bd5c42546ae1e6457fe8600504b7c417edaa9d580724991bea"
+  },
+  "cracks": [
+    {
+      "crack_id": "CR01",
+      "date": "10/5/2026",
+      "location": "Faculty of Engineering",
+      "structure": "pavement",
+      "environment": "outdoor",
+      "type": "transverse",
+      "severity": "moderate",
+      "width_mm": 1,
+      "length_mm": 2,
+      "surface": "dry",
+      "lighting": "shadow",
+      "total_images": 10
+    },
+    {
+      "crack_id": "CR24",
+      "date": "17/5/2026",
+      "location": "Faculty of Engineering",
+      "structure": "wall",
+      "environment": "outdoor",
+      "type": "longitudinal",
+      "severity": "moderate",
+      "width_mm": 1,
+      "length_mm": 15,
+      "surface": "dry",
+      "lighting": "sunny",
+      "total_images": 10
+    },
+    {
+      "crack_id": "CR43",
+      "date": "21/5/2026",
+      "location": "Lab",
+      "structure": "pavement",
+      "environment": "outdoor",
+      "type": "diagonal",
+      "severity": "severe",
+      "width_mm": 2.5,
+      "length_mm": 23,
+      "surface": "dry",
+      "lighting": "shadow",
+      "total_images": 11
+    }
+  ]
+}

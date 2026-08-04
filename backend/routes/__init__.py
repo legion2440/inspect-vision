@@ -7,12 +7,11 @@ from .models import router as models_router
 from .samples import router as samples_router
 from .stream import router as stream_router
 
-models_router.routes.extend(samples_router.routes)
-
 __all__ = [
     "detect_router",
     "export_router",
     "history_router",
     "models_router",
+    "samples_router",
     "stream_router",
 ]

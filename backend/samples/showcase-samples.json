@@ -28,6 +28,7 @@
         "spur",
         "spurious copper"
       ],
+      "sourceMetadataExcerpt": "backend/samples/provenance/showcase/defectdet-selected-coco.json",
       "attribution": "DefectDet V1 by Ashraful Azam, Masum Mushfiq Ishti, Khondakar Muntaseer Shams, Ahmed Jawad Rashid, and Nadim Ahmed, licensed CC BY 4.0."
     },
     {
@@ -43,6 +44,7 @@
         "url": "https://creativecommons.org/licenses/by/4.0/"
       },
       "sourceLabelVocabulary": ["Good", "Nick", "Scratch"],
+      "sourceMetadataExcerpt": "folder labels in the pinned source archive",
       "attribution": "GKN Blade Surface Defect Dataset V1 by Qianyu Zhou, licensed CC BY 4.0."
     },
     {
@@ -54,9 +56,10 @@
       "projectUrl": "https://hu-infrastructure-cracks.org/",
       "authors": [
         "Yousef Almashakbeh",
+        "Razan Al-Majali",
+        "Radwan Alelaimat",
         "Israa Hayarat",
-        "Dirar Momani",
-        "Ridwan Al-Ulaymat"
+        "Dirar Momani"
       ],
       "institution": "The Hashemite University, Jordan",
       "license": {
@@ -72,7 +75,8 @@
         "moderate",
         "severe"
       ],
-      "attribution": "HU Infrastructure Cracks Dataset V1 by Yousef Almashakbeh, Israa Hayarat, Dirar Momani, and Ridwan Al-Ulaymat, The Hashemite University, licensed CC BY 4.0."
+      "sourceMetadataExcerpt": "backend/samples/provenance/showcase/hu-selected-metadata.json",
+      "attribution": "Almashakbeh, Y., Hayarat, I., Momani, D., & Alelaimat, R. (2026). HU Infrastructure Cracks Dataset. The Hashemite University, Jordan. https://hu-infrastructure-cracks.org. CC BY 4.0."
     }
   ],
   "samples": [
@@ -81,6 +85,7 @@
       "domain": "General Manufacturing / PCB",
       "recommendedModelId": "factory-defect-guard-v6-mc",
       "datasetId": "defectdet-v1",
+      "sourceRecordId": 130,
       "filename": "general-pcb-img131.png",
       "mediaType": "image/png",
       "sourceFile": "DefectDet/images/img131.png",
@@ -99,6 +104,7 @@
       "domain": "General Manufacturing / PCB",
       "recommendedModelId": "factory-defect-guard-v6-mc",
       "datasetId": "defectdet-v1",
+      "sourceRecordId": 169,
       "filename": "general-pcb-img170.png",
       "mediaType": "image/png",
       "sourceFile": "DefectDet/images/img170.png",
@@ -117,6 +123,7 @@
       "domain": "General Manufacturing / PCB",
       "recommendedModelId": "factory-defect-guard-v6-mc",
       "datasetId": "defectdet-v1",
+      "sourceRecordId": 253,
       "filename": "general-pcb-img254.png",
       "mediaType": "image/png",
       "sourceFile": "DefectDet/images/img254.png",

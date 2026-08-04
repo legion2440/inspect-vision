@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import ModelSelector from '../components/ModelSelector.jsx';
@@ -26,6 +26,7 @@ function Samples() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [busySampleId, setBusySampleId] = useState(null);
+  const sampleRequestRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,13 +47,30 @@ function Samples() {
     return () => controller.abort();
   }, []);
 
+  useEffect(() => () => sampleRequestRef.current?.abort(), []);
+
   const datasets = useMemo(
     () => new Map(catalog.datasets.map((dataset) => [dataset.id, dataset])),
     [catalog.datasets],
   );
   const groups = useMemo(() => groupSamplesByDomain(catalog.samples), [catalog.samples]);
 
+  const cancelSampleRequest = () => {
+    sampleRequestRef.current?.abort();
+    sampleRequestRef.current = null;
+    setBusySampleId(null);
+  };
+
+  const handleModelChange = (modelId) => {
+    cancelSampleRequest();
+    setError(null);
+    selectModel(modelId);
+  };
+
   const inspectSample = async (sample) => {
+    cancelSampleRequest();
+    const controller = new AbortController();
+    sampleRequestRef.current = controller;
     setBusySampleId(sample.id);
     setError(null);
     try {
@@ -62,12 +80,18 @@ function Samples() {
         loadSample: api.getSampleImage,
         runInspection,
         navigate,
+        signal: controller.signal,
       });
       if (!record) setError('Inspection did not complete. Check the selected model and try again.');
     } catch (requestError) {
-      setError(requestError.message || 'Could not inspect this sample');
+      if (requestError.name !== 'AbortError') {
+        setError(requestError.message || 'Could not inspect this sample');
+      }
     } finally {
-      setBusySampleId(null);
+      if (sampleRequestRef.current === controller) {
+        sampleRequestRef.current = null;
+        setBusySampleId(null);
+      }
     }
   };
 
@@ -86,7 +110,7 @@ function Samples() {
       <ModelSelector
         models={models}
         value={selectedModelId}
-        onChange={selectModel}
+        onChange={handleModelChange}
         loading={modelsStatus === 'loading'}
         error={modelsError}
       />
@@ -139,6 +163,9 @@ function Samples() {
                     <p className="qc-mono text-muted">
                       {sample.width}×{sample.height} · {dataset?.license?.name}
                     </p>
+                    {sample.assetTransform === 'downscaled' && (
+                      <p className="qc-mono text-muted">Modified: downscaled from source</p>
+                    )}
                     <div className="qc-sample-actions">
                       <button
                         type="button"
@@ -152,7 +179,7 @@ function Samples() {
                         type="button"
                         className="btn btn-secondary"
                         disabled={!recommendedAvailable || selectedModelId === sample.recommendedModelId}
-                        onClick={() => selectModel(sample.recommendedModelId)}
+                        onClick={() => handleModelChange(sample.recommendedModelId)}
                       >
                         Use recommended model
                       </button>
@@ -173,6 +200,11 @@ function Samples() {
               <article className="card" key={dataset.id}>
                 <h3>{dataset.name}</h3>
                 <p className="card-body">{dataset.attribution}</p>
+                {catalog.samples.some(
+                  (sample) => sample.datasetId === dataset.id && sample.assetTransform === 'downscaled',
+                ) && (
+                  <p className="qc-mono text-muted">Modified: downscaled from source</p>
+                )}
                 <div className="qc-sample-links">
                   <a href={dataset.sourceUrl} target="_blank" rel="noreferrer">
                     Source <ExternalLink size={13} />

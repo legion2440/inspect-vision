@@ -182,6 +182,7 @@
         { "path": "scripts/validate.py", "status": "implemented" },
         { "path": "scripts/validate_structure.py", "status": "implemented" },
         { "path": "scripts/validate_architecture.py", "status": "implemented" },
+        { "path": "scripts/check_frontend_dependencies.py", "status": "implemented" },
         { "path": "scripts/probe_models.py", "status": "implemented" },
         { "path": "scripts/probe_inspection_service.py", "status": "implemented" },
         { "path": "scripts/probe_api_persistence.py", "status": "implemented" },

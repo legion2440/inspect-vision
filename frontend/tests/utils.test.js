@@ -217,6 +217,52 @@ test('inspect sample uses the current global model selection and navigates after
   assert.deepEqual(calls[1], { navigate: { to: '/inspect' } });
 });
 
+test('sample model switch aborts image loading before stale inference can start', async () => {
+  let finishLoading;
+  let loadOptions;
+  let inferenceCalls = 0;
+  let navigationCalls = 0;
+  const controller = new AbortController();
+  const loadGate = new Promise((resolve) => { finishLoading = resolve; });
+  class FakeFile {
+    constructor(parts, name, options) {
+      Object.assign(this, { parts, name, type: options.type });
+    }
+  }
+
+  const pending = inspectShowcaseSample({
+    sample: { id: 'steel-demo', filename: 'steel.jpg', mediaType: 'image/jpeg' },
+    selectedModelId: 'neu-defect-yolov8',
+    loadSample: async (_sample, options) => {
+      loadOptions = options;
+      await loadGate;
+      return { type: 'image/jpeg' };
+    },
+    runInspection: async () => {
+      inferenceCalls += 1;
+      return { inspectionId: 'stale' };
+    },
+    navigate: () => { navigationCalls += 1; },
+    signal: controller.signal,
+    FileConstructor: FakeFile,
+  });
+
+  controller.abort();
+  finishLoading();
+
+  await assert.rejects(pending, (error) => error.name === 'AbortError');
+  assert.strictEqual(loadOptions.signal, controller.signal);
+  assert.equal(inferenceCalls, 0);
+  assert.equal(navigationCalls, 0);
+});
+
+test('samples route cancels pending loads before changing the global model', () => {
+  const route = readFileSync(new URL('../src/routes/samples.jsx', import.meta.url), 'utf8');
+  assert.match(route, /sampleRequestRef\.current\?\.abort\(\)/);
+  assert.match(route, /onChange=\{handleModelChange\}/);
+  assert.match(route, /Modified: downscaled from source/);
+});
+
 test('dashboard quick upload is wired to the shared selected model', () => {
   const dashboard = readFileSync(new URL('../src/routes/index.jsx', import.meta.url), 'utf8');
   assert.match(dashboard, /<ModelSelector[\s\S]*value=\{selectedModelId\}/);

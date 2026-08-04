@@ -63,7 +63,7 @@ const SAMPLE_DATASETS = [
     version: '1',
     sourceUrl: 'https://zenodo.org/records/20829348',
     license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'HU Infrastructure Cracks Dataset V1 contributors, licensed CC BY 4.0.',
+    attribution: 'Almashakbeh, Y., Hayarat, I., Momani, D., & Alelaimat, R. (2026). HU Infrastructure Cracks Dataset. The Hashemite University, Jordan. https://hu-infrastructure-cracks.org. CC BY 4.0.',
   },
 ];
 
@@ -86,6 +86,9 @@ const MOCK_SAMPLES = [
   filename: 'sample-part.jpg',
   mediaType: 'image/jpeg',
   imageUrl: SAMPLE,
+  width: 1600,
+  height: 1187,
+  ...(datasetId === 'gkn-blade-v1' ? {} : { assetTransform: 'downscaled' }),
 }));
 
 const modelOf = (modelId) => MODELS.find((model) => model.id === modelId) || MODELS[0];

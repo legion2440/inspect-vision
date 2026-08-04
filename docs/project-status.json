@@ -26,9 +26,9 @@
     "frontend tests and Vite production build pass after the multi-model change",
     "Dashboard Quick Upload, Inspect, live stream, and the Samples page share one explicit global model selection",
     "nine offline CC BY 4.0 showcase images cover PCB, steel, and concrete/crack domains with three samples per registered model",
-    "showcase source labels, provenance, attribution, hashes, dimensions, media types, and recommended models are validated without storing predictions",
+    "showcase PCB and HU labels are reconstructed from tracked source-metadata excerpts, blade labels from source folders, and transformed assets carry an explicit downscale disclosure",
     "GET /api/samples returns metadata without image payloads and GET /api/samples/{id}/image serves originals only by manifest ID",
-    "Inspect sample performs fresh inference with the current model through POST /api/inspect and persists the resulting history record"
+    "Inspect sample performs fresh inference with the current model through POST /api/inspect, aborts pending image loads on model change, and persists the resulting history record"
   ],
   "known_limitations": [
     {

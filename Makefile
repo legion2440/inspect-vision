@@ -13,7 +13,7 @@ validate-architecture:
 
 validate-frontend:
 	$(NPM) --prefix frontend run build
-	$(NPM) --prefix frontend audit --audit-level=high
+	$(PYTHON) scripts/check_frontend_dependencies.py
 
 test:
 	$(PYTHON) -m pytest tests/unit/backend_api tests/unit/contracts tests/unit/detection tests/unit/history tests/unit/evidence tests/integration/api

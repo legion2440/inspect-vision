@@ -246,7 +246,7 @@ Useful individual commands:
 .venv/Scripts/python.exe -m pytest
 npm --prefix frontend test
 npm --prefix frontend run build
-npm --prefix frontend audit --audit-level=high
+.venv/Scripts/python.exe scripts/check_frontend_dependencies.py
 ```
 
 Check the fresh backend template without creating a local runtime database:
