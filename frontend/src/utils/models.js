@@ -11,6 +11,10 @@ export function appendModelId(form, modelId) {
   return form;
 }
 
+export function installModelCommand(modelId) {
+  return `python scripts/install_models.py --model ${modelId}`;
+}
+
 export function modelClassesLabel(model, limit = 6) {
   const classes = model?.classes || [];
   const visible = classes.slice(0, limit).map((name) => name.replaceAll('_', ' ').replaceAll('-', ' '));

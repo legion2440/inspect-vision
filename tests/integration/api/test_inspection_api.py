@@ -381,6 +381,30 @@ def test_history_list_omits_images_and_detail_hydrates_them(api_factory) -> None
     assert detail.json() == created
 
 
+def test_history_survives_a_model_removed_from_the_registry(api_factory) -> None:
+    client = api_factory()
+    created = client.post(
+        "/api/inspect",
+        files={"image": ("legacy.png", encoded_image(".png"), "image/png")},
+    ).json()
+    retired_model_id = "retired-manufacturing-model"
+    repository = client.app.state.storage.repository
+    with repository.transaction() as connection:
+        connection.execute(
+            "UPDATE inspections SET model_id = ? WHERE inspection_id = ?",
+            (retired_model_id, created["inspectionId"]),
+        )
+
+    history_response = client.get("/api/history")
+    detail_response = client.get(f"/api/history/{created['inspectionId']}")
+
+    assert history_response.status_code == 200
+    assert detail_response.status_code == 200
+    expected_model = {"id": retired_model_id, "displayName": retired_model_id}
+    assert history_response.json()[0]["model"] == expected_model
+    assert detail_response.json()["model"] == expected_model
+
+
 def test_history_is_newest_first_and_dates_are_applied(api_factory) -> None:
     client = api_factory()
     first = client.post(

@@ -1,76 +1,15 @@
 import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import * as api from '../utils/apiClient.js';
-import { selectInitialModel } from '../utils/models.js';
 import { validateImage } from '../utils/validateImage.js';
+import { initialInspectionState, inspectionReducer } from './inspectionState.js';
 
 export const InspectionContext = createContext(null);
 
-const initial = {
-  current: null,      // the inspection being viewed on /inspect
-  preview: null,      // object URL of the uploaded file, shown before results land
-  fileMeta: null,     // { name, size, width, height }
-  status: 'idle',     // idle | uploading | detecting | done | error
-  error: null,
-  history: [],
-  historyStatus: 'idle',
-  models: [],
-  modelsStatus: 'idle',
-  modelsError: null,
-  selectedModelId: '',
-};
-
-function reducer(state, action) {
-  switch (action.type) {
-    case 'file':
-      return { ...state, preview: action.preview, fileMeta: action.meta, current: null, error: null, status: 'detecting' };
-    case 'result':
-      return { ...state, current: action.record, status: 'done', error: null };
-    case 'error':
-      return { ...state, status: 'error', error: action.error };
-    case 'reset':
-      return {
-        ...initial,
-        history: state.history,
-        historyStatus: state.historyStatus,
-        models: state.models,
-        modelsStatus: state.modelsStatus,
-        modelsError: state.modelsError,
-        selectedModelId: state.selectedModelId,
-      };
-    case 'history':
-      return { ...state, history: action.records, historyStatus: 'done' };
-    case 'historyLoading':
-      return { ...state, historyStatus: 'loading' };
-    case 'historyError':
-      return { ...state, historyStatus: 'error', error: action.error };
-    case 'modelsLoading':
-      return { ...state, modelsStatus: 'loading', modelsError: null };
-    case 'models': {
-      const selectedStillInstalled = action.models.some(
-        (model) => model.id === state.selectedModelId && model.installed,
-      );
-      return {
-        ...state,
-        models: action.models,
-        modelsStatus: 'done',
-        modelsError: null,
-        selectedModelId: selectedStillInstalled
-          ? state.selectedModelId
-          : selectInitialModel(action.models),
-      };
-    }
-    case 'modelsError':
-      return { ...state, modelsStatus: 'error', modelsError: action.error };
-    case 'selectModel':
-      return { ...state, selectedModelId: action.modelId };
-    default:
-      return state;
-  }
-}
-
 export function InspectionProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, initial);
+  const [state, dispatch] = useReducer(inspectionReducer, initialInspectionState);
   const historyRequestId = useRef(0);
+  const uploadRequestSequence = useRef(0);
+  const uploadController = useRef(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -92,24 +31,42 @@ export function InspectionProvider({ children }) {
     };
   }, [state.preview]);
 
+  useEffect(() => () => {
+    uploadRequestSequence.current += 1;
+    uploadController.current?.abort();
+  }, []);
+
   const runInspection = useCallback(async (file, modelId = state.selectedModelId) => {
     const invalid = validateImage(file);
     if (invalid) {
       dispatch({ type: 'error', error: invalid });
       return null;
     }
+    const requestId = ++uploadRequestSequence.current;
+    uploadController.current?.abort();
+    const controller = new AbortController();
+    uploadController.current = controller;
     dispatch({
       type: 'file',
       preview: URL.createObjectURL(file),
       meta: { name: file.name, size: file.size },
+      requestId,
     });
     try {
-      const record = await api.inspectImage(file, { modelId });
-      dispatch({ type: 'result', record });
+      const record = await api.inspectImage(file, { modelId, signal: controller.signal });
+      if (requestId !== uploadRequestSequence.current) return null;
+      dispatch({ type: 'result', record, requestId });
       return record;
     } catch (err) {
-      dispatch({ type: 'error', error: err.message || 'Detection model error' });
+      if (controller.signal.aborted || requestId !== uploadRequestSequence.current) return null;
+      dispatch({
+        type: 'error',
+        error: err.message || 'Detection model error',
+        requestId,
+      });
       return null;
+    } finally {
+      if (uploadController.current === controller) uploadController.current = null;
     }
   }, [state.selectedModelId]);
 
@@ -138,8 +95,19 @@ export function InspectionProvider({ children }) {
     dispatch({ type: 'history', records: [] });
   }, []);
 
-  const reset = useCallback(() => dispatch({ type: 'reset' }), []);
-  const selectModel = useCallback((modelId) => dispatch({ type: 'selectModel', modelId }), []);
+  const cancelUpload = useCallback(() => {
+    uploadRequestSequence.current += 1;
+    uploadController.current?.abort();
+    uploadController.current = null;
+  }, []);
+  const reset = useCallback(() => {
+    cancelUpload();
+    dispatch({ type: 'reset' });
+  }, [cancelUpload]);
+  const selectModel = useCallback((modelId) => {
+    cancelUpload();
+    dispatch({ type: 'selectModel', modelId });
+  }, [cancelUpload]);
 
   const value = useMemo(
     () => ({ ...state, runInspection, loadHistory, removeInspection, clearAll, reset, selectModel }),

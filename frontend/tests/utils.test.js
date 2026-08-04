@@ -2,8 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { toCsv } from '../src/utils/csv.js';
 import { boxLabel, coordinate } from '../src/utils/format.js';
+import {
+  initialInspectionState,
+  inspectionReducer,
+} from '../src/context/inspectionState.js';
 import { annotatedImageFilename, imageExtension } from '../src/utils/media.js';
-import { appendModelId, modelClassesLabel, selectInitialModel } from '../src/utils/models.js';
+import {
+  appendModelId,
+  installModelCommand,
+  modelClassesLabel,
+  selectInitialModel,
+} from '../src/utils/models.js';
 import { scoreOf, severityScore } from '../src/utils/severity.js';
 
 test('CSV export keeps the canonical columns and escapes values', () => {
@@ -73,6 +82,41 @@ test('upload and stream use the canonical modelId multipart field', () => {
   assert.equal(appendModelId(form, 'concrete-crack-yolov8'), form);
   appendModelId(form, '');
   assert.deepEqual(fields, [['modelId', 'concrete-crack-yolov8']]);
+});
+
+test('model switch clears upload state and rejects a stale response', () => {
+  const detecting = inspectionReducer(initialInspectionState, {
+    type: 'file',
+    preview: 'blob:steel',
+    meta: { name: 'steel.jpg', size: 42 },
+    requestId: 7,
+  });
+  const switched = inspectionReducer(detecting, {
+    type: 'selectModel',
+    modelId: 'concrete-crack-yolov8',
+  });
+
+  assert.equal(switched.selectedModelId, 'concrete-crack-yolov8');
+  assert.equal(switched.current, null);
+  assert.equal(switched.preview, null);
+  assert.equal(switched.fileMeta, null);
+  assert.equal(switched.error, null);
+  assert.equal(switched.status, 'idle');
+  assert.equal(switched.uploadRequestId, null);
+
+  const afterStaleResponse = inspectionReducer(switched, {
+    type: 'result',
+    requestId: 7,
+    record: { model: { id: 'neu-defect-yolov8' } },
+  });
+  assert.strictEqual(afterStaleResponse, switched);
+});
+
+test('installer command identifies the unavailable registry model', () => {
+  assert.equal(
+    installModelCommand('concrete-crack-yolov8'),
+    'python scripts/install_models.py --model concrete-crack-yolov8',
+  );
 });
 
 test('model class summary formats native names without semantic remapping', () => {

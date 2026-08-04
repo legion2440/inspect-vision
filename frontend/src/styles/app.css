@@ -43,6 +43,8 @@
 .qc-model-selector { display: grid; grid-template-columns: minmax(260px, 0.8fr) 1.4fr; gap: var(--space-4); align-items: end; padding: var(--space-4); border: 1px solid var(--color-divider); margin-bottom: var(--space-6); }
 .qc-model-copy { display: flex; flex-direction: column; gap: 2px; font-size: 12px; }
 .qc-model-copy strong { font-family: var(--font-heading); font-size: 16px; }
+.qc-model-install { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; padding-top: var(--space-2); border-top: 1px solid var(--color-divider); font-size: 12px; }
+.qc-model-install code { overflow-wrap: anywhere; }
 
 /* stat cells */
 .qc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-6); margin-bottom: var(--space-8); }

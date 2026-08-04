@@ -75,6 +75,10 @@ recorded command or evidence artifact proves the real path executed.
   manifest-selected preprocessing profile, one restore to original coordinates,
   native class validation, annotation, verdict, and authoritative per-model
   `quality-v1` score. Native class names are never semantically remapped.
+- Changing the upload model aborts and invalidates the active request, clears its
+  preview/result state, and prevents a late response from restoring stale data.
+- Historical inspections remain readable after their model leaves the current
+  registry; the persisted model ID is also the display-name fallback.
 - `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by
   `defect-detection`, despite living outside that module's primary root.
 

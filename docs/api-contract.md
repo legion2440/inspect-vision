@@ -42,6 +42,8 @@ Contract invariants:
 - `qualityScore` is an integer from `0` to `100` and is authoritative.
 - `model.id` is the persisted manifest model ID and `model.displayName` is its
   operator-facing registry label.
+- Historical records remain readable if their model is later removed from the
+  registry; in that case `model.displayName` falls back to the persisted ID.
 - `type` preserves the chosen checkpoint's native class name without semantic
   remapping.
 

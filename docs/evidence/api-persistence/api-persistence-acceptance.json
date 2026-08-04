@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-04T07:32:18.851702Z",
-  "sourceCommit": "7f733935d0c785bf5a9122b030a08df683c50ed6",
+  "recordedAt": "2026-08-04T07:57:12.607700Z",
+  "sourceCommit": "e398df1f20708370609d2e06703f131243c6093a",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
     "backend/config.py": "d3a6c11276b5c1d5435c3367157772000a6e15afbd094226dd59382c6c54197f",
@@ -10,7 +10,7 @@
     "backend/routes/dependencies.py": "11fc1424be5dd282fc3e10ab2ddc222e7bb1c1b1e5e646cf01fe281d15045962",
     "backend/routes/detect.py": "180d4b3c882107463de672fc0976f6c67a6e85714700d05cd2c5f8970ce57dc5",
     "backend/routes/history.py": "8bd6f262952382128db432a28343e7704d8dad5d79e42753cd55e75856cbc38b",
-    "backend/routes/serialization.py": "4d7bfc058bd87151a1e175663b15272c88db9f6336503ce27456bc6509bcc9de",
+    "backend/routes/serialization.py": "c626be8cf10b9ac85582e6d638192f3a74a699cd9ed9728978cb6dcdb5c914e1",
     "backend/storage/media.py": "49fb29640c3a1e473a06998e11ec675198ab8547cb1421c7be87d23745c490eb",
     "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
     "backend/storage/service.py": "caab843cd53754c4bb2846b0d4a3cce190a71a4fef34dfceb445904a62c3f84e",
@@ -79,19 +79,19 @@
   "httpOutputs": [
     {
       "path": "docs/evidence/api-persistence/post-inspect.json",
-      "sha256": "3abee86db51d37375e7dbd8f5a4b91e4200cd553c5a5cbec69d203b7e426a5cb"
+      "sha256": "444fdfb0a36586501a197c8abb1cb4adad3cd940e0f3de0767f2cfdbb0815e9a"
     },
     {
       "path": "docs/evidence/api-persistence/get-history.json",
-      "sha256": "e3703947eb98e6952955ed1ca2d9f403f42be15810e28a6a6dc1273f90720a24"
+      "sha256": "d7183b136494289c7886413c4dc5d9ecec2d7f414bac4d4fe0ed23d1ae03f001"
     },
     {
       "path": "docs/evidence/api-persistence/get-detail.json",
-      "sha256": "3abee86db51d37375e7dbd8f5a4b91e4200cd553c5a5cbec69d203b7e426a5cb"
+      "sha256": "444fdfb0a36586501a197c8abb1cb4adad3cd940e0f3de0767f2cfdbb0815e9a"
     },
     {
       "path": "docs/evidence/api-persistence/delete-history.json",
-      "sha256": "b1af48f96f3c7c3e2ab78baf9f4293ab6215f0366ec5f7b1de2331fd8913059e"
+      "sha256": "ecd41c381ecb3147866d6eded60602f6f99ed6ca27d589b8d0c75a3ec470c9c5"
     },
     {
       "path": "docs/evidence/api-persistence/get-history-after-delete.json",
@@ -99,7 +99,7 @@
     }
   ],
   "inspection": {
-    "inspectionId": "insp_20260804T073218578131Z_dbe545af",
+    "inspectionId": "insp_20260804T075712283136Z_e2014b73",
     "totalDefects": 4,
     "qualityScore": 62,
     "status": "failed",
@@ -111,8 +111,8 @@
   "persistenceBeforeDelete": {
     "recordExists": true,
     "databaseFields": {
-      "inspectionId": "insp_20260804T073218578131Z_dbe545af",
-      "timestamp": "2026-08-04T07:32:18.578131Z",
+      "inspectionId": "insp_20260804T075712283136Z_e2014b73",
+      "timestamp": "2026-08-04T07:57:12.283136Z",
       "fileName": "evidence-inclusion.jpg",
       "imageWidth": 200,
       "imageHeight": 200,
@@ -122,12 +122,12 @@
       "modelId": "neu-defect-yolov8"
     },
     "original": {
-      "relativePath": "original/insp_20260804T073218578131Z_dbe545af.jpg",
+      "relativePath": "original/insp_20260804T075712283136Z_e2014b73.jpg",
       "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
       "byteExactToSource": true
     },
     "annotated": {
-      "relativePath": "annotated/insp_20260804T073218578131Z_dbe545af.jpg",
+      "relativePath": "annotated/insp_20260804T075712283136Z_e2014b73.jpg",
       "sha256": "cc7f6d0c4b4c6a2586925d2b6b495e6b5aa1f5cd8b5bbf89624c3c919ee93970",
       "dimensions": {
         "width": 200,

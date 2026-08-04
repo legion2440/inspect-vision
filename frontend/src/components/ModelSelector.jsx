@@ -1,7 +1,8 @@
-import { modelClassesLabel } from '../utils/models.js';
+import { installModelCommand, modelClassesLabel } from '../utils/models.js';
 
 export default function ModelSelector({ models = [], value, onChange, loading, error }) {
   const selected = models.find((model) => model.id === value);
+  const uninstalled = models.filter((model) => !model.installed);
   return (
     <section className="qc-model-selector" aria-label="Detection model">
       <div className="field">
@@ -26,6 +27,16 @@ export default function ModelSelector({ models = [], value, onChange, loading, e
           <strong>{selected.domain}</strong>
           <span>{selected.description}</span>
           <span className="qc-mono">{modelClassesLabel(selected)}</span>
+        </div>
+      )}
+      {uninstalled.length > 0 && (
+        <div className="qc-model-install" role="note">
+          <strong>Install unavailable models</strong>
+          {uninstalled.map((model) => (
+            <span key={model.id}>
+              {model.displayName}: <code>{installModelCommand(model.id)}</code>
+            </span>
+          ))}
         </div>
       )}
       {error && <p className="qc-error">{error}</p>}

@@ -73,7 +73,10 @@ function Inspect() {
       <ModelSelector
         models={models}
         value={selectedModelId}
-        onChange={selectModel}
+        onChange={(modelId) => {
+          setSelected(null);
+          selectModel(modelId);
+        }}
         loading={modelsStatus === 'loading'}
         error={modelsError}
       />

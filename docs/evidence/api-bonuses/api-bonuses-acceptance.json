@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-04T07:32:25.854615Z",
-  "sourceCommit": "7f733935d0c785bf5a9122b030a08df683c50ed6",
+  "recordedAt": "2026-08-04T07:57:19.857876Z",
+  "sourceCommit": "e398df1f20708370609d2e06703f131243c6093a",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
     "backend/config.py": "d3a6c11276b5c1d5435c3367157772000a6e15afbd094226dd59382c6c54197f",
@@ -13,7 +13,7 @@
     "backend/routes/filters.py": "bf6a805125f0093fc9e72a01036e8ed12fb6b2fd8c55ee807c6dbbce1c430f89",
     "backend/routes/history.py": "8bd6f262952382128db432a28343e7704d8dad5d79e42753cd55e75856cbc38b",
     "backend/routes/images.py": "bbeddbfbbc10b52fc2ce5decae1523243dbec6189548657ff66693b9f4bf9306",
-    "backend/routes/serialization.py": "4d7bfc058bd87151a1e175663b15272c88db9f6336503ce27456bc6509bcc9de",
+    "backend/routes/serialization.py": "c626be8cf10b9ac85582e6d638192f3a74a699cd9ed9728978cb6dcdb5c914e1",
     "backend/routes/stream.py": "3cb5bc3f78eed8a7b3bbd878c534ae428bea4e71a37ff163a1b6b250fd86f0ec",
     "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
     "backend/storage/service.py": "caab843cd53754c4bb2846b0d4a3cce190a71a4fef34dfceb445904a62c3f84e",
@@ -118,11 +118,11 @@
     },
     {
       "path": "docs/evidence/api-bonuses/filtered-history.json",
-      "sha256": "185ecd91e767f47c13904db8dff365b1496bc690d4bae5fa6f87bcf594153d3a"
+      "sha256": "013c16b384a320bc85fee43c269b8196d5ac0016f182d1b7f8a55e0a1deaa382"
     },
     {
       "path": "docs/evidence/api-bonuses/filtered-export.csv",
-      "sha256": "dddd2429efc8eb34d0edac3798ea29fbac389d66cfb7672ec10f271e4c684b2a"
+      "sha256": "76db988e479992253891c79b77dfe8da397e1e008a96ed304ddf7d14fba5c8b4"
     }
   ],
   "stream": {
@@ -141,12 +141,12 @@
       "q": "target"
     },
     "historyInspectionIds": [
-      "insp_20260804T073225568335Z_598d97cc",
-      "insp_20260804T073225404799Z_772b763d"
+      "insp_20260804T075719655748Z_c949630e",
+      "insp_20260804T075719496043Z_5bf682f4"
     ],
     "csvInspectionIds": [
-      "insp_20260804T073225568335Z_598d97cc",
-      "insp_20260804T073225404799Z_772b763d"
+      "insp_20260804T075719655748Z_c949630e",
+      "insp_20260804T075719496043Z_5bf682f4"
     ],
     "rowsMatchHistoryProjection": true,
     "contentType": "text/csv; charset=utf-8",
@@ -155,12 +155,12 @@
   "persistence": {
     "createdInspectionCount": 3,
     "mediaFilesBeforeClear": [
-      "annotated/insp_20260804T073225404799Z_772b763d.jpg",
-      "annotated/insp_20260804T073225487395Z_12c1b075.jpg",
-      "annotated/insp_20260804T073225568335Z_598d97cc.jpg",
-      "original/insp_20260804T073225404799Z_772b763d.jpg",
-      "original/insp_20260804T073225487395Z_12c1b075.jpg",
-      "original/insp_20260804T073225568335Z_598d97cc.jpg"
+      "annotated/insp_20260804T075719496043Z_5bf682f4.jpg",
+      "annotated/insp_20260804T075719576595Z_60bea66c.jpg",
+      "annotated/insp_20260804T075719655748Z_c949630e.jpg",
+      "original/insp_20260804T075719496043Z_5bf682f4.jpg",
+      "original/insp_20260804T075719576595Z_60bea66c.jpg",
+      "original/insp_20260804T075719655748Z_c949630e.jpg"
     ],
     "clearResponse": {
       "cleared": 3

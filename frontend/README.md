@@ -96,5 +96,7 @@ src/
   does not send one. A backend `qualityScore`, including zero, is authoritative.
 - `/inspect` selects the installed API default, disables uninstalled registry
   entries, and sends the same `modelId` for upload and live frames. Changing a
-  live selection aborts the in-flight frame and clears its stale overlay.
+  selection aborts in-flight work and clears stale upload/live results.
+- Uninstalled registry entries remain visible and show their exact
+  `python scripts/install_models.py --model <id>` installation command.
 - History defect filters are derived from all registry-native class names.

@@ -12,11 +12,21 @@ from backend.models.record import (
     ModelRecord,
 )
 from backend.storage.repository import InspectionRecord
-from backend.utils.model_loader import ModelRegistry
+from backend.utils.model_loader import ModelNotFoundError, ModelRegistry
 
 
 def data_url(media_type: str, content: bytes) -> str:
     return f"data:{media_type};base64,{base64.b64encode(content).decode('ascii')}"
+
+
+def historical_model(record: InspectionRecord, registry: ModelRegistry | None) -> ModelRecord:
+    display_name = record.model_id
+    if registry is not None:
+        try:
+            display_name = registry.get(record.model_id).display_name
+        except ModelNotFoundError:
+            pass
+    return ModelRecord(id=record.model_id, display_name=display_name)
 
 
 def to_summary(
@@ -42,12 +52,7 @@ def to_summary(
         total_defects=record.total_defects,
         quality_score=record.quality_score,
         status=record.status,
-        model=ModelRecord(
-            id=record.model_id,
-            display_name=(
-                registry.get(record.model_id).display_name if registry is not None else record.model_id
-            ),
-        ),
+        model=historical_model(record, registry),
     )
 
 

@@ -15,9 +15,10 @@
     "quality-v1 uses per-model weights and an explicit neutral default weight of 1.0",
     "POST /api/inspect and POST /api/stream accept optional modelId, share one inference lock, and return the actual model projection",
     "unknown modelId returns 404; a registered missing or invalid checkpoint returns 409 with an installer command",
-    "history persists arbitrary registered model IDs and returns model id plus display name without changing CSV columns",
+    "history persists model IDs and remains readable after a historical model leaves the registry by falling back to its persisted ID as display name",
     "GET /api/models exposes domain, description, native classes, default state, preprocessing profile, and verified installed state",
-    "frontend loads the registry, selects the installed API default, disables uninstalled entries, and propagates one selection to upload and live requests",
+    "frontend loads the registry, selects the installed API default, disables uninstalled entries, shows exact installer commands, and propagates one selection to upload and live requests",
+    "changing the selected upload model aborts and sequence-invalidates the active request before clearing preview and result state",
     "changing the selected live model aborts the current frame and clears stale overlay detections",
     "registry installer supports default, --model, and --all with pinned size/SHA checks and atomic replacement",
     "frontend mock mode exposes the same three-model selection contract",
@@ -34,6 +35,11 @@
       "id": "runtime-evidence-commit-pointers-provisional",
       "area": "verification-evidence",
       "detail": "Runtime evidence is bound to executed source-file hashes; final sourceCommit convenience pointers remain a later cleanup milestone."
+    },
+    {
+      "id": "all-model-http-matrix-pending",
+      "area": "verification-evidence",
+      "detail": "All three models have real DetectionRuntimeManager-to-DetectionService evidence, while committed inspect/stream HTTP evidence currently exercises the steel specialist; the three-model HTTP matrix remains part of the final evidence milestone."
     },
     {
       "id": "demo-observations-not-an-accuracy-benchmark",

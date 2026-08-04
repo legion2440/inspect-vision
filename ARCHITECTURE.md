@@ -2,11 +2,12 @@
 
 ## Status
 
-The frontend application, reusable multiclass core, selected-model inspection
+The frontend application, reusable multiclass core, multi-model inspection
 service, SQLite/media persistence, and main FastAPI inspection/history API are
-implemented. All registered models have service-level probe evidence. Each requested model
-has full preprocessing, HTTP, persistence, deletion, non-persisted stream, and
-filtered CSV evidence. Twelve redistributed VisA samples have license, hash,
+implemented. All registered models have service-level probe evidence. The steel
+specialist has HTTP persistence, deletion, non-persisted stream, and filtered
+CSV evidence; the all-model HTTP matrix remains deferred. Twelve redistributed
+VisA samples have license, hash,
 decode, dimension, source-annotation provenance, and separate selected-model
 observations. See
 `docs/project-status.json` for the precise baseline and limitations.
@@ -34,6 +35,8 @@ flowchart LR
   proxy; a cross-origin production base remains an explicit environment option.
 - Owns uploaded preview URL cleanup and displays inspection pixels without CSS
   color transforms while Canvas remains a separate overlay.
+- Upload model changes abort and sequence-invalidate in-flight requests before
+  clearing preview, result, metadata, error, and status state.
 - Calls only interfaces defined in `docs/api-contract.md`.
 - Implemented and build-verified.
 
@@ -53,6 +56,8 @@ flowchart LR
   export reuses the canonical history filters and newest-first query path.
 - Keeps model inference and persistence implementation behind their public
   service boundaries.
+- Serializes a retired historical model with its persisted ID as the display
+  fallback instead of requiring the model to remain in the current registry.
 
 ### Defect detection
 
@@ -143,4 +148,4 @@ sequenceDiagram
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
 Production confidence calibration and the final evidence `sourceCommit`
-rebinding remain deferred.
+rebinding remain deferred, as does the all-model HTTP evidence matrix.
