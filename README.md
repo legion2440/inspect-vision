@@ -1,7 +1,8 @@
 # Inspect-Vision
 
 Inspect-Vision is a manufacturing image-inspection application. A React/Vite
-interface sends images to a FastAPI backend, the selected Ultralytics model
+interface sends images plus an optional model selection to a FastAPI backend,
+the resolved Ultralytics detector
 detects surface defects, OpenCV produces an annotated image, and SQLite plus
 owned media storage provide searchable inspection history.
 
@@ -10,7 +11,8 @@ owned media storage provide searchable inspection history.
 - Windows 11 with Git Bash;
 - Python 3.13.5;
 - Node.js and npm;
-- enough disk space for Python packages, the selected 6.3 MB checkpoint, and
+- enough disk space for Python packages, the chosen checkpoints (about 51 MB for
+  all three), and
   local inspection media.
 
 The tracked `.pt` files are intentionally excluded from Git.
@@ -28,13 +30,13 @@ py -3.13 -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements-api.txt
 
 cp .env.example .env
-.venv/Scripts/python.exe scripts/install_selected_model.py
+.venv/Scripts/python.exe scripts/install_models.py
 ```
 
-The installer reads `selectedModelId` from
-`backend/models/model-manifest.json`, downloads its immutable revision, checks
-the declared byte size and SHA-256, and only then installs the checkpoint. It
-does not change the selected model or download registered alternatives.
+Without arguments the installer reads `defaultModelId` from
+`backend/models/model-manifest.json`. Use `--model <id>` for one specialist or
+`--all` for the complete registry. Every download uses an immutable revision,
+checks byte size and SHA-256, and is atomically installed only after validation.
 
 Install and configure the frontend:
 
@@ -73,16 +75,31 @@ compatible CUDA PyTorch build separately before setting
 ## Configuration
 
 Backend settings use the `INSPECT_VISION_` prefix and are documented in
-`docs/env-model-contract.md`. The main values are the model path/device,
-confidence and IoU thresholds, CORS origins, SQLite/media paths, and upload
-limit. `INSPECT_VISION_MAX_UPLOAD_BYTES` may be lowered but cannot exceed the
-hard 10 MiB maximum (`10485760` bytes).
+`docs/env-model-contract.md`. Environment settings contain the shared model
+directory/device, CORS origins, SQLite/media paths, and upload limit. Per-model
+thresholds, profiles, and quality weights live only in the tracked manifest.
+`INSPECT_VISION_MAX_UPLOAD_BYTES` may be lowered but cannot exceed the hard
+10 MiB maximum (`10485760` bytes).
+
+## Detection models
+
+General Manufacturing is the coverage-oriented default when the process or
+material is not yet known. Steel Surface and Concrete & Structural Cracks are
+specialists and should be preferred for their named domains. The registry does
+not claim that the broad model is more accurate; runtime probes record its
+actual observations without turning them into benchmark claims.
+
+Trusted Ultralytics detect checkpoints can be added by extending the validated
+manifest with pinned provenance, native classes, a preprocessing profile, and
+quality configuration, then qualifying the result through the same production
+manager/service path.
 
 The production inspection path is:
 
 ```text
-JPEG/PNG bytes -> validated BGR -> 640-square letterbox -> grayscale -> CLAHE
--> 3-channel YOLO inference -> original-coordinate boxes -> annotation
+JPEG/PNG bytes -> validated BGR -> one square letterbox
+-> standard-color OR steel grayscale + CLAHE -> selected YOLO inference
+-> original-coordinate native boxes -> annotation
 -> quality score/status -> SQLite record and original/annotated media
 ```
 
@@ -90,8 +107,9 @@ JPEG/PNG bytes -> validated BGR -> 640-square letterbox -> grayscale -> CLAHE
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `POST` | `/api/inspect` | Inspect and persist multipart field `image` |
-| `POST` | `/api/stream` | Inspect a JPEG multipart field `frame` without persistence |
+| `GET` | `/api/models` | List registry metadata and installed/default state |
+| `POST` | `/api/inspect` | Inspect and persist `image` with optional `modelId` |
+| `POST` | `/api/stream` | Inspect JPEG `frame` with optional `modelId`, without persistence |
 | `GET` | `/api/history` | List records with `from`, `to`, `type`, and `q` filters |
 | `GET` | `/api/history/{id}` | Read one record with original and annotated data URLs |
 | `DELETE` | `/api/history/{id}` | Delete metadata and owned media |
@@ -107,11 +125,12 @@ With the backend running, inspect one of the tracked demo images:
 
 ```bash
 curl -sS -X POST http://localhost:8000/api/inspect \
+  -F "modelId=neu-defect-yolov8" \
   -F "image=@backend/samples/demo/visa-chewinggum-normal-000.jpg;type=image/jpeg"
 ```
 
-This response was recorded from that image with the selected model at the
-default confidence. Only the two base64 bodies are shortened here:
+This response was recorded from that image with the steel specialist. Only the
+two base64 bodies are shortened here:
 
 ```json
 {
@@ -135,7 +154,7 @@ default confidence. Only the two base64 bodies are shortened here:
   "totalDefects": 1,
   "qualityScore": 93,
   "status": "failed",
-  "model": { "name": "neu-defect-yolov8", "version": "1" },
+  "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" },
   "imageUrl": "data:image/jpeg;base64,<base64 omitted>",
   "originalImageUrl": "data:image/jpeg;base64,<base64 omitted>"
 }
@@ -178,7 +197,7 @@ payloads:
     "totalDefects": 1,
     "qualityScore": 93,
     "status": "failed",
-    "model": { "name": "neu-defect-yolov8", "version": "1" }
+    "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" }
   }
 ]
 ```
@@ -227,10 +246,12 @@ Check the fresh backend template without creating a local runtime database:
 .venv/Scripts/python.exe -c "from backend.config import Settings; print(Settings(_env_file='.env.example').max_upload_bytes)"
 ```
 
-Validate the locally installed selected checkpoint without downloading it again:
+Validate the locally installed default or the complete registry without
+downloading verified files again:
 
 ```bash
-.venv/Scripts/python.exe scripts/install_selected_model.py
+.venv/Scripts/python.exe scripts/install_models.py
+.venv/Scripts/python.exe scripts/install_models.py --all
 ```
 
 Repository navigation and ownership rules are in `AGENTS.md`; current capability

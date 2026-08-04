@@ -43,6 +43,7 @@ SOURCE_PATHS = (
     "backend/storage/repository.py",
     "backend/storage/service.py",
     "backend/detection/service.py",
+    "backend/detection/runtime.py",
     "backend/utils/preprocessing.py",
     "requirements-api.txt",
     "scripts/probe_api_bonuses.py",
@@ -159,7 +160,11 @@ def main() -> int:
     from backend.main import create_app
 
     sample_manifest = _load_json(args.samples)
-    samples = {sample["id"]: sample for sample in sample_manifest["samples"]}
+    model_id = "neu-defect-yolov8"
+    sample_group = next(
+        group for group in sample_manifest["models"] if group.get("modelId") == model_id
+    )
+    samples = {sample["id"]: sample for sample in sample_group["samples"]}
     selected_samples = {
         sample_id: _download(samples[sample_id]["url"])
         for sample_id in ("neu-inclusion-1", "neu-scratches-1")
@@ -177,7 +182,7 @@ def main() -> int:
         temporary_root = Path(temporary_name)
         settings = Settings(
             model_device=args.device,
-            model_confidence=0.25,
+            models_dir=REPOSITORY_ROOT / "backend/models",
             database_path=temporary_root / "inspections.sqlite3",
             media_dir=temporary_root / "media",
         )
@@ -195,6 +200,7 @@ def main() -> int:
 
             stream_response = client.post(
                 "/api/stream",
+                data={"modelId": model_id},
                 files={
                     "frame": (
                         "live-inclusion.jpg",
@@ -209,7 +215,7 @@ def main() -> int:
                 {"method": "POST", "path": "/api/stream", "status": stream_response.status_code}
             )
             if stream_body["totalDefects"] < 1:
-                raise RuntimeError("Real stream probe returned no selected-model defects")
+                raise RuntimeError("Real stream probe returned no requested-model defects")
 
             after_response = client.get("/api/history")
             after_response.raise_for_status()
@@ -229,6 +235,7 @@ def main() -> int:
             for filename, payload in uploads:
                 response = client.post(
                     "/api/inspect",
+                    data={"modelId": model_id},
                     files={"image": (filename, payload, "image/jpeg")},
                 )
                 response.raise_for_status()
@@ -344,7 +351,7 @@ def main() -> int:
             "transport": "Uvicorn loopback HTTP/1.1 with FastAPI lifespan",
         },
         "configuration": {
-            "modelId": "neu-defect-yolov8",
+            "modelId": model_id,
             "modelDevice": args.device,
             "modelConfidence": 0.25,
         },
@@ -386,7 +393,7 @@ def main() -> int:
             "mediaFilesAfterClear": remaining_paths,
         },
         "acceptance": {
-            "realSelectedModelStream": True,
+            "realRegisteredModelStream": True,
             "streamDidNotPersist": True,
             "sharedInferenceLock": True,
             "historyAndExportFiltersMatch": True,

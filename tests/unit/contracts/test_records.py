@@ -25,7 +25,7 @@ def valid_record() -> dict[str, object]:
         "totalDefects": 1,
         "qualityScore": 80,
         "status": "failed",
-        "model": {"name": "neu-defect-yolov8", "version": "1"},
+        "model": {"id": "neu-defect-yolov8", "displayName": "Steel Surface"},
     }
 
 

@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { inspectFrame } from '../utils/apiClient.js';
 
 /** Bonus: webcam frames -> POST /api/stream, roughly 2 fps. */
-export function useLiveDetection({ fps = 2 } = {}) {
+export function useLiveDetection({ fps = 2, modelId } = {}) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const timerRef = useRef(null);
   const controllerRef = useRef(null);
   const activeRef = useRef(false);
+  const modelIdRef = useRef(modelId);
   const [running, setRunning] = useState(false);
   const [defects, setDefects] = useState([]);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -58,7 +59,10 @@ export function useLiveDetection({ fps = 2 } = {}) {
 
             const controller = new AbortController();
             controllerRef.current = controller;
-            const result = await inspectFrame(blob, { signal: controller.signal });
+            const result = await inspectFrame(blob, {
+              signal: controller.signal,
+              modelId: modelIdRef.current,
+            });
             if (activeRef.current) setDefects(result.defects || []);
           }
         } catch (err) {
@@ -80,6 +84,13 @@ export function useLiveDetection({ fps = 2 } = {}) {
   }, [fps]);
 
   useEffect(() => stop, [stop]);
+
+  useEffect(() => {
+    modelIdRef.current = modelId;
+    controllerRef.current?.abort();
+    setDefects([]);
+    setError(null);
+  }, [modelId]);
 
   return { videoRef, running, defects, dimensions, error, start, stop };
 }

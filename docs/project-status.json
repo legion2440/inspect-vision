@@ -4,67 +4,46 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "functional-scope-runtime-verified-final-evidence-rebinding-pending",
+  "state": "multi-model-runtime-verified-final-evidence-rebinding-pending",
   "verified": [
-    "frontend production build with Vite 8.2.0",
-    "frontend dependency vulnerability scan with zero known vulnerabilities",
-    "tracked backend environment template loads through Pydantic Settings with a configurable limit capped at 10485760 bytes",
-    "selected-model installer uses the pinned manifest URL and atomically installs only after byte-size and SHA-256 verification",
-    "frontend real mode uses relative /api through the Vite development proxy while mock mode remains explicit and buildable",
-    "inspection previews release owned object URLs on replacement, reset, and unmount; downloaded image names follow the actual JPEG/PNG media type",
-    "inspection and details views preserve original image colors, format coordinates to at most one decimal, and keep failed deletion on the details page",
-    "dashboard, history, filtering, details, and upload mock browser smoke",
-    "generated JavaScript route tree contains no TypeScript syntax",
-    "Python 3.13.5 detection environment with pinned CPU dependencies",
-    "both local model hashes match immutable remote model revisions",
-    "both checkpoints load through Ultralytics with task=detect and native multiclass names",
-    "detection core returns bounded positive-area input-image xyxy, confidence, class_id, and class_name for both models",
-    "selected model returns seven detections at confidence 0.25 through letterbox, grayscale, CLAHE, three-channel inference, and one original-coordinate restore",
-    "DetectionService returns explicit six-class defects, original-size annotated BGR, quality-v1, and passed/failed without Ultralytics result objects",
-    "three annotated PNG evidence outputs preserve original dimensions",
-    "SQLite inspection CRUD and newest-first combined date/type/query filtering",
-    "staged media creation, quarantined deletion, failure compensation, and startup reconciliation",
-    "sixteen persistence unit tests covering reopen, cleanup, rollback, and path safety",
-    "FastAPI lifespan creates one selected detection service, storage service, and serialized inference lock",
-    "content-based JPEG/PNG inspection upload with an exact 10485760-byte boundary and exact error mapping",
-    "server-side history list/detail/delete/clear with combined date/type/query filters and summary/detail separation",
-    "loopback Uvicorn POST, list, detail, and delete evidence returned four real selected-model defects and left no media files",
-    "byte-exact persisted original plus same-format original-size annotated image delivered through the dual data URL contract",
-    "dependency-injected API tests cover PNG/JPEG, spoofed content, model failure, reopen, concurrency, filtering, and cleanup",
-    "stream accepts content-verified JPEG frames through the shared service and inference lock without changing history",
-    "CSV export reuses the canonical combined history filters and newest-first ordering with exact row parity",
-    "loopback Uvicorn bonus evidence returned four real stream defects, proved unchanged history, and matched two filtered history rows to CSV",
-    "detail media hydration is serialized with delete/clear and database/media path overlap is rejected symmetrically",
-    "one hundred eight Python tests across API, contracts, detection, persistence, evidence, and integration plus six frontend utility tests",
-    "twelve unmodified VisA images have pinned CC BY 4.0 provenance: four normal and eight anomaly samples across four products and ten source defect labels",
-    "four tracked VisA image_anno.csv files make source ground truth executable and separate from model observations",
-    "the selected DetectionService reproduced sixty-five observations across all twelve samples at production confidence 0.25; all four source-normal samples retained their observed false positives"
+    "manifest schema version 2 validates one default and three uniquely registered detect checkpoints",
+    "General Manufacturing is the coverage-oriented default; Steel Surface and Concrete & Structural Cracks are selectable specialists",
+    "all three local checkpoint hashes match immutable source revisions and all three load with task=detect plus exact checkpoint-native classes",
+    "all three models execute through DetectionRuntimeManager and DetectionService on domain-scoped remote probes",
+    "lazy loading caches successful services by model ID and does not load weights during FastAPI startup or GET /api/models",
+    "standard-color preserves BGR channels while steel-enhanced applies grayscale and CLAHE(2.0, 8x8) over the shared letterbox/restore path",
+    "quality-v1 uses per-model weights and an explicit neutral default weight of 1.0",
+    "POST /api/inspect and POST /api/stream accept optional modelId, share one inference lock, and return the actual model projection",
+    "unknown modelId returns 404; a registered missing or invalid checkpoint returns 409 with an installer command",
+    "history persists arbitrary registered model IDs and returns model id plus display name without changing CSV columns",
+    "GET /api/models exposes domain, description, native classes, default state, preprocessing profile, and verified installed state",
+    "frontend loads the registry, selects the installed API default, disables uninstalled entries, and propagates one selection to upload and live requests",
+    "changing the selected live model aborts the current frame and clears stale overlay detections",
+    "registry installer supports default, --model, and --all with pinned size/SHA checks and atomic replacement",
+    "frontend mock mode exposes the same three-model selection contract",
+    "existing upload, stream, history, persistence, filtering, deletion, CSV, annotation, severity, and demo-sample behavior remains covered",
+    "frontend tests and Vite production build pass after the multi-model change"
   ],
   "known_limitations": [
     {
-      "id": "alternative-service-mapping-not-implemented",
-      "area": "defect-detection",
-      "detail": "DetectionService intentionally supports only the selected six-class model; the generic 17-class alternative requires a separate explicit mapping."
-    },
-    {
       "id": "broad-model-low-probe-confidence",
       "area": "defect-detection",
-      "detail": "The 17-class alternative required a 0.05 diagnostic threshold and produced two detections on one of three NEU-DET probe images; the stronger six-class model is selected."
+      "detail": "The broad default uses confidence 0.05 based on observed runtime behavior. Its mixed-domain probe records predictions, including mismatched source labels, and does not claim accuracy superiority."
     },
     {
       "id": "runtime-evidence-commit-pointers-provisional",
       "area": "verification-evidence",
-      "detail": "Runtime evidence is authoritatively bound by executed source-file hashes; sourceCommit convenience pointers will be rebased in the final evidence commit."
+      "detail": "Runtime evidence is bound to executed source-file hashes; final sourceCommit convenience pointers remain a later cleanup milestone."
     },
     {
       "id": "demo-observations-not-an-accuracy-benchmark",
       "area": "verification-evidence",
-      "detail": "The source-balanced demo run records predictions, including false positives, but does not compute or claim benchmark accuracy; accurate boxes/types/confidence remains PARTIAL."
+      "detail": "Source-balanced demo and model qualification runs record observations without computing or claiming benchmark accuracy; accurate boxes/types/confidence remains PARTIAL."
     },
     {
       "id": "automated-coverage-partial",
       "area": "verification-evidence",
-      "detail": "Detection, persistence, contract, and API tests plus evidence freshness, import boundaries, frontend utilities, and builds exist; React component and browser end-to-end automation remain planned."
+      "detail": "Python API/detection/storage tests, frontend utilities, validators, and production build exist; full React component and browser end-to-end automation remain planned."
     }
   ]
 }

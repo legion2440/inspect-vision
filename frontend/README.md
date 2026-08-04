@@ -34,12 +34,13 @@ standalone responses in `src/mocks/mockApi.js`.
 
 | Method | Path | Used in |
 | --- | --- | --- |
-| POST | `/api/inspect` (multipart field `image`) | `utils/apiClient.js` → `inspectImage` |
+| GET | `/api/models` | model selector metadata and installed/default state |
+| POST | `/api/inspect` (multipart `image`, optional `modelId`) | `utils/apiClient.js` → `inspectImage` |
 | GET | `/api/history?from&to&type&q` | server-filtered `getHistory` |
 | GET | `/api/history/{id}` | `getInspection` |
 | DELETE | `/api/history/{id}` | `deleteInspection` |
 | POST | `/api/history/clear` | `clearHistory` |
-| POST | `/api/stream` (multipart field `frame`) | bonus live detection |
+| POST | `/api/stream` (multipart `frame`, optional `modelId`) | bonus live detection |
 | GET | `/api/export?from&to&type&q` | server-side CSV; mock mode uses a browser fallback |
 
 Response shape consumed by the UI (extra fields are ignored, `qualityScore` is
@@ -58,7 +59,7 @@ computed client-side when absent):
   "totalDefects": 1,
   "qualityScore": 71,
   "status": "failed",
-  "model": { "name": "neu-defect-yolov8", "version": "1" }
+  "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" }
 }
 ```
 
@@ -93,6 +94,7 @@ src/
 - Confidence is color-coded >90% / 70-90% / <70%; severity score 0-100 falls back
   to the matching `quality-v1` calculation in `utils/severity.js` if the backend
   does not send one. A backend `qualityScore`, including zero, is authoritative.
-- Defect filters and mock fixtures use the selected model's six native type names:
-  `crazing`, `inclusion`, `patches`, `pitted_surface`, `rolled-in_scale`, and
-  `scratches`.
+- `/inspect` selects the installed API default, disables uninstalled registry
+  entries, and sends the same `modelId` for upload and live frames. Changing a
+  live selection aborts the in-flight frame and clears its stale overlay.
+- History defect filters are derived from all registry-native class names.

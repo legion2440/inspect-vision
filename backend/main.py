@@ -11,40 +11,29 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import Settings
-from backend.detection.service import DetectionService
-from backend.routes import detect_router, export_router, history_router, stream_router
+from backend.detection.runtime import DetectionRuntimeManager
+from backend.routes import (
+    detect_router,
+    export_router,
+    history_router,
+    models_router,
+    stream_router,
+)
 from backend.storage.media import MediaStore
 from backend.storage.repository import SQLiteInspectionRepository
 from backend.storage.service import InspectionStorage
-from backend.utils.model_loader import create_detector
-from backend.utils.preprocessing import InspectionPreprocessingConfig
+from backend.utils.model_loader import ModelRegistry
 
 
-DetectionServiceFactory = Callable[[Settings], DetectionService]
+DetectionRuntimeFactory = Callable[[Settings], DetectionRuntimeManager]
 StorageFactory = Callable[[Settings], InspectionStorage]
 
 
-def build_detection_service(settings: Settings) -> DetectionService:
-    detector = create_detector(
-        settings.model_id,
-        model_path=settings.model_path,
+def build_detection_runtime(settings: Settings) -> DetectionRuntimeManager:
+    return DetectionRuntimeManager(
+        ModelRegistry(),
+        models_directory=settings.models_dir,
         device=settings.model_device,
-        confidence=settings.model_confidence,
-        iou=settings.model_iou,
-    )
-    if detector.image_size != settings.model_input_size:
-        raise ValueError("configured model input size does not match the manifest")
-    detector.load()
-    return DetectionService(
-        detector,
-        preprocessing=InspectionPreprocessingConfig(
-            input_size=settings.model_input_size,
-            clahe_clip_limit=settings.clahe_clip_limit,
-            clahe_tile_grid_size=(
-                settings.clahe_tile_grid_size,
-                settings.clahe_tile_grid_size,
-            ),
-        ),
     )
 
 
@@ -58,7 +47,7 @@ def build_storage(settings: Settings) -> InspectionStorage:
 def create_app(
     settings: Settings | None = None,
     *,
-    detection_service_factory: DetectionServiceFactory = build_detection_service,
+    detection_runtime_factory: DetectionRuntimeFactory = build_detection_runtime,
     storage_factory: StorageFactory = build_storage,
 ) -> FastAPI:
     runtime_settings = settings or Settings()
@@ -69,7 +58,7 @@ def create_app(
         storage.initialize()
         app.state.settings = runtime_settings
         app.state.storage = storage
-        app.state.detection_service = detection_service_factory(runtime_settings)
+        app.state.detection_runtime = detection_runtime_factory(runtime_settings)
         app.state.inference_lock = threading.Lock()
         yield
 
@@ -85,6 +74,7 @@ def create_app(
     application.include_router(history_router)
     application.include_router(stream_router)
     application.include_router(export_router)
+    application.include_router(models_router)
     return application
 
 

@@ -4,12 +4,18 @@ from __future__ import annotations
 
 import threading
 
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile, status
 
-from backend.detection.service import DetectionService
-from backend.models.record import BoundingBoxRecord, DefectRecord, StreamInspectionRecord
+from backend.detection.runtime import DetectionRuntimeManager
+from backend.models.record import (
+    BoundingBoxRecord,
+    DefectRecord,
+    ModelRecord,
+    StreamInspectionRecord,
+)
+from backend.utils.model_loader import ModelNotFoundError, ModelNotInstalledError
 
-from .dependencies import get_detection_service, get_inference_lock
+from .dependencies import get_detection_runtime, get_inference_lock
 from .images import decode_upload
 
 
@@ -20,7 +26,8 @@ router = APIRouter(prefix="/api", tags=["stream"])
 def inspect_stream_frame(
     request: Request,
     frame: UploadFile,
-    detection_service: DetectionService = Depends(get_detection_service),
+    model_id: str | None = Form(default=None, alias="modelId"),
+    detection_runtime: DetectionRuntimeManager = Depends(get_detection_runtime),
     inference_lock: threading.Lock = Depends(get_inference_lock),
 ) -> StreamInspectionRecord:
     decoded = decode_upload(
@@ -30,12 +37,17 @@ def inspect_stream_frame(
     )
     try:
         with inference_lock:
-            result = detection_service.inspect(decoded.image)
+            result = detection_runtime.inspect(decoded.image, model_id)
+    except ModelNotFoundError:
+        raise HTTPException(status_code=404, detail="Detection model not found") from None
+    except ModelNotInstalledError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from None
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Detection model error",
         ) from None
+    model_spec = detection_runtime.registry.get(result.model_id)
     return StreamInspectionRecord(
         frame_width=result.image_width,
         frame_height=result.image_height,
@@ -50,4 +62,5 @@ def inspect_stream_frame(
         total_defects=result.total_defects,
         quality_score=result.quality_score,
         status=result.status,
+        model=ModelRecord(id=model_spec.model_id, display_name=model_spec.display_name),
     )

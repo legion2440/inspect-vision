@@ -1,65 +1,39 @@
 {
-  "schemaVersion": 1,
-  "recordedAt": "2026-08-03T18:19:27.114908Z",
-  "sourceCommit": "c085acea8b6f70d96369bebb7efe4e5560aefabd",
-  "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
+  "schemaVersion": 2,
+  "recordedAt": "2026-08-04T07:32:07.997124Z",
+  "sourceCommit": "7f733935d0c785bf5a9122b030a08df683c50ed6",
   "sourceFiles": {
+    "backend/models/model-manifest.json": "c1b267003dffc204d28a3f156fd5e818f4f81ceb6f0e2ded5c14b4d63b937914",
+    "backend/samples/model-probe-samples.json": "8872f3c040da4fcf017d3c49960d093cad9c6471df3e6723c3f64c7aa51d617f",
     "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
-    "backend/detection/base.py": "a4c4d13fe3f2258502665e78f695be8108639c3e69529493a3389e04f839dd13",
     "backend/detection/dto.py": "55e5ca348afd4839b9a9e5b3572d77ffa347939dc47f95e2899ae0343cd0f234",
-    "backend/detection/quality.py": "838854adb6a3505a945259df46df2a6fec5914be45ec306220918c39cf9f197e",
-    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
-    "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
-    "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
-    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
-    "scripts/probe_inspection_service.py": "291175bba32de66c91400f6872966d4816876b17f3cff64bab851117981c685d"
+    "backend/detection/quality.py": "eff11e577b286c522661bb9b53573771215bbc142d86c8df6b16bd28b5261a10",
+    "backend/detection/runtime.py": "6cd4c834fafc86cc4b9e0e084291939b1fca80b7fd62336700e1342730559cfa",
+    "backend/detection/service.py": "a94a9acdf13b2fa0519195c592f58c6e3f9e72ee589e757f93416f1ce9379bb4",
+    "backend/utils/model_loader.py": "0e12b549a5a1486c15cd5054d81c31337be55c43f97ad9d85b97165aefc245e8",
+    "backend/utils/preprocessing.py": "795f50f559bfab51c7946fb73a0ced346576cc40947ed2b114ea2c25734cec39",
+    "scripts/probe_inspection_service.py": "79fce20117ccf9c36a7b564ef81d038f88fdc22358a8094ac3d13a609e10eb49"
   },
   "runtime": {
     "python": "3.13.5",
-    "platform": "Windows",
-    "machine": "AMD64",
-    "packages": {
-      "numpy": "2.4.6",
-      "opencv-python": "4.13.0.92",
-      "torch": "2.12.1+cpu",
-      "torchvision": "0.27.1+cpu",
-      "ultralytics": "8.4.78"
-    }
+    "ultralytics": "8.4.78",
+    "device": "cpu"
   },
   "pipeline": {
-    "path": [
-      "decode_image(bytes)->BGR",
-      "letterbox(640x640)",
-      "grayscale",
-      "CLAHE(clipLimit=2.0,tileGridSize=8x8)",
-      "grayscale_to_bgr(3-channel)",
-      "selected YOLO inference(confidence=0.25)",
-      "adapter clamp/drop zero-area",
-      "restore_boxes(original coordinates, once)",
-      "identity service class mapping",
-      "quality-v1(original bbox area ratio)",
-      "annotation(original-size BGR copy)"
-    ],
+    "preprocessingProfile": "steel-enhanced",
+    "confidence": 0.25,
+    "iou": 0.5,
+    "coordinateRestoreCount": 1,
     "modelInput": {
       "width": 640,
       "height": 640,
       "channels": 3,
       "dtype": "uint8"
-    },
-    "clahe": {
-      "clipLimit": 2.0,
-      "tileGridSize": [
-        8,
-        8
-      ]
-    },
-    "confidence": 0.25,
-    "iou": 0.5,
-    "coordinateRestoreCount": 1
+    }
   },
   "quality": {
     "version": "quality-v1",
-    "formula": "clamp(round(100 - sum(classWeight * confidence * (10 + 90 * originalBboxAreaRatio))), 0, 100)",
+    "defaultWeight": 1.0,
     "classWeights": {
       "crazing": 1.25,
       "inclusion": 1.1,
@@ -81,33 +55,20 @@
       "pitted_surface",
       "rolled-in_scale",
       "scratches"
-    ],
-    "serviceClassMapping": {
-      "crazing": "crazing",
-      "inclusion": "inclusion",
-      "patches": "patches",
-      "pitted_surface": "pitted_surface",
-      "rolled-in_scale": "rolled-in_scale",
-      "scratches": "scratches"
-    },
-    "device": "cpu"
+    ]
   },
   "sampleCount": 3,
   "totalDetections": 7,
+  "accuracyClaim": false,
   "samples": [
     {
       "sampleId": "neu-crazing-1",
       "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
       "sourceSha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
-      "expectedClass": "crazing",
+      "sourceLabel": "crazing",
       "originalDimensions": {
         "width": 200,
         "height": 200
-      },
-      "modelInputDimensions": {
-        "width": 640,
-        "height": 640,
-        "channels": 3
       },
       "defects": [
         {
@@ -148,15 +109,10 @@
       "sampleId": "neu-inclusion-1",
       "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
       "sourceSha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
-      "expectedClass": "inclusion",
+      "sourceLabel": "inclusion",
       "originalDimensions": {
         "width": 200,
         "height": 200
-      },
-      "modelInputDimensions": {
-        "width": 640,
-        "height": 640,
-        "channels": 3
       },
       "defects": [
         {
@@ -217,15 +173,10 @@
       "sampleId": "neu-scratches-1",
       "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
       "sourceSha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c",
-      "expectedClass": "scratches",
+      "sourceLabel": "scratches",
       "originalDimensions": {
         "width": 200,
         "height": 200
-      },
-      "modelInputDimensions": {
-        "width": 640,
-        "height": 640,
-        "channels": 3
       },
       "defects": [
         {

@@ -1,42 +1,28 @@
 {
-  "schemaVersion": 1,
-  "selectedModelId": "neu-defect-yolov8",
-  "selectionRationale": "Selected after an equal three-image probe at confidence 0.05: it produced 11 detections across all three NEU-DET samples, while the broader alternative produced 2 detections on one sample.",
+  "schemaVersion": 2,
+  "defaultModelId": "factory-defect-guard-v6-mc",
+  "defaultRationale": "Coverage-oriented starting point for an unknown manufacturing domain; specialist models are preferred when the inspected material is known.",
+  "preprocessingProfiles": {
+    "standard-color": {
+      "mode": "standard-color",
+      "paddingColor": [114, 114, 114]
+    },
+    "steel-enhanced": {
+      "mode": "steel-enhanced",
+      "paddingColor": [114, 114, 114],
+      "clahe": {
+        "clipLimit": 2.0,
+        "tileGridSize": [8, 8]
+      }
+    }
+  },
   "models": [
     {
-      "id": "neu-defect-yolov8",
-      "filename": "defect_neu_yolov8.pt",
-      "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
-      "sizeBytes": 6257194,
-      "task": "detect",
-      "framework": {
-        "library": "ultralytics",
-        "modelFamily": "YOLOv8",
-        "testedVersion": "8.4.78"
-      },
-      "inputSize": {
-        "width": 640,
-        "height": 640
-      },
-      "classes": [
-        "crazing",
-        "inclusion",
-        "patches",
-        "pitted_surface",
-        "rolled-in_scale",
-        "scratches"
-      ],
-      "source": {
-        "repositoryUrl": "https://huggingface.co/Ironman1612/defect-detection-model",
-        "downloadUrl": "https://huggingface.co/Ironman1612/defect-detection-model/resolve/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/best.pt",
-        "revision": "0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee",
-        "sourceFilename": "best.pt",
-        "license": "MIT",
-        "licenseSourceUrl": "https://huggingface.co/Ironman1612/defect-detection-model/blob/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/README.md"
-      }
-    },
-    {
       "id": "factory-defect-guard-v6-mc",
+      "displayName": "General Manufacturing",
+      "role": "general",
+      "domain": "General manufacturing",
+      "description": "Coverage-oriented detector for steel, PCB, tile, electronics, fasteners, and capsules.",
       "filename": "factory_defect_guard_v6_mc.pt",
       "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253",
       "sizeBytes": 22525290,
@@ -50,7 +36,7 @@
         "width": 640,
         "height": 640
       },
-      "classes": [
+      "nativeClasses": [
         "crazing",
         "inclusion",
         "patches",
@@ -69,6 +55,13 @@
         "metal_nut_defect",
         "capsule_defect"
       ],
+      "confidence": 0.05,
+      "iou": 0.5,
+      "preprocessingProfile": "standard-color",
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {}
+      },
       "source": {
         "repositoryUrl": "https://huggingface.co/negi3961/factory-defect-guard",
         "downloadUrl": "https://huggingface.co/negi3961/factory-defect-guard/resolve/bddc831865368eb7a58b9db51490770a386786d2/best_v6_mc.pt",
@@ -76,6 +69,94 @@
         "sourceFilename": "best_v6_mc.pt",
         "license": "MIT",
         "licenseSourceUrl": "https://huggingface.co/negi3961/factory-defect-guard/blob/bddc831865368eb7a58b9db51490770a386786d2/README.md"
+      }
+    },
+    {
+      "id": "neu-defect-yolov8",
+      "displayName": "Steel Surface",
+      "role": "specialist",
+      "domain": "Steel surface",
+      "description": "Specialist detector for six NEU steel surface defect classes.",
+      "filename": "defect_neu_yolov8.pt",
+      "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+      "sizeBytes": 6257194,
+      "task": "detect",
+      "framework": {
+        "library": "ultralytics",
+        "modelFamily": "YOLOv8",
+        "testedVersion": "8.4.78"
+      },
+      "inputSize": {
+        "width": 640,
+        "height": 640
+      },
+      "nativeClasses": [
+        "crazing",
+        "inclusion",
+        "patches",
+        "pitted_surface",
+        "rolled-in_scale",
+        "scratches"
+      ],
+      "confidence": 0.25,
+      "iou": 0.5,
+      "preprocessingProfile": "steel-enhanced",
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {
+          "crazing": 1.25,
+          "inclusion": 1.1,
+          "patches": 0.9,
+          "pitted_surface": 1.0,
+          "rolled-in_scale": 1.2,
+          "scratches": 0.85
+        }
+      },
+      "source": {
+        "repositoryUrl": "https://huggingface.co/Ironman1612/defect-detection-model",
+        "downloadUrl": "https://huggingface.co/Ironman1612/defect-detection-model/resolve/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/best.pt",
+        "revision": "0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee",
+        "sourceFilename": "best.pt",
+        "license": "MIT",
+        "licenseSourceUrl": "https://huggingface.co/Ironman1612/defect-detection-model/blob/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/README.md"
+      }
+    },
+    {
+      "id": "concrete-crack-yolov8",
+      "displayName": "Concrete & Structural Cracks",
+      "role": "specialist",
+      "domain": "Concrete and structural surfaces",
+      "description": "Specialist detector for visible cracks on concrete, masonry, wall, and floor surfaces.",
+      "filename": "crack_detection.pt",
+      "sha256": "386155cae09bee6af1ce99608fc42a32cafd40a25362b80037b4fa54f6999719",
+      "sizeBytes": 22522595,
+      "task": "detect",
+      "framework": {
+        "library": "ultralytics",
+        "modelFamily": "YOLOv8",
+        "testedVersion": "8.4.78"
+      },
+      "inputSize": {
+        "width": 640,
+        "height": 640
+      },
+      "nativeClasses": ["crack"],
+      "confidence": 0.25,
+      "iou": 0.5,
+      "preprocessingProfile": "standard-color",
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {
+          "crack": 1.35
+        }
+      },
+      "source": {
+        "repositoryUrl": "https://huggingface.co/Utbird/crack_detection",
+        "downloadUrl": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/crack.pt",
+        "revision": "a5382b48f32fab49f2881b18bc3125592c318c64",
+        "sourceFilename": "crack.pt",
+        "license": "Apache-2.0",
+        "licenseSourceUrl": "https://huggingface.co/Utbird/crack_detection/blob/a5382b48f32fab49f2881b18bc3125592c318c64/README.md"
       }
     }
   ]

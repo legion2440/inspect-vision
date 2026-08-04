@@ -1,4 +1,5 @@
 import * as mock from '../mocks/mockApi.js';
+import { appendModelId } from './models.js';
 
 const BASE = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
 const USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false').trim().toLowerCase() === 'true';
@@ -32,19 +33,27 @@ async function unwrapBlob(res) {
 }
 
 /** POST /api/inspect — multipart image upload, returns the inspection record. */
-export async function inspectImage(file, { signal } = {}) {
-  if (USE_MOCK) return mock.inspectImage(file);
+export async function inspectImage(file, { signal, modelId } = {}) {
+  if (USE_MOCK) return mock.inspectImage(file, { modelId });
   const form = new FormData();
   form.append('image', file, file.name);
+  appendModelId(form, modelId);
   return unwrap(await fetch(BASE + '/api/inspect', { method: 'POST', body: form, signal }));
 }
 
 /** POST /api/stream — one webcam frame, returns detections for that frame. */
-export async function inspectFrame(blob, { signal } = {}) {
-  if (USE_MOCK) return mock.inspectFrame();
+export async function inspectFrame(blob, { signal, modelId } = {}) {
+  if (USE_MOCK) return mock.inspectFrame({ modelId });
   const form = new FormData();
   form.append('frame', blob, 'frame.jpg');
+  appendModelId(form, modelId);
   return unwrap(await fetch(BASE + '/api/stream', { method: 'POST', body: form, signal }));
+}
+
+/** GET /api/models — registry projection for upload/live selection. */
+export async function getModels({ signal } = {}) {
+  if (USE_MOCK) return mock.getModels();
+  return unwrap(await fetch(BASE + '/api/models', { signal }));
 }
 
 /** GET /api/history?from=&to=&type=&q= */

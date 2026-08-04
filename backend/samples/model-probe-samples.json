@@ -1,28 +1,84 @@
 {
-  "schemaVersion": 1,
-  "purpose": "Local real-model probe only; source images are not redistributed by this repository.",
-  "upstreamDataset": "NEU-DET",
-  "upstreamUse": "Research use",
-  "sourceRepository": "https://github.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection",
-  "sourceRevision": "351bee21b56bbf97a1e1d18262bceb202eb7ef41",
-  "samples": [
+  "schemaVersion": 2,
+  "purpose": "Runtime qualification only; remote source images are downloaded to a temporary directory and are not redistributed.",
+  "models": [
     {
-      "id": "neu-crazing-1",
-      "expectedClass": "crazing",
-      "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
-      "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca"
+      "modelId": "factory-defect-guard-v6-mc",
+      "qualificationDomain": "Broad manufacturing coverage across PCB and steel source cases",
+      "samples": [
+        {
+          "id": "pcb-missing-hole-example",
+          "sourceLabel": "missing_hole",
+          "url": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/01_missing_hole_01.jpg",
+          "sha256": "58327e373a07f63afb71771be75351b7e0a5063cd01bcd491bccc271df427229"
+        },
+        {
+          "id": "pcb-mouse-bite-example",
+          "sourceLabel": "mouse_bite",
+          "url": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/04_mouse_bite_10.jpg",
+          "sha256": "d22e9e237412b8a7981f0e6287a5d4f489d6e1070fae77b551a67aafbfcbb538"
+        },
+        {
+          "id": "broad-neu-crazing",
+          "sourceLabel": "crazing",
+          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca"
+        },
+        {
+          "id": "broad-neu-inclusion",
+          "sourceLabel": "inclusion",
+          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
+        }
+      ]
     },
     {
-      "id": "neu-inclusion-1",
-      "expectedClass": "inclusion",
-      "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
-      "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
+      "modelId": "neu-defect-yolov8",
+      "qualificationDomain": "NEU steel surface defects",
+      "samples": [
+        {
+          "id": "neu-crazing-1",
+          "sourceLabel": "crazing",
+          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca"
+        },
+        {
+          "id": "neu-inclusion-1",
+          "sourceLabel": "inclusion",
+          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
+        },
+        {
+          "id": "neu-scratches-1",
+          "sourceLabel": "scratches",
+          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+          "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c"
+        }
+      ]
     },
     {
-      "id": "neu-scratches-1",
-      "expectedClass": "scratches",
-      "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
-      "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c"
+      "modelId": "concrete-crack-yolov8",
+      "qualificationDomain": "Concrete, masonry, wall, and floor cracks",
+      "samples": [
+        {
+          "id": "concrete-crack-640",
+          "sourceLabel": "crack",
+          "url": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/00d97799-6982-459a-b6b0-6421a2ec22b5.jpeg",
+          "sha256": "a3cdea8b2918aa48ed9eaa469c1261c6741865c3f1c8bbb161db70b10065efa0"
+        },
+        {
+          "id": "concrete-crack-wide",
+          "sourceLabel": "crack",
+          "url": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/9afc4826-bbbe-4107-a616-c63699267e78.png",
+          "sha256": "cf1579b347033a143b9425928934a0757e5f81ebbced47e8c67b1449636c2d09"
+        },
+        {
+          "id": "concrete-crack-large",
+          "sourceLabel": "crack",
+          "url": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/f2f90a21-c218-4d7f-9ccf-39a3403386df.png",
+          "sha256": "8d2cf7cbb8cbdbcf43307f5e10c2fe8849c1e226a5b9fe653df760fab1de2bef"
+        }
+      ]
     }
   ]
 }

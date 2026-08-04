@@ -347,13 +347,16 @@ def main() -> int:
         )
     if str(REPOSITORY_ROOT) not in sys.path:
         sys.path.insert(0, str(REPOSITORY_ROOT))
-    from backend.detection.service import DetectionService
-    from backend.utils.model_loader import create_detector, get_model_spec
+    from backend.detection.runtime import DetectionRuntimeManager
+    from backend.utils.model_loader import ModelRegistry
 
-    model_spec = get_model_spec()
-    detector = create_detector(device=args.device, confidence=0.25)
-    detector.load()
-    service = DetectionService(detector)
+    model_registry = ModelRegistry(REPOSITORY_ROOT / "backend/models/model-manifest.json")
+    model_spec = model_registry.get("neu-defect-yolov8")
+    runtime = DetectionRuntimeManager(
+        model_registry,
+        models_directory=REPOSITORY_ROOT / "backend/models",
+        device=args.device,
+    )
 
     output_directory = args.output_directory.resolve()
     provenance_directory = args.provenance_directory.resolve()
@@ -390,7 +393,7 @@ def main() -> int:
             output_path = output_directory / output_name
             output_path.write_bytes(sample.payload)
             image = _decode_source(sample.payload)[0]
-            result = service.inspect(image)
+            result = runtime.inspect(image, model_spec.model_id)
             detections = [
                 {
                     "type": defect.type,
@@ -435,7 +438,7 @@ def main() -> int:
                     "modelObservation": {
                         "modelId": model_spec.model_id,
                         "modelSha256": model_spec.sha256,
-                        "confidenceThreshold": 0.25,
+                        "confidenceThreshold": model_spec.confidence,
                         "observedNativeClasses": list(
                             dict.fromkeys(detection["type"] for detection in detections)
                         ),
@@ -503,8 +506,8 @@ def main() -> int:
             "accuracyClaim": False,
             "modelId": model_spec.model_id,
             "modelSha256": model_spec.sha256,
-            "confidenceThreshold": 0.25,
-            "nativeClasses": list(model_spec.classes),
+            "confidenceThreshold": model_spec.confidence,
+            "nativeClasses": list(model_spec.native_classes),
         },
         "files": files,
     }

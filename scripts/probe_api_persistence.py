@@ -1,4 +1,4 @@
-"""Exercise the real selected model through FastAPI, SQLite, media, and deletion."""
+"""Exercise one registered model through FastAPI, SQLite, media, and deletion."""
 
 from __future__ import annotations
 
@@ -41,6 +41,7 @@ SOURCE_PATHS = (
     "backend/storage/repository.py",
     "backend/storage/service.py",
     "backend/detection/service.py",
+    "backend/detection/runtime.py",
     "backend/utils/model_loader.py",
     "backend/utils/preprocessing.py",
     "requirements-api.txt",
@@ -135,6 +136,7 @@ def _parse_args() -> argparse.Namespace:
         default=REPOSITORY_ROOT / "backend/samples/model-probe-samples.json",
     )
     parser.add_argument("--sample-id", default="neu-inclusion-1")
+    parser.add_argument("--model", default="neu-defect-yolov8")
     parser.add_argument("--output-directory", type=Path, default=DEFAULT_OUTPUT_DIRECTORY)
     parser.add_argument("--device", default="cpu")
     return parser.parse_args()
@@ -149,8 +151,14 @@ def main() -> int:
     from backend.main import create_app
 
     samples = _load_json(args.samples)
+    sample_group = next(
+        (group for group in samples["models"] if group.get("modelId") == args.model),
+        None,
+    )
+    if sample_group is None:
+        raise KeyError(f"No sample group for model ID: {args.model}")
     sample = next(
-        (candidate for candidate in samples["samples"] if candidate["id"] == args.sample_id),
+        (candidate for candidate in sample_group["samples"] if candidate["id"] == args.sample_id),
         None,
     )
     if sample is None:
@@ -171,7 +179,7 @@ def main() -> int:
         temporary_root = Path(temporary_name)
         settings = Settings(
             model_device=args.device,
-            model_confidence=0.25,
+            models_dir=REPOSITORY_ROOT / "backend/models",
             database_path=temporary_root / "inspections.sqlite3",
             media_dir=temporary_root / "media",
         )
@@ -182,6 +190,7 @@ def main() -> int:
         ) as client:
             post_response = client.post(
                 "/api/inspect",
+                data={"modelId": args.model},
                 files={"image": ("evidence-inclusion.jpg", original_payload, "image/jpeg")},
             )
             endpoint_statuses.append({"method": "POST", "path": "/api/inspect", "status": post_response.status_code})
@@ -190,9 +199,12 @@ def main() -> int:
             responses["post-inspect.json"] = post_body
             inspection_id = post_body["inspectionId"]
             if post_body["totalDefects"] < 1:
-                raise RuntimeError("Real API probe returned no selected-model defects")
-            if post_body["model"] != {"name": "neu-defect-yolov8", "version": "1"}:
-                raise RuntimeError("API model projection does not match the selected model")
+                raise RuntimeError("Real API probe returned no registered-model defects")
+            if post_body["model"] != {
+                "id": "neu-defect-yolov8",
+                "displayName": "Steel Surface",
+            }:
+                raise RuntimeError("API model projection does not match the requested model")
 
             list_response = client.get("/api/history")
             endpoint_statuses.append({"method": "GET", "path": "/api/history", "status": list_response.status_code})
@@ -325,9 +337,11 @@ def main() -> int:
             "transport": "Uvicorn loopback HTTP/1.1 with FastAPI lifespan",
         },
         "configuration": {
-            "modelId": post_body["model"]["name"],
+            "modelId": post_body["model"]["id"],
             "modelDevice": args.device,
-            "modelConfidence": 0.25,
+            "modelConfidence": application.state.detection_runtime.registry.get(
+                post_body["model"]["id"]
+            ).confidence,
             "maxUploadBytes": 10485760,
             "database": "temporary SQLite file",
             "media": "temporary application-owned directory",
@@ -349,7 +363,7 @@ def main() -> int:
         "persistenceBeforeDelete": persistence_before_delete,
         "persistenceAfterDelete": persistence_after_delete,
         "acceptance": {
-            "realSelectedModelViaDetectionService": True,
+            "realRegisteredModelViaDetectionService": True,
             "postAndDetailIncludeDualDataUrls": True,
             "historyListOmitsImagePayloads": True,
             "originalStoredByteForByte": True,

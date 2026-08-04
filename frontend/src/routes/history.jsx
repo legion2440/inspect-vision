@@ -6,14 +6,11 @@ import HistoryTable from '../components/HistoryTable.jsx';
 import { useInspection } from '../hooks/useInspection.js';
 import { exportHistory, usingMock } from '../utils/apiClient.js';
 import { downloadBlob, downloadCsv } from '../utils/csv.js';
-import { DEFECT_TYPES } from '../utils/defectTypes.js';
 
 export const Route = createFileRoute('/history')({ component: History });
 
-const TYPES = ['all', ...DEFECT_TYPES];
-
 function History() {
-  const { history, historyStatus, error, loadHistory, removeInspection, clearAll } = useInspection();
+  const { history, historyStatus, error, loadHistory, removeInspection, clearAll, models } = useInspection();
   const [filters, setFilters] = useState({ from: '', to: '', type: 'all', q: '' });
   const [actionError, setActionError] = useState(null);
 
@@ -23,6 +20,7 @@ function History() {
   }, [filters, loadHistory]);
 
   const rows = history;
+  const types = ['all', ...new Set(models.flatMap((model) => model.classes || []))];
 
   const set = (key) => (e) => setFilters((f) => ({ ...f, [key]: e.target.value }));
 
@@ -91,7 +89,7 @@ function History() {
         <div className="field">
           <label htmlFor="type">Defect type</label>
           <select id="type" className="input" value={filters.type} onChange={set('type')}>
-            {TYPES.map((t) => (
+            {types.map((t) => (
               <option value={t} key={t}>{t === 'all' ? 'All types' : t}</option>
             ))}
           </select>

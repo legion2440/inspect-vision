@@ -1,30 +1,43 @@
 # Detection models
 
-`model-manifest.json` is the tracked source of truth for the local Ultralytics
-weights used by Inspect-Vision. It records immutable source revisions, remote
-filenames, MIT license metadata, SHA-256 values, input dimensions, and the
-class names read from each checkpoint.
+`model-manifest.json` is the tracked source of truth for selectable Ultralytics
+detectors. It records product metadata, immutable checkpoint provenance,
+license, byte size, SHA-256, native classes, input size, inference thresholds,
+preprocessing profile, and quality weights. `defaultModelId` identifies the
+coverage-oriented starting model.
 
-The `.pt` files remain local and are ignored by Git. A downloaded file is usable
-only when its filename, byte size, and SHA-256 match the manifest.
-
-Install the selected checkpoint from its pinned source revision:
-
-```bash
-.venv/Scripts/python.exe scripts/install_selected_model.py
-```
-
-The command leaves an already valid file untouched. New downloads are written
-to a temporary file, verified against `sizeBytes` and `sha256`, and moved into
-place only after both checks pass.
-
-Run the equal real-model probe with the project environment:
+The `.pt` files remain local and are ignored by Git. A checkpoint is installed
+only when filename, byte size, and SHA-256 match the manifest.
 
 ```bash
-.venv/Scripts/python.exe scripts/probe_models.py --engine core --device cpu --confidence 0.05
+# install default General Manufacturing model
+.venv/Scripts/python.exe scripts/install_models.py
+
+# install one specialist
+.venv/Scripts/python.exe scripts/install_models.py --model neu-defect-yolov8
+
+# install the complete registry
+.venv/Scripts/python.exe scripts/install_models.py --all
 ```
 
-The selected model is `neu-defect-yolov8`. The broader 17-class checkpoint is
-registered as an alternative, but its checkpoint class metadata differs from
-its model card: it contains `capsule_defect`, not `cable_defect`. Inspect-Vision
-uses the class names embedded in the checkpoint as authoritative runtime data.
+Downloads use pinned revisions and a temporary file followed by an atomic move.
+An already verified checkpoint is left untouched.
+
+The registry currently contains:
+
+- `factory-defect-guard-v6-mc`: General Manufacturing default, 17 native classes,
+  standard-color preprocessing, confidence 0.05;
+- `neu-defect-yolov8`: Steel Surface specialist, six native classes,
+  steel-enhanced preprocessing, confidence 0.25;
+- `concrete-crack-yolov8`: Concrete & Structural Cracks specialist, native class
+  `crack`, standard-color preprocessing, confidence 0.25.
+
+The broad checkpoint contains `capsule_defect` even though its model card names
+`cable_defect`; runtime `model.names` is authoritative. Its low threshold and
+probe observations are recorded without claiming accuracy superiority.
+
+Qualify all installed models through the production manager/service pipeline:
+
+```bash
+.venv/Scripts/python.exe scripts/probe_models.py --device cpu
+```

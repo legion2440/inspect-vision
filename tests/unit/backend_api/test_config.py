@@ -10,12 +10,12 @@ from backend.config import MAX_UPLOAD_BYTES, REPOSITORY_ROOT, Settings
 
 def test_relative_runtime_paths_resolve_from_repository_root() -> None:
     settings = Settings(
-        model_path=Path("backend/models/defect_neu_yolov8.pt"),
+        models_dir=Path("backend/models"),
         database_path=Path("runtime/test.sqlite3"),
         media_dir=Path("runtime/media"),
     )
 
-    assert settings.model_path == (REPOSITORY_ROOT / "backend/models/defect_neu_yolov8.pt")
+    assert settings.models_dir == (REPOSITORY_ROOT / "backend/models")
     assert settings.database_path == (REPOSITORY_ROOT / "runtime/test.sqlite3")
     assert settings.media_dir == (REPOSITORY_ROOT / "runtime/media")
 

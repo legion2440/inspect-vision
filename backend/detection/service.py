@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 import numpy as np
 
@@ -19,46 +19,39 @@ from .dto import BoundingBox, InspectionDefect, InspectionResult
 from .quality import calculate_quality_score
 
 
-PRIMARY_MODEL_ID = "neu-defect-yolov8"
-PRIMARY_CLASS_MAPPING: dict[str, str] = {
-    "crazing": "crazing",
-    "inclusion": "inclusion",
-    "patches": "patches",
-    "pitted_surface": "pitted_surface",
-    "rolled-in_scale": "rolled-in_scale",
-    "scratches": "scratches",
-}
-
-
 class DetectionService:
-    """Run the selected inspection pipeline and return library-neutral results."""
+    """Run one registered model pipeline and return library-neutral results."""
 
     def __init__(
         self,
         detector: DetectorBackend,
         *,
-        preprocessing: InspectionPreprocessingConfig = InspectionPreprocessingConfig(),
-        class_mapping: Mapping[str, str] | None = None,
+        preprocessing: InspectionPreprocessingConfig,
+        native_classes: Sequence[str],
+        quality_class_weights: Mapping[str, float] | None = None,
+        quality_default_weight: float = 1.0,
     ) -> None:
-        if preprocessing.input_size != 640:
-            raise ValueError("DetectionService requires a 640-square preprocessing input")
         if detector.image_size != preprocessing.input_size:
             raise ValueError("Detector image_size must match service preprocessing input_size")
-        if class_mapping is None:
-            if detector.model_id != PRIMARY_MODEL_ID:
-                raise ValueError(
-                    f"No service class mapping registered for model: {detector.model_id}"
-                )
-            class_mapping = PRIMARY_CLASS_MAPPING
-        normalized_mapping = dict(class_mapping)
-        if not normalized_mapping or any(
-            not native_name or not service_name
-            for native_name, service_name in normalized_mapping.items()
-        ):
-            raise ValueError("class_mapping must contain non-empty class names")
+        normalized_classes = tuple(native_classes)
+        if not normalized_classes or len(set(normalized_classes)) != len(normalized_classes):
+            raise ValueError("native_classes must contain unique non-empty class names")
+        if any(not class_name for class_name in normalized_classes):
+            raise ValueError("native_classes must contain unique non-empty class names")
+        normalized_weights = dict(quality_class_weights or {})
+        unknown_weights = set(normalized_weights) - set(normalized_classes)
+        if unknown_weights:
+            raise ValueError(
+                "Quality weights reference unknown native classes: "
+                + ", ".join(sorted(unknown_weights))
+            )
+        if quality_default_weight <= 0.0:
+            raise ValueError("quality_default_weight must be positive")
         self.detector = detector
         self.preprocessing = preprocessing
-        self.class_mapping = normalized_mapping
+        self.native_classes = normalized_classes
+        self.quality_class_weights = normalized_weights
+        self.quality_default_weight = float(quality_default_weight)
 
     def inspect(self, image: np.ndarray) -> InspectionResult:
         validate_bgr_image(image)
@@ -80,7 +73,7 @@ class DetectionService:
             inference.image_width != self.preprocessing.input_size
             or inference.image_height != self.preprocessing.input_size
         ):
-            raise RuntimeError("Detector must return coordinates in the 640-square service input")
+            raise RuntimeError("Detector must return coordinates in the service input dimensions")
 
         if inference.detections:
             model_boxes = np.asarray(
@@ -92,24 +85,23 @@ class DetectionService:
             original_boxes = np.empty((0, 4), dtype=np.float32)
 
         defects: list[InspectionDefect] = []
+        allowed_classes = set(self.native_classes)
         for detection, restored in zip(
             inference.detections,
             original_boxes,
             strict=True,
         ):
+            if detection.class_name not in allowed_classes:
+                raise ValueError(
+                    f"Unknown native class for {self.detector.model_id}: "
+                    f"{detection.class_name}"
+                )
             x1, y1, x2, y2 = (float(value) for value in restored)
             if x2 <= x1 or y2 <= y1:
                 continue
-            try:
-                service_type = self.class_mapping[detection.class_name]
-            except KeyError as error:
-                raise ValueError(
-                    f"Unknown service class for {self.detector.model_id}: "
-                    f"{detection.class_name}"
-                ) from error
             defects.append(
                 InspectionDefect(
-                    type=service_type,
+                    type=detection.class_name,
                     confidence=detection.confidence,
                     bounding_box=BoundingBox(
                         x=x1,
@@ -125,6 +117,8 @@ class DetectionService:
             normalized_defects,
             image_width=image_width,
             image_height=image_height,
+            class_weights=self.quality_class_weights,
+            default_weight=self.quality_default_weight,
         )
         status = "passed" if not normalized_defects else "failed"
         annotated = annotate_image(image, normalized_defects)

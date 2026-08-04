@@ -3,8 +3,8 @@ import DefectOverlay from './DefectOverlay.jsx';
 import { useLiveDetection } from '../hooks/useLiveDetection.js';
 
 /** Bonus: webcam capture with per-frame detections from /api/stream. */
-export default function LiveStream() {
-  const { videoRef, running, defects, dimensions, error, start, stop } = useLiveDetection({ fps: 2 });
+export default function LiveStream({ modelId }) {
+  const { videoRef, running, defects, dimensions, error, start, stop } = useLiveDetection({ fps: 2, modelId });
   const hasDimensions = dimensions.width > 0 && dimensions.height > 0;
 
   return (

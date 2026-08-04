@@ -6,6 +6,7 @@ import InspectionViewer from '../components/InspectionViewer.jsx';
 import DefectList from '../components/DefectList.jsx';
 import SeverityScore from '../components/SeverityScore.jsx';
 import LiveStream from '../components/LiveStream.jsx';
+import ModelSelector from '../components/ModelSelector.jsx';
 import { useInspection } from '../hooks/useInspection.js';
 import { annotatedImageFilename } from '../utils/media.js';
 import { scoreOf } from '../utils/severity.js';
@@ -13,7 +14,20 @@ import { scoreOf } from '../utils/severity.js';
 export const Route = createFileRoute('/inspect')({ component: Inspect });
 
 function Inspect() {
-  const { current, preview, fileMeta, status, error, runInspection, reset } = useInspection();
+  const {
+    current,
+    preview,
+    fileMeta,
+    status,
+    error,
+    runInspection,
+    reset,
+    models,
+    modelsStatus,
+    modelsError,
+    selectedModelId,
+    selectModel,
+  } = useInspection();
   const [selected, setSelected] = useState(null);
   const [mode, setMode] = useState('upload');
 
@@ -56,9 +70,17 @@ function Inspect() {
         </div>
       </div>
 
+      <ModelSelector
+        models={models}
+        value={selectedModelId}
+        onChange={selectModel}
+        loading={modelsStatus === 'loading'}
+        error={modelsError}
+      />
+
       {mode === 'live' ? (
         <div className="qc-row qc-row-inspect">
-          <LiveStream />
+          <LiveStream modelId={selectedModelId} />
           <aside className="qc-aside">
             <p className="text-muted">
               Frames are grabbed from the camera at 2 fps and posted to <code>/api/stream</code>; the
@@ -67,7 +89,7 @@ function Inspect() {
           </aside>
         </div>
       ) : !preview ? (
-        <ImageUploader onFile={runInspection} error={error} />
+        <ImageUploader onFile={(file) => runInspection(file, selectedModelId)} error={error} />
       ) : (
         <div className="qc-row qc-row-inspect">
           <section>

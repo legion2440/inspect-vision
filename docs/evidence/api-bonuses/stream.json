@@ -45,5 +45,9 @@
   ],
   "totalDefects": 4,
   "qualityScore": 62,
-  "status": "failed"
+  "status": "failed",
+  "model": {
+    "id": "neu-defect-yolov8",
+    "displayName": "Steel Surface"
+  }
 }

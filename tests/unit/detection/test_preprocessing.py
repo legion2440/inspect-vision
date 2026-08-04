@@ -132,3 +132,19 @@ def test_inspection_preprocessing_outputs_one_640_square_three_channel_image() -
     np.testing.assert_array_equal(result.model_input[:, :, 1], result.contrast_adjusted)
     np.testing.assert_array_equal(result.model_input[:, :, 2], result.contrast_adjusted)
     np.testing.assert_array_equal(image, original)
+
+
+def test_standard_color_profile_preserves_color_channels_after_letterbox() -> None:
+    image = np.zeros((20, 40, 3), dtype=np.uint8)
+    image[:, :] = [10, 80, 220]
+
+    result = preprocess_inspection_image(
+        image,
+        InspectionPreprocessingConfig(input_size=640, profile="standard-color"),
+    )
+
+    assert result.model_input.shape == (640, 640, 3)
+    assert result.grayscale is None
+    assert result.contrast_adjusted is None
+    center = result.model_input[320, 320]
+    np.testing.assert_array_equal(center, [10, 80, 220])

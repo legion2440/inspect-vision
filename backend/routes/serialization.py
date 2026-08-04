@@ -12,13 +12,18 @@ from backend.models.record import (
     ModelRecord,
 )
 from backend.storage.repository import InspectionRecord
+from backend.utils.model_loader import ModelRegistry
 
 
 def data_url(media_type: str, content: bytes) -> str:
     return f"data:{media_type};base64,{base64.b64encode(content).decode('ascii')}"
 
 
-def to_summary(record: InspectionRecord) -> InspectionSummaryRecord:
+def to_summary(
+    record: InspectionRecord,
+    *,
+    registry: ModelRegistry | None = None,
+) -> InspectionSummaryRecord:
     defects = tuple(
         DefectRecord(
             type=defect["type"],
@@ -37,7 +42,12 @@ def to_summary(record: InspectionRecord) -> InspectionSummaryRecord:
         total_defects=record.total_defects,
         quality_score=record.quality_score,
         status=record.status,
-        model=ModelRecord(name=record.model_id, version="1"),
+        model=ModelRecord(
+            id=record.model_id,
+            display_name=(
+                registry.get(record.model_id).display_name if registry is not None else record.model_id
+            ),
+        ),
     )
 
 
@@ -46,8 +56,9 @@ def to_detail(
     *,
     original_bytes: bytes,
     annotated_bytes: bytes,
+    registry: ModelRegistry | None = None,
 ) -> InspectionDetailRecord:
-    summary = to_summary(record)
+    summary = to_summary(record, registry=registry)
     return InspectionDetailRecord(
         **summary.model_dump(),
         image_url=data_url(record.media_type, annotated_bytes),

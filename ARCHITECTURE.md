@@ -4,7 +4,7 @@
 
 The frontend application, reusable multiclass core, selected-model inspection
 service, SQLite/media persistence, and main FastAPI inspection/history API are
-implemented. Both registered models have core probe evidence. The selected model
+implemented. All registered models have service-level probe evidence. Each requested model
 has full preprocessing, HTTP, persistence, deletion, non-persisted stream, and
 filtered CSV evidence. Twelve redistributed VisA samples have license, hash,
 decode, dimension, source-annotation provenance, and separate selected-model
@@ -44,7 +44,9 @@ flowchart LR
   validation, response serialization, inference locking, and error mapping.
 - Accepts a configurable positive upload limit with a hard 10 MiB ceiling; the
   tracked environment template is directly loadable by Pydantic Settings.
-- Lifespan creates exactly one selected detector/service and one storage service.
+- Lifespan validates one model registry and creates one lazy runtime manager,
+  one storage service, and one shared inference lock. Checkpoints are loaded only
+  on first use and successful services remain cached by model ID.
 - Implements `POST /api/inspect`, `POST /api/stream`, `GET /api/export`,
   list/detail/delete history, and history clear.
 - Stream inference reuses the application service and lock without persistence;
@@ -60,19 +62,19 @@ flowchart LR
 - Implements model integrity checks, `auto | cpu | cuda | cuda:N` selection,
   Ultralytics loading, multiclass inference, bbox clamping, and normalized core
   DTOs independent of Ultralytics result objects.
-- Provides an install command that reads only the selected manifest entry,
-  downloads its pinned revision, verifies byte size and SHA-256, and atomically
-  installs the untracked checkpoint.
-- Implements the production `DetectionService`: one 640-square letterbox,
-  grayscale, CLAHE, three-channel conversion, selected-model inference, one
-  restore to original coordinates, explicit identity class mapping, annotation,
-  `quality-v1`, and passed/failed verdict.
-- Rejects the 17-class alternative at the service boundary unless a separate
-  explicit mapping is supplied; the generic core continues to support it.
+- Provides a registry installer for the default, one named model, or all models;
+  every pinned download is size/SHA verified and atomically installed.
+- Implements `standard-color` and `steel-enhanced` manifest profiles over one
+  shared letterbox/restore pipeline. The latter adds grayscale and CLAHE.
+- `DetectionRuntimeManager` lazy-loads and caches registered models.
+  `DetectionService` preserves checkpoint-native class names, applies per-model
+  quality weights with an explicit neutral default, annotates original pixels,
+  and returns passed/failed without Ultralytics objects.
 - Does not own HTTP routes, inspection history, video processing, tracking,
   scheduling, media encoding, or persistence.
-- Core inference is runtime-verified for both models; full service inference is
-  runtime-verified for the selected six-class model at confidence `0.25`.
+- All three registered models are runtime-qualified through the same production
+  manager/service path on domain-scoped probes. Probe observations make no
+  benchmark-accuracy claim.
 - The selected service is also runtime-verified against all twelve tracked VisA
   samples selected by source quotas. Four source-normal samples retain all model
   false positives; source labels never become native model class claims.
@@ -128,8 +130,8 @@ sequenceDiagram
     participant API as FastAPI
     participant CV as Detection
     participant DB as History
-    UI->>API: POST /api/inspect image
-    API->>CV: validated image bytes
+    UI->>API: POST /api/inspect image + optional modelId
+    API->>CV: validated BGR + resolved model ID
     CV-->>API: service DTO with defects, score, verdict, annotated BGR
     API->>DB: persist metadata and media
     DB-->>API: inspection ID and timestamp

@@ -1,5 +1,3 @@
-import { QUALITY_CLASS_WEIGHTS } from './defectTypes.js';
-
 /**
  * Quality score 0-100. Each defect costs its class weight, scaled by how much
  * of the frame it covers and by detection confidence; more defects compound.
@@ -8,8 +6,7 @@ import { QUALITY_CLASS_WEIGHTS } from './defectTypes.js';
 export function severityScore(defects = [], imageArea = 1280 * 854) {
   if (!defects.length) return 100;
   const penalty = defects.reduce((sum, d) => {
-    const weight = QUALITY_CLASS_WEIGHTS[d.type];
-    if (weight == null) throw new Error('Unknown quality weight for defect type: ' + d.type);
+    const weight = 1.0;
     const b = d.boundingBox || {};
     const areaRatio = Math.min(1, Math.max(0, ((b.width || 0) * (b.height || 0)) / imageArea));
     return sum + weight * (d.confidence ?? 0) * (10 + 90 * areaRatio);

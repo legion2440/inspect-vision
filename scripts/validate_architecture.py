@@ -380,12 +380,24 @@ def _check_model_manifest(errors: list[str]) -> None:
         duplicates = sorted({value for value in values if value and values.count(value) > 1})
         if duplicates:
             errors.append(f"Duplicate model {label}: {', '.join(duplicates)}")
-    if manifest.get("selectedModelId") not in model_ids:
-        errors.append("selectedModelId does not reference a registered model")
+    if manifest.get("defaultModelId") not in model_ids:
+        errors.append("defaultModelId does not reference a registered model")
+
+    profiles = manifest.get("preprocessingProfiles", {})
+    for model in models:
+        if not isinstance(model, dict):
+            continue
+        model_id = model.get("id")
+        if model.get("preprocessingProfile") not in profiles:
+            errors.append(f"Model references an unknown preprocessing profile: {model_id}")
+        native_classes = set(model.get("nativeClasses", []))
+        weight_classes = set(model.get("quality", {}).get("classWeights", {}))
+        if not weight_classes.issubset(native_classes):
+            errors.append(f"Model quality weights reference unknown classes: {model_id}")
 
 
 def _check_detection_evidence(errors: list[str]) -> None:
-    evidence = _load_json("docs/evidence/models/detection-core-acceptance.json")
+    evidence = _load_json("docs/evidence/models/model-registry-acceptance.json")
     manifest = _load_json("backend/models/model-manifest.json")
     source_commit = evidence.get("sourceCommit")
     if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
@@ -421,6 +433,12 @@ def _check_detection_evidence(errors: list[str]) -> None:
     if not isinstance(evidence_models, list):
         errors.append("Detection evidence must contain a models array")
         return
+    if evidence.get("defaultModelId") != manifest.get("defaultModelId"):
+        errors.append("Detection evidence default model does not match the manifest")
+    if evidence.get("pipeline") != "DetectionRuntimeManager -> DetectionService":
+        errors.append("Detection evidence does not use the production runtime/service pipeline")
+    if evidence.get("accuracyClaim") is not False:
+        errors.append("Detection evidence must not make an accuracy claim")
     if {model.get("modelId") for model in evidence_models} != set(manifest_models):
         errors.append("Detection evidence model IDs do not match the model manifest")
     for model_result in evidence_models:
@@ -430,14 +448,24 @@ def _check_detection_evidence(errors: list[str]) -> None:
             continue
         if model_result.get("sha256") != model_spec["sha256"]:
             errors.append(f"Detection evidence hash mismatch for model: {model_id}")
-        if model_result.get("classes") != model_spec["classes"]:
+        if model_result.get("classes") != model_spec["nativeClasses"]:
             errors.append(f"Detection evidence class mismatch for model: {model_id}")
         if model_result.get("task") != "detect":
             errors.append(f"Detection evidence task mismatch for model: {model_id}")
         if not isinstance(model_result.get("totalDetections"), int) or model_result["totalDetections"] < 1:
             errors.append(f"Detection evidence has no detections for model: {model_id}")
-        classes = model_spec["classes"]
-        for sample in model_result.get("samples", []):
+        if model_result.get("confidence") != model_spec["confidence"]:
+            errors.append(f"Detection evidence confidence mismatch for model: {model_id}")
+        if model_result.get("preprocessingProfile") != model_spec["preprocessingProfile"]:
+            errors.append(f"Detection evidence preprocessing mismatch for model: {model_id}")
+        if model_result.get("quality") != model_spec["quality"]:
+            errors.append(f"Detection evidence quality config mismatch for model: {model_id}")
+        samples = model_result.get("samples", [])
+        if not isinstance(samples, list) or len(samples) < 3:
+            errors.append(f"Detection evidence has too few samples for model: {model_id}")
+            continue
+        classes = model_spec["nativeClasses"]
+        for sample in samples:
             dimensions = sample.get("dimensions", {})
             width = dimensions.get("width")
             height = dimensions.get("height")
@@ -458,6 +486,8 @@ def _check_detection_evidence(errors: list[str]) -> None:
                     or not (0 <= xyxy[1] < xyxy[3] <= height)
                 ):
                     errors.append(f"Detection evidence has invalid bbox for model: {model_id}")
+            if sample.get("annotationDimensionsMatchOriginal") is not True:
+                errors.append(f"Detection evidence annotation dimensions mismatch: {model_id}")
 
 
 def _check_inspection_service_evidence(errors: list[str]) -> None:
@@ -501,52 +531,58 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
                     f"Inspection-service evidence is stale for source file: {relative_path}"
                 )
 
-    selected_model_id = manifest.get("selectedModelId")
-    selected_model = next(
-        (model for model in manifest.get("models", []) if model.get("id") == selected_model_id),
+    model = evidence.get("model", {})
+    evidence_model_id = model.get("modelId")
+    registered_model = next(
+        (item for item in manifest.get("models", []) if item.get("id") == evidence_model_id),
         None,
     )
-    model = evidence.get("model", {})
-    if selected_model is None or model.get("modelId") != selected_model_id:
-        errors.append("Inspection-service evidence does not use the selected model")
+    if registered_model is None:
+        errors.append("Inspection-service evidence uses an unregistered model")
         allowed_types: set[str] = set()
     else:
-        if model.get("sha256") != selected_model.get("sha256"):
+        if model.get("sha256") != registered_model.get("sha256"):
             errors.append("Inspection-service evidence model hash does not match the manifest")
-        if model.get("classes") != selected_model.get("classes"):
+        if model.get("classes") != registered_model.get("nativeClasses"):
             errors.append("Inspection-service evidence classes do not match the manifest")
-        expected_mapping = {name: name for name in selected_model.get("classes", [])}
-        if model.get("serviceClassMapping") != expected_mapping:
-            errors.append("Inspection-service evidence must use the selected identity mapping")
-        allowed_types = set(expected_mapping.values())
+        allowed_types = set(registered_model.get("nativeClasses", []))
 
     pipeline = evidence.get("pipeline", {})
-    if pipeline.get("confidence") != 0.25:
-        errors.append("Inspection-service evidence must use production confidence 0.25")
+    if registered_model is not None:
+        if pipeline.get("confidence") != registered_model.get("confidence"):
+            errors.append("Inspection-service evidence confidence does not match the manifest")
+        if pipeline.get("iou") != registered_model.get("iou"):
+            errors.append("Inspection-service evidence IoU does not match the manifest")
+        if pipeline.get("preprocessingProfile") != registered_model.get(
+            "preprocessingProfile"
+        ):
+            errors.append(
+                "Inspection-service evidence preprocessing profile does not match the manifest"
+            )
     if pipeline.get("coordinateRestoreCount") != 1:
         errors.append("Inspection-service evidence must restore coordinates exactly once")
+    expected_size = (
+        registered_model.get("inputSize", {}) if registered_model is not None else {}
+    )
     if pipeline.get("modelInput") != {
-        "width": 640,
-        "height": 640,
+        "width": expected_size.get("width"),
+        "height": expected_size.get("height"),
         "channels": 3,
         "dtype": "uint8",
     }:
         errors.append("Inspection-service evidence has an invalid model input contract")
-    if pipeline.get("clahe") != {"clipLimit": 2.0, "tileGridSize": [8, 8]}:
-        errors.append("Inspection-service evidence has an invalid CLAHE contract")
 
     quality = evidence.get("quality", {})
     if quality.get("version") != "quality-v1" or quality.get("heuristic") is not True:
         errors.append("Inspection-service evidence has an invalid quality contract")
-    if quality.get("classWeights") != {
-        "crazing": 1.25,
-        "inclusion": 1.10,
-        "patches": 0.90,
-        "pitted_surface": 1.00,
-        "rolled-in_scale": 1.20,
-        "scratches": 0.85,
-    }:
-        errors.append("Inspection-service evidence has invalid quality-v1 class weights")
+    if registered_model is not None:
+        model_quality = registered_model.get("quality", {})
+        if quality.get("defaultWeight") != model_quality.get("defaultWeight"):
+            errors.append("Inspection-service evidence has an invalid default quality weight")
+        if quality.get("classWeights") != model_quality.get("classWeights"):
+            errors.append("Inspection-service evidence has invalid per-class quality weights")
+    if evidence.get("accuracyClaim") is not False:
+        errors.append("Inspection-service evidence must not claim model accuracy")
 
     samples = evidence.get("samples")
     if not isinstance(samples, list) or len(samples) < 3:
@@ -570,6 +606,8 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
         expected_status = "passed" if not defects else "failed"
         if sample.get("status") != expected_status:
             errors.append("Inspection-service evidence has inconsistent status")
+        if sample.get("modelId") != evidence_model_id:
+            errors.append("Inspection-service evidence sample has inconsistent modelId")
         score = sample.get("qualityScore")
         if not isinstance(score, int) or isinstance(score, bool) or not 0 <= score <= 100:
             errors.append("Inspection-service evidence has invalid qualityScore")
@@ -610,7 +648,7 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
             errors.append(f"Inspection-service annotated output dimensions changed: {relative_output}")
 
     if counted_detections < 1 or evidence.get("totalDetections") != counted_detections:
-        errors.append("Inspection-service evidence must contain real selected-model detections")
+        errors.append("Inspection-service evidence must contain real registered-model detections")
 
 
 def _check_api_persistence_evidence(errors: list[str]) -> None:
@@ -693,7 +731,10 @@ def _check_api_persistence_evidence(errors: list[str]) -> None:
             errors.append("API persistence evidence must contain real API defects")
         if post.get("status") != "failed":
             errors.append("API persistence defect result must be failed")
-        if post.get("model") != {"name": "neu-defect-yolov8", "version": "1"}:
+        if post.get("model") != {
+            "id": "neu-defect-yolov8",
+            "displayName": "Steel Surface",
+        }:
             errors.append("API persistence evidence has an invalid model projection")
         for field in ("imageUrl", "originalImageUrl"):
             if not isinstance(post.get(field), str) or not post[field].startswith("data:image/jpeg;base64,"):
@@ -918,7 +959,7 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
 
     if evidence.get("dataset") != sample_manifest.get("dataset"):
         errors.append("Demo sample evidence provenance differs from the sample manifest")
-    selected_model_id = model_manifest.get("selectedModelId")
+    selected_model_id = sample_manifest.get("modelObservationContract", {}).get("modelId")
     selected_model = next(
         (
             model
@@ -932,14 +973,14 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
         selected_model is None
         or model.get("modelId") != selected_model_id
         or model.get("modelSha256") != selected_model.get("sha256")
-        or model.get("nativeClasses") != selected_model.get("classes")
-        or model.get("confidenceThreshold") != 0.25
+        or model.get("nativeClasses") != selected_model.get("nativeClasses")
+        or model.get("confidenceThreshold") != selected_model.get("confidence")
         or model.get("groundTruth") is not False
         or model.get("accuracyClaim") is not False
         or model != sample_manifest.get("modelObservationContract")
         or evidence.get("accuracyClaim") is not False
     ):
-        errors.append("Demo sample evidence has an invalid selected-model contract")
+        errors.append("Demo sample evidence has an invalid registered-model contract")
 
     manifest_files = {
         item.get("id"): item

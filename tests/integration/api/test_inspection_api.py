@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient
 
 from backend.config import Settings
 from backend.detection.dto import BoundingBox, InspectionDefect, InspectionResult
+from backend.detection.runtime import RegisteredModel
 from backend.main import build_storage, create_app
+from backend.utils.model_loader import ModelNotInstalledError, ModelRegistry
 
 
 def encoded_image(extension: str, *, width: int = 24, height: int = 16) -> bytes:
@@ -27,15 +29,40 @@ def encoded_image(extension: str, *, width: int = 24, height: int = 16) -> bytes
     return buffer.tobytes()
 
 
-class FakeDetectionService:
-    def __init__(self, *, fail: bool = False, delay: float = 0.0) -> None:
+class FakeDetectionRuntime:
+    def __init__(
+        self,
+        *,
+        fail: bool = False,
+        delay: float = 0.0,
+        missing_model_id: str | None = None,
+    ) -> None:
         self.fail = fail
         self.delay = delay
+        self.missing_model_id = missing_model_id
+        self.registry = ModelRegistry()
+        self.requested_model_ids: list[str] = []
         self._guard = threading.Lock()
         self.active = 0
         self.max_active = 0
 
-    def inspect(self, image: np.ndarray) -> InspectionResult:
+    def registered_models(self) -> tuple[RegisteredModel, ...]:
+        return tuple(
+            RegisteredModel(
+                spec=spec,
+                is_default=self.registry.is_default(spec.model_id),
+                installed=spec.model_id != self.missing_model_id,
+            )
+            for spec in self.registry.models
+        )
+
+    def inspect(self, image: np.ndarray, model_id: str | None = None) -> InspectionResult:
+        spec = self.registry.get(model_id)
+        self.requested_model_ids.append(spec.model_id)
+        if spec.model_id == self.missing_model_id:
+            raise ModelNotInstalledError(
+                f"Detection model is not installed. Run: python scripts/install_models.py --model {spec.model_id}"
+            )
         with self._guard:
             self.active += 1
             self.max_active = max(self.max_active, self.active)
@@ -47,7 +74,7 @@ class FakeDetectionService:
             height, width = image.shape[:2]
             box = BoundingBox(x=1.0, y=1.0, width=min(5.0, width - 1), height=min(4.0, height - 1))
             defect = InspectionDefect(
-                type="scratches",
+                type="crack" if spec.model_id == "concrete-crack-yolov8" else "scratches",
                 confidence=0.9,
                 bounding_box=box,
             )
@@ -60,7 +87,7 @@ class FakeDetectionService:
                 status="failed",
                 quality_score=80,
                 annotated_image=annotated,
-                model_id="neu-defect-yolov8",
+                model_id=spec.model_id,
             )
         finally:
             with self._guard:
@@ -71,15 +98,15 @@ class FakeDetectionService:
 def api_factory(tmp_path: Path):
     clients: list[TestClient] = []
 
-    def factory(service: FakeDetectionService | None = None) -> TestClient:
+    def factory(runtime: FakeDetectionRuntime | None = None) -> TestClient:
         settings = Settings(
             database_path=tmp_path / f"db-{len(clients)}.sqlite3",
             media_dir=tmp_path / f"media-{len(clients)}",
         )
-        fake = service or FakeDetectionService()
+        fake = runtime or FakeDetectionRuntime()
         app = create_app(
             settings,
-            detection_service_factory=lambda _settings: fake,
+            detection_runtime_factory=lambda _settings: fake,
             storage_factory=build_storage,
         )
         client = TestClient(app)
@@ -118,7 +145,10 @@ def test_inspect_accepts_png_and_jpeg_and_preserves_original_bytes(
     assert body["totalDefects"] == len(body["defects"]) == 1
     assert body["status"] == "failed"
     assert body["qualityScore"] == 80
-    assert body["model"] == {"name": "neu-defect-yolov8", "version": "1"}
+    assert body["model"] == {
+        "id": "factory-defect-guard-v6-mc",
+        "displayName": "General Manufacturing",
+    }
     assert body["imageUrl"].startswith(f"data:{media_type};base64,")
     prefix, encoded_original = body["originalImageUrl"].split(",", 1)
     assert prefix == f"data:{media_type};base64"
@@ -185,7 +215,7 @@ def test_exact_10_mib_is_accepted_and_one_byte_over_is_rejected(api_factory) -> 
 
 
 def test_model_failure_is_mapped_without_leaking_exception(api_factory) -> None:
-    client = api_factory(FakeDetectionService(fail=True))
+    client = api_factory(FakeDetectionRuntime(fail=True))
 
     response = client.post(
         "/api/inspect",
@@ -195,6 +225,67 @@ def test_model_failure_is_mapped_without_leaking_exception(api_factory) -> None:
     assert response.status_code == 500
     assert response.json() == {"detail": "Detection model error"}
     assert "private" not in response.text
+
+
+def test_inspect_propagates_selected_model_and_persists_it(api_factory) -> None:
+    runtime = FakeDetectionRuntime()
+    client = api_factory(runtime)
+
+    response = client.post(
+        "/api/inspect",
+        data={"modelId": "concrete-crack-yolov8"},
+        files={"image": ("wall.png", encoded_image(".png"), "image/png")},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["model"] == {
+        "id": "concrete-crack-yolov8",
+        "displayName": "Concrete & Structural Cracks",
+    }
+    assert body["defects"][0]["type"] == "crack"
+    assert runtime.requested_model_ids == ["concrete-crack-yolov8"]
+    history = client.get("/api/history").json()
+    assert history[0]["model"] == body["model"]
+
+
+def test_model_lookup_and_installation_errors_are_distinct(api_factory) -> None:
+    missing_id = "concrete-crack-yolov8"
+    client = api_factory(FakeDetectionRuntime(missing_model_id=missing_id))
+
+    unknown = client.post(
+        "/api/inspect",
+        data={"modelId": "unknown"},
+        files={"image": ("part.png", encoded_image(".png"), "image/png")},
+    )
+    missing = client.post(
+        "/api/inspect",
+        data={"modelId": missing_id},
+        files={"image": ("wall.png", encoded_image(".png"), "image/png")},
+    )
+
+    assert unknown.status_code == 404
+    assert unknown.json() == {"detail": "Detection model not found"}
+    assert missing.status_code == 409
+    assert f"install_models.py --model {missing_id}" in missing.json()["detail"]
+
+
+def test_models_endpoint_exposes_three_registry_entries(api_factory) -> None:
+    missing_id = "concrete-crack-yolov8"
+    client = api_factory(FakeDetectionRuntime(missing_model_id=missing_id))
+
+    response = client.get("/api/models")
+
+    assert response.status_code == 200
+    models = response.json()
+    assert [model["id"] for model in models] == [
+        "factory-defect-guard-v6-mc",
+        "neu-defect-yolov8",
+        "concrete-crack-yolov8",
+    ]
+    assert sum(model["isDefault"] for model in models) == 1
+    assert models[0]["installed"] is True
+    assert models[2]["installed"] is False
 
 
 def test_stream_accepts_jpeg_and_does_not_persist(api_factory) -> None:
@@ -221,6 +312,10 @@ def test_stream_accepts_jpeg_and_does_not_persist(api_factory) -> None:
         "totalDefects": 1,
         "qualityScore": 80,
         "status": "failed",
+        "model": {
+            "id": "factory-defect-guard-v6-mc",
+            "displayName": "General Manufacturing",
+        },
     }
     assert before == after == []
 
@@ -237,8 +332,27 @@ def test_stream_rejects_png_content(api_factory) -> None:
     assert response.json() == {"detail": "Unsupported file type"}
 
 
+def test_stream_propagates_selected_model_without_persistence(api_factory) -> None:
+    runtime = FakeDetectionRuntime()
+    client = api_factory(runtime)
+
+    response = client.post(
+        "/api/stream",
+        data={"modelId": "concrete-crack-yolov8"},
+        files={"frame": ("frame.jpg", encoded_image(".jpg"), "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["model"] == {
+        "id": "concrete-crack-yolov8",
+        "displayName": "Concrete & Structural Cracks",
+    }
+    assert response.json()["defects"][0]["type"] == "crack"
+    assert client.get("/api/history").json() == []
+
+
 def test_stream_maps_model_failure(api_factory) -> None:
-    client = api_factory(FakeDetectionService(fail=True))
+    client = api_factory(FakeDetectionRuntime(fail=True))
 
     response = client.post(
         "/api/stream",
@@ -397,8 +511,8 @@ def test_configured_cors_origin_is_allowed(api_factory) -> None:
 
 
 def test_inference_lock_serializes_concurrent_requests(api_factory) -> None:
-    service = FakeDetectionService(delay=0.05)
-    client = api_factory(service)
+    runtime = FakeDetectionRuntime(delay=0.05)
+    client = api_factory(runtime)
 
     def request_once(index: int) -> int:
         response = client.post(
@@ -411,12 +525,12 @@ def test_inference_lock_serializes_concurrent_requests(api_factory) -> None:
         statuses = list(executor.map(request_once, range(3)))
 
     assert statuses == [200, 200, 200]
-    assert service.max_active == 1
+    assert runtime.max_active == 1
 
 
 def test_stream_and_inspect_share_one_inference_lock(api_factory) -> None:
-    service = FakeDetectionService(delay=0.05)
-    client = api_factory(service)
+    runtime = FakeDetectionRuntime(delay=0.05)
+    client = api_factory(runtime)
 
     def inspect_request() -> int:
         return client.post(
@@ -435,7 +549,7 @@ def test_stream_and_inspect_share_one_inference_lock(api_factory) -> None:
         statuses = [future.result() for future in futures]
 
     assert statuses == [200, 200]
-    assert service.max_active == 1
+    assert runtime.max_active == 1
 
 
 def test_persisted_detail_survives_application_reopen(tmp_path: Path) -> None:
@@ -447,7 +561,7 @@ def test_persisted_detail_survives_application_reopen(tmp_path: Path) -> None:
     def make_client() -> TestClient:
         app = create_app(
             settings,
-            detection_service_factory=lambda _settings: FakeDetectionService(),
+            detection_runtime_factory=lambda _settings: FakeDetectionRuntime(),
             storage_factory=build_storage,
         )
         return TestClient(app)

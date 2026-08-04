@@ -115,8 +115,8 @@ def main() -> int:
     if str(REPOSITORY_ROOT) not in sys.path:
         sys.path.insert(0, str(REPOSITORY_ROOT))
 
-    from backend.detection.service import DetectionService
-    from backend.utils.model_loader import create_detector, get_model_spec
+    from backend.detection.runtime import DetectionRuntimeManager
+    from backend.utils.model_loader import ModelRegistry
     from backend.utils.preprocessing import decode_image
     from scripts.validate_demo_samples import validate_demo_samples
 
@@ -125,10 +125,14 @@ def main() -> int:
         raise ValueError("Demo manifest validation failed: " + "; ".join(validation_errors))
 
     manifest = _load_json(args.manifest)
-    model_spec = get_model_spec()
-    detector = create_detector(device=args.device, confidence=0.25)
-    detector.load()
-    service = DetectionService(detector)
+    model_id = manifest["modelObservationContract"]["modelId"]
+    registry = ModelRegistry(REPOSITORY_ROOT / "backend/models/model-manifest.json")
+    model_spec = registry.get(model_id)
+    runtime = DetectionRuntimeManager(
+        registry,
+        models_directory=REPOSITORY_ROOT / "backend/models",
+        device=args.device,
+    )
     samples: list[dict[str, Any]] = []
     total_detections = 0
     observed_types: set[str] = set()
@@ -138,7 +142,7 @@ def main() -> int:
     for item in manifest["files"]:
         sample_path = REPOSITORY_ROOT / item["path"]
         image = decode_image(sample_path.read_bytes())
-        result = service.inspect(image)
+        result = runtime.inspect(image, model_spec.model_id)
         actual_observation = _observation(
             result,
             model_id=model_spec.model_id,

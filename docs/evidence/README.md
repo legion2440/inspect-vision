@@ -27,7 +27,7 @@ Inspection-service evidence is under `inspection-service/`:
 Main API and persistence evidence is under `api-persistence/`:
 
 - `api-persistence-acceptance.json` records an actual loopback Uvicorn lifecycle
-  using the selected model at confidence `0.25`.
+  using its explicitly recorded registered model and manifest confidence.
 - The saved HTTP JSON covers POST inspect, list, detail, delete, and the empty
   list after deletion.
 - The evidence records the pinned input URL/hash, byte-exact original hash,

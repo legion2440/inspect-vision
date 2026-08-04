@@ -3,84 +3,106 @@
 Runtime configuration is read from environment variables. `.env.example` is the
 tracked template; `.env`, model weights, databases, and media are ignored.
 
-The backend runtime uses Python 3.13.5. `requirements-detection.txt` is the
-detection-only baseline. `requirements-api.txt` extends it with exact FastAPI,
-Pydantic Settings, multipart, Uvicorn, and HTTP test dependencies. Neither
-profile includes Streamlit, supervision, tracking, or video runtimes.
+The backend uses Python 3.13.5. `requirements-detection.txt` contains the pinned
+Ultralytics/OpenCV CPU runtime and validation dependencies;
+`requirements-api.txt` extends it with FastAPI, Pydantic Settings, multipart,
+Uvicorn, and HTTP-test dependencies.
 
-## Variables
+## Environment variables
 
 | Variable | Required | Meaning |
 | --- | --- | --- |
 | `INSPECT_VISION_HOST` | no | FastAPI bind host; defaults to loopback |
 | `INSPECT_VISION_PORT` | no | FastAPI port |
 | `INSPECT_VISION_CORS_ORIGINS` | yes | Comma-separated exact frontend origins |
-| `INSPECT_VISION_MAX_UPLOAD_BYTES` | yes | Upload limit from 1 through the hard maximum of 10485760 bytes |
-| `INSPECT_VISION_MODEL_KIND` | yes | Registered adapter kind; currently `ultralytics` |
-| `INSPECT_VISION_MODEL_PATH` | yes | Repository-relative or deployment-local model path |
-| `INSPECT_VISION_MODEL_INPUT_SIZE` | yes | Square model input size, initially 640 |
-| `INSPECT_VISION_MODEL_CONFIDENCE` | yes | Inclusive detection threshold from 0 to 1 |
-| `INSPECT_VISION_MODEL_IOU` | yes | Inclusive model non-maximum-suppression IoU from 0 to 1 |
+| `INSPECT_VISION_MAX_UPLOAD_BYTES` | yes | Positive upload limit capped at 10485760 bytes |
+| `INSPECT_VISION_MODELS_DIR` | yes | Directory containing untracked registered checkpoints |
 | `INSPECT_VISION_MODEL_DEVICE` | yes | Exactly `auto`, `cpu`, `cuda`, or `cuda:N` |
-| `INSPECT_VISION_CLAHE_CLIP_LIMIT` | yes | CLAHE clip limit; fixed baseline is `2.0` |
-| `INSPECT_VISION_CLAHE_TILE_GRID_SIZE` | yes | Square CLAHE tile grid edge; fixed baseline is `8`, meaning `8 × 8` |
 | `INSPECT_VISION_DATABASE_PATH` | yes | SQLite database path |
 | `INSPECT_VISION_MEDIA_DIR` | yes | Original and annotated image directory |
 
-Frontend configuration remains in `frontend/.env.example`. Its default is real
-API mode and it must not be changed back to implicit mock mode.
+Per-model confidence, IoU, input size, preprocessing, classes, and quality
+weights are intentionally absent from environment configuration. Their single
+source of truth is `backend/models/model-manifest.json`.
 
-## Model lifecycle
+Frontend configuration remains in `frontend/.env.example`. Real relative `/api`
+mode is the default; mock mode must be enabled explicitly.
 
-- `backend/models/model-manifest.json` is the tracked model registry. The selected
-  model, immutable source revision, MIT license metadata, SHA-256, byte size,
-  input size, task, and checkpoint-native classes are recorded there.
-- `scripts/install_selected_model.py` downloads only `selectedModelId` from its
-  pinned HTTPS revision, verifies byte size and SHA-256, and atomically installs
-  the checkpoint beside the manifest.
-- Verify the local weight byte size and SHA-256 before constructing the adapter.
-- Load one model instance during FastAPI lifespan startup.
-- Validate kind, readable path, class names, input size, and supported device.
-- Do not download weights during request handling.
-- Do not silently replace a missing or failing model with random, heuristic, or
-  mock detections. `/api/inspect` and `/api/stream` return `Detection model error`.
-- Serialize inference with the application-owned lock.
-- `/api/inspect` and `/api/stream` share that same lock and service instance;
-  stream frames are never persisted.
-- Record the selected model ID on every persisted inspection; the tracked
-  manifest remains authoritative for its weight hash.
-- Large weights remain untracked.
+## Registry and lifecycle
+
+The schema-validated manifest contains one `defaultModelId`, named
+preprocessing profiles, and exactly the registered models available to the
+product. Each model records:
+
+- ID, display name, role, domain, and cautious description;
+- pinned checkpoint URL/revision, source license, byte size, and SHA-256;
+- detect task, framework version, square input size, and checkpoint-native classes;
+- confidence, IoU, preprocessing profile, neutral quality default, and optional
+  class-specific quality weights.
+
+The current default is `factory-defect-guard-v6-mc`. Specialists are
+`neu-defect-yolov8` for steel surfaces and `concrete-crack-yolov8` for concrete
+and structural cracks. Native checkpoint names are authoritative and are never
+translated into invented defect semantics.
+
+FastAPI lifespan validates the manifest and creates one
+`DetectionRuntimeManager`; it does not load a checkpoint. On first use the
+manager resolves the optional request `modelId`, verifies the local size/hash,
+loads and validates task/classes, creates the matching `DetectionService`, and
+caches successful services. A shared application inference lock serializes both
+upload and live inference across all cached models.
+
+Unknown IDs return HTTP 404. A registered but missing or invalid checkpoint
+returns HTTP 409 with its `scripts/install_models.py --model <id>` command.
+Actual inference exceptions remain HTTP 500 with exact detail
+`Detection model error`. Request handling never downloads a model and never
+falls back to mock or heuristic detections.
+
+Install checkpoints atomically:
+
+```bash
+# default only
+.venv/Scripts/python.exe scripts/install_models.py
+
+# one registered model
+.venv/Scripts/python.exe scripts/install_models.py --model neu-defect-yolov8
+
+# every registered model
+.venv/Scripts/python.exe scripts/install_models.py --all
+```
 
 ## Preprocessing and coordinates
 
-`decode_image(bytes)` decodes future HTTP-boundary JPEG/PNG payloads into a
-validated, non-empty `uint8 H × W × 3` BGR array. `DetectionService` itself
-accepts only that already-decoded array and applies the fixed production path:
+`decode_image(bytes)` validates JPEG/PNG content and returns a non-empty
+`uint8 H x W x 3` BGR image. `DetectionService` accepts only this decoded array.
+Every model shares one geometry path:
 
-1. Preserve original width, height, and pixels.
-2. Letterbox once to `640 × 640` with padding value `(114, 114, 114)`.
-3. Convert the padded BGR image to one grayscale channel.
-4. Apply CLAHE with `clipLimit=2.0` and `tileGridSize=(8, 8)`.
-5. Convert the adjusted grayscale image back to three identical BGR channels.
-6. Pass exactly `uint8 640 × 640 × 3` to the selected Ultralytics adapter at
-   production confidence `0.25`.
-7. Let Ultralytics perform tensor conversion and normalization. Its internal
-   640-square geometry step is a no-op for this already-sized input.
-8. Clamp/drop invalid adapter boxes and restore valid boxes exactly once from the
-   640-square coordinate space to original-image pixels.
-9. Map native classes through the explicit selected-model identity mapping.
-10. Draw annotations on a copy of the original BGR image.
+1. Preserve original dimensions and pixels.
+2. Letterbox once to the model's square input using its manifest padding color.
+3. Apply the referenced preprocessing profile.
+4. Pass the already-square three-channel uint8 image to Ultralytics.
+5. Clamp/drop invalid adapter boxes and restore valid boxes exactly once to
+   original-image pixels.
+6. Validate native classes, calculate quality, and annotate a copy of the
+   original BGR image.
 
-Image encoding remains outside the detection service. The API stores original
-bytes unchanged and encodes annotation in the same detected JPEG/PNG format.
+Profiles:
 
-The adapter boundary returns normalized detections independent of YOLO library
-objects. API routes never parse raw model tensors.
+- `standard-color`: keep the letterboxed BGR channels unchanged. Used by the
+  broad and concrete models.
+- `steel-enhanced`: letterbox, convert to grayscale, apply
+  `CLAHE(clipLimit=2.0, tileGridSize=(8, 8))`, then repeat the adjusted channel
+  to BGR. Used by the steel specialist.
+
+Ultralytics still performs tensor conversion and normalization, but receives an
+already-sized square so there is no second geometric letterbox. API image
+encoding remains outside detection; original bytes stay unchanged and the
+annotation is encoded in the detected source format.
 
 ## Quality score
 
-The backend score is authoritative. `quality-v1` is an explicitly heuristic,
-versioned score calculated only after coordinate restoration:
+The backend `quality-v1` score is authoritative and is calculated after box
+restoration:
 
 ```text
 bboxAreaRatio = originalBBoxArea / (originalImageWidth * originalImageHeight)
@@ -88,28 +110,15 @@ penalty = sum(classWeight * confidence * (10 + 90 * bboxAreaRatio))
 qualityScore = clamp(round(100 - penalty), 0, 100)
 ```
 
-`round` means nearest-integer rounding with half values rounded upward, matching
-the browser fallback.
+Each model declares `quality.defaultWeight`, currently the explicit neutral
+value `1.0`, plus optional positive overrides for its own native classes. The
+steel model retains its six established weights; concrete uses `crack = 1.35`;
+the broad model currently uses neutral weights. Clean images score 100. This is
+an application heuristic, not calibrated metrology or a safety measurement.
 
-| Native/service type | Weight |
-| --- | ---: |
-| `crazing` | 1.25 |
-| `inclusion` | 1.10 |
-| `patches` | 0.90 |
-| `pitted_surface` | 1.00 |
-| `rolled-in_scale` | 1.20 |
-| `scratches` | 0.85 |
+## Persistence
 
-Each detection contributes a count baseline through the constant `10`, then
-confidence and original-image area scale its penalty. Clean images score 100;
-the result is an integer clamped to the inclusive 0–100 range. This heuristic is
-authoritative for application behavior but is not a calibrated safety or
-metrology measurement.
-
-## Storage
-
-SQLite stores metadata and relative media paths, not base64 bodies. Staging plus
-commit compensation protects creation; delete/clear use quarantine; startup
-reconciliation repairs interrupted operations and removes unreferenced media.
-History list queries never load image bytes. Data URLs are created only for POST
-and detail responses.
+SQLite stores the actual model ID with every inspection and accepts all
+registered IDs without schema changes. History list/detail returns
+`model: { id, displayName }`; CSV columns remain unchanged. Stream responses
+contain the same model projection but are never persisted.

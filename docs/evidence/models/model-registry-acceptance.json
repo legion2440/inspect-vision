@@ -1,0 +1,536 @@
+{
+  "schemaVersion": 2,
+  "recordedAt": "2026-08-04T07:17:34.913821Z",
+  "sourceCommit": "7f733935d0c785bf5a9122b030a08df683c50ed6",
+  "sourceFiles": {
+    "backend/models/model-manifest.json": "c1b267003dffc204d28a3f156fd5e818f4f81ceb6f0e2ded5c14b4d63b937914",
+    "backend/samples/model-probe-samples.json": "8872f3c040da4fcf017d3c49960d093cad9c6471df3e6723c3f64c7aa51d617f",
+    "backend/detection/__init__.py": "f08851f956b5571e09f714c702d948f5107e85f709ff5937cf75c8a801558c73",
+    "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
+    "backend/detection/base.py": "a4c4d13fe3f2258502665e78f695be8108639c3e69529493a3389e04f839dd13",
+    "backend/detection/device.py": "1c44fe186de0a5bbd1e6578c8c334142ef3c978e501a88a4662199b89e5156d1",
+    "backend/detection/dto.py": "55e5ca348afd4839b9a9e5b3572d77ffa347939dc47f95e2899ae0343cd0f234",
+    "backend/detection/quality.py": "eff11e577b286c522661bb9b53573771215bbc142d86c8df6b16bd28b5261a10",
+    "backend/detection/runtime.py": "6cd4c834fafc86cc4b9e0e084291939b1fca80b7fd62336700e1342730559cfa",
+    "backend/detection/service.py": "a94a9acdf13b2fa0519195c592f58c6e3f9e72ee589e757f93416f1ce9379bb4",
+    "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
+    "backend/utils/model_loader.py": "0e12b549a5a1486c15cd5054d81c31337be55c43f97ad9d85b97165aefc245e8",
+    "backend/utils/preprocessing.py": "795f50f559bfab51c7946fb73a0ced346576cc40947ed2b114ea2c25734cec39",
+    "scripts/probe_models.py": "27b9ee7d2d94742859c84de6985f63dc3bb66081e6aed982ba7638faddd788e1"
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "ultralytics": "8.4.78",
+    "opencv": "4.13.0",
+    "device": "cpu"
+  },
+  "defaultModelId": "factory-defect-guard-v6-mc",
+  "accuracyClaim": false,
+  "pipeline": "DetectionRuntimeManager -> DetectionService",
+  "models": [
+    {
+      "modelId": "factory-defect-guard-v6-mc",
+      "displayName": "General Manufacturing",
+      "role": "general",
+      "domain": "General manufacturing",
+      "qualificationDomain": "Broad manufacturing coverage across PCB and steel source cases",
+      "filename": "factory_defect_guard_v6_mc.pt",
+      "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253",
+      "task": "detect",
+      "classes": [
+        "crazing",
+        "inclusion",
+        "patches",
+        "pitted_surface",
+        "rolled_in_scale",
+        "scratches",
+        "pcb_missing_hole",
+        "pcb_mouse_bite",
+        "pcb_open_circuit",
+        "pcb_short",
+        "pcb_spur",
+        "pcb_spurious_copper",
+        "tile_defect",
+        "transistor_defect",
+        "screw_defect",
+        "metal_nut_defect",
+        "capsule_defect"
+      ],
+      "confidence": 0.05,
+      "iou": 0.5,
+      "preprocessingProfile": "standard-color",
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {}
+      },
+      "inferenceMs": 3613.347,
+      "totalDetections": 7,
+      "samples": [
+        {
+          "sampleId": "pcb-missing-hole-example",
+          "sourceUrl": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/01_missing_hole_01.jpg",
+          "sourceLabel": "missing_hole",
+          "sha256": "58327e373a07f63afb71771be75351b7e0a5063cd01bcd491bccc271df427229",
+          "dimensions": {
+            "width": 1147,
+            "height": 600
+          },
+          "detections": [
+            {
+              "classId": 2,
+              "className": "patches",
+              "confidence": 0.597585,
+              "xyxy": [
+                931.9211,
+                484.7799,
+                954.7676,
+                503.3649
+              ]
+            },
+            {
+              "classId": 2,
+              "className": "patches",
+              "confidence": 0.561859,
+              "xyxy": [
+                652.485,
+                304.7795,
+                679.6198,
+                325.7212
+              ]
+            },
+            {
+              "classId": 2,
+              "className": "patches",
+              "confidence": 0.133037,
+              "xyxy": [
+                608.6059,
+                132.1911,
+                634.5053,
+                156.4287
+              ]
+            }
+          ],
+          "qualityScore": 87,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "pcb-mouse-bite-example",
+          "sourceUrl": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/04_mouse_bite_10.jpg",
+          "sourceLabel": "mouse_bite",
+          "sha256": "d22e9e237412b8a7981f0e6287a5d4f489d6e1070fae77b551a67aafbfcbb538",
+          "dimensions": {
+            "width": 744,
+            "height": 600
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.373082,
+              "xyxy": [
+                117.7221,
+                389.6004,
+                133.6553,
+                410.712
+              ]
+            },
+            {
+              "classId": 2,
+              "className": "patches",
+              "confidence": 0.140146,
+              "xyxy": [
+                697.6574,
+                261.6986,
+                712.1257,
+                274.6977
+              ]
+            }
+          ],
+          "qualityScore": 95,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "broad-neu-crazing",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+          "sourceLabel": "crazing",
+          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "detections": [],
+          "qualityScore": 100,
+          "status": "passed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "broad-neu-inclusion",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sourceLabel": "inclusion",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "detections": [
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.220961,
+              "xyxy": [
+                34.2864,
+                6.7294,
+                48.2342,
+                35.3962
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.057819,
+              "xyxy": [
+                118.8717,
+                34.8297,
+                132.9522,
+                63.1592
+              ]
+            }
+          ],
+          "qualityScore": 97,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        }
+      ]
+    },
+    {
+      "modelId": "neu-defect-yolov8",
+      "displayName": "Steel Surface",
+      "role": "specialist",
+      "domain": "Steel surface",
+      "qualificationDomain": "NEU steel surface defects",
+      "filename": "defect_neu_yolov8.pt",
+      "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+      "task": "detect",
+      "classes": [
+        "crazing",
+        "inclusion",
+        "patches",
+        "pitted_surface",
+        "rolled-in_scale",
+        "scratches"
+      ],
+      "confidence": 0.25,
+      "iou": 0.5,
+      "preprocessingProfile": "steel-enhanced",
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {
+          "crazing": 1.25,
+          "inclusion": 1.1,
+          "patches": 0.9,
+          "pitted_surface": 1.0,
+          "rolled-in_scale": 1.2,
+          "scratches": 0.85
+        }
+      },
+      "inferenceMs": 212.033,
+      "totalDetections": 7,
+      "samples": [
+        {
+          "sampleId": "neu-crazing-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
+          "sourceLabel": "crazing",
+          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.326266,
+              "xyxy": [
+                133.0394,
+                0.0,
+                199.9883,
+                37.8237
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crazing",
+              "confidence": 0.318305,
+              "xyxy": [
+                5.9693,
+                116.7834,
+                199.4435,
+                173.4702
+              ]
+            }
+          ],
+          "qualityScore": 80,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "neu-inclusion-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sourceLabel": "inclusion",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "detections": [
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.864431,
+              "xyxy": [
+                115.0593,
+                73.0292,
+                140.4078,
+                114.7821
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.852118,
+              "xyxy": [
+                114.2481,
+                113.4898,
+                134.4884,
+                200.0
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.605073,
+              "xyxy": [
+                118.8128,
+                35.9367,
+                132.0846,
+                64.1424
+              ]
+            },
+            {
+              "classId": 1,
+              "className": "inclusion",
+              "confidence": 0.49906,
+              "xyxy": [
+                34.2017,
+                6.5798,
+                47.5182,
+                35.565
+              ]
+            }
+          ],
+          "qualityScore": 62,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "neu-scratches-1",
+          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/scratches_1.jpg",
+          "sourceLabel": "scratches",
+          "sha256": "500c46e2f5d7065d8c492b0cfb36c3ba77a85a744079bf6453dfc85e02b97a3c",
+          "dimensions": {
+            "width": 200,
+            "height": 200
+          },
+          "detections": [
+            {
+              "classId": 5,
+              "className": "scratches",
+              "confidence": 0.69744,
+              "xyxy": [
+                26.8889,
+                18.6851,
+                40.7448,
+                167.5262
+              ]
+            }
+          ],
+          "qualityScore": 91,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        }
+      ]
+    },
+    {
+      "modelId": "concrete-crack-yolov8",
+      "displayName": "Concrete & Structural Cracks",
+      "role": "specialist",
+      "domain": "Concrete and structural surfaces",
+      "qualificationDomain": "Concrete, masonry, wall, and floor cracks",
+      "filename": "crack_detection.pt",
+      "sha256": "386155cae09bee6af1ce99608fc42a32cafd40a25362b80037b4fa54f6999719",
+      "task": "detect",
+      "classes": [
+        "crack"
+      ],
+      "confidence": 0.25,
+      "iou": 0.5,
+      "preprocessingProfile": "standard-color",
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {
+          "crack": 1.35
+        }
+      },
+      "inferenceMs": 367.862,
+      "totalDetections": 9,
+      "samples": [
+        {
+          "sampleId": "concrete-crack-640",
+          "sourceUrl": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/00d97799-6982-459a-b6b0-6421a2ec22b5.jpeg",
+          "sourceLabel": "crack",
+          "sha256": "a3cdea8b2918aa48ed9eaa469c1261c6741865c3f1c8bbb161db70b10065efa0",
+          "dimensions": {
+            "width": 640,
+            "height": 640
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.845837,
+              "xyxy": [
+                299.0186,
+                260.5037,
+                409.9351,
+                523.7792
+              ]
+            }
+          ],
+          "qualityScore": 81,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "concrete-crack-wide",
+          "sourceUrl": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/9afc4826-bbbe-4107-a616-c63699267e78.png",
+          "sourceLabel": "crack",
+          "sha256": "cf1579b347033a143b9425928934a0757e5f81ebbced47e8c67b1449636c2d09",
+          "dimensions": {
+            "width": 2400,
+            "height": 1200
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.950321,
+              "xyxy": [
+                126.0687,
+                76.3581,
+                473.1989,
+                532.6415
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.946221,
+              "xyxy": [
+                2002.9398,
+                80.2006,
+                2344.1687,
+                527.5007
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.931684,
+              "xyxy": [
+                123.131,
+                655.2827,
+                470.567,
+                1116.1841
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.890797,
+              "xyxy": [
+                1070.4333,
+                78.9419,
+                1406.8138,
+                528.6314
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.853626,
+              "xyxy": [
+                2004.7965,
+                653.106,
+                2351.356,
+                1110.7383
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.788861,
+              "xyxy": [
+                1072.8713,
+                654.0366,
+                1405.6619,
+                1116.5603
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.629587,
+              "xyxy": [
+                1533.3687,
+                652.4503,
+                1879.7574,
+                1115.2631
+              ]
+            }
+          ],
+          "qualityScore": 0,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        },
+        {
+          "sampleId": "concrete-crack-large",
+          "sourceUrl": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/f2f90a21-c218-4d7f-9ccf-39a3403386df.png",
+          "sourceLabel": "crack",
+          "sha256": "8d2cf7cbb8cbdbcf43307f5e10c2fe8849c1e226a5b9fe653df760fab1de2bef",
+          "dimensions": {
+            "width": 2250,
+            "height": 1500
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "crack",
+              "confidence": 0.796737,
+              "xyxy": [
+                195.2632,
+                94.3073,
+                1478.4812,
+                1329.9882
+              ]
+            }
+          ],
+          "qualityScore": 44,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true
+        }
+      ]
+    }
+  ]
+}

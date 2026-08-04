@@ -10,7 +10,7 @@ from .dto import (
     InspectionDefect,
     InspectionResult,
 )
-from .quality import QUALITY_CLASS_WEIGHTS, QUALITY_SCORE_VERSION, calculate_quality_score
+from .quality import QUALITY_SCORE_VERSION, calculate_quality_score
 from .service import DetectionService
 from .ultralytics_backend import UltralyticsBackend
 
@@ -23,7 +23,6 @@ __all__ = [
     "InferenceResult",
     "InspectionDefect",
     "InspectionResult",
-    "QUALITY_CLASS_WEIGHTS",
     "QUALITY_SCORE_VERSION",
     "UltralyticsBackend",
     "annotate_image",

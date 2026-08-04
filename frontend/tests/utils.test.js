@@ -3,6 +3,7 @@ import test from 'node:test';
 import { toCsv } from '../src/utils/csv.js';
 import { boxLabel, coordinate } from '../src/utils/format.js';
 import { annotatedImageFilename, imageExtension } from '../src/utils/media.js';
+import { appendModelId, modelClassesLabel, selectInitialModel } from '../src/utils/models.js';
 import { scoreOf, severityScore } from '../src/utils/severity.js';
 
 test('CSV export keeps the canonical columns and escapes values', () => {
@@ -47,14 +48,38 @@ test('severity fallback uses real image area when available', () => {
   assert.equal(severityScore([], 1), 100);
 });
 
-test('client fallback mirrors backend quality-v1', () => {
+test('client fallback uses neutral multi-model quality weight', () => {
   const defect = {
     type: 'crazing',
     confidence: 0.8,
     boundingBox: { x: 0, y: 0, width: 10, height: 10 },
   };
 
-  assert.equal(severityScore([defect], 100 * 100), 89);
+  assert.equal(severityScore([defect], 100 * 100), 91);
+});
+
+test('model selection prefers the installed API default', () => {
+  const models = [
+    { id: 'steel', isDefault: false, installed: true },
+    { id: 'broad', isDefault: true, installed: true },
+  ];
+  assert.equal(selectInitialModel(models), 'broad');
+  assert.equal(selectInitialModel([{ id: 'broad', isDefault: true, installed: false }, models[0]]), 'steel');
+});
+
+test('upload and stream use the canonical modelId multipart field', () => {
+  const fields = [];
+  const form = { append: (...args) => fields.push(args) };
+  assert.equal(appendModelId(form, 'concrete-crack-yolov8'), form);
+  appendModelId(form, '');
+  assert.deepEqual(fields, [['modelId', 'concrete-crack-yolov8']]);
+});
+
+test('model class summary formats native names without semantic remapping', () => {
+  assert.equal(
+    modelClassesLabel({ classes: ['rolled_in_scale', 'pcb-short', 'crack'] }),
+    'rolled in scale · pcb short · crack',
+  );
 });
 
 test('annotated download filename follows the image media type', () => {

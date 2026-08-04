@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -28,15 +27,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     max_upload_bytes: int = Field(default=MAX_UPLOAD_BYTES, gt=0, le=MAX_UPLOAD_BYTES)
 
-    model_kind: Literal["ultralytics"] = "ultralytics"
-    model_id: str | None = None
-    model_path: Path = Path("backend/models/defect_neu_yolov8.pt")
-    model_input_size: int = Field(default=640, gt=0)
-    model_confidence: float = Field(default=0.25, ge=0.0, le=1.0)
-    model_iou: float = Field(default=0.5, ge=0.0, le=1.0)
+    models_dir: Path = Path("backend/models")
     model_device: str = "auto"
-    clahe_clip_limit: float = Field(default=2.0, gt=0.0)
-    clahe_tile_grid_size: int = Field(default=8, gt=0)
 
     database_path: Path = Path("backend/storage/inspections.sqlite3")
     media_dir: Path = Path("backend/storage/media")
@@ -58,19 +50,9 @@ class Settings(BaseSettings):
             return normalized
         raise ValueError("model_device must be auto, cpu, cuda, or cuda:N")
 
-    @field_validator("model_id")
-    @classmethod
-    def valid_optional_model_id(cls, value: str | None) -> str | None:
-        if value is None:
-            return None
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("model_id must not be empty")
-        return normalized
-
     @model_validator(mode="after")
     def resolve_runtime_paths(self) -> Settings:
-        for field_name in ("model_path", "database_path", "media_dir"):
+        for field_name in ("models_dir", "database_path", "media_dir"):
             path = getattr(self, field_name)
             if not path.is_absolute():
                 setattr(self, field_name, (REPOSITORY_ROOT / path).resolve())

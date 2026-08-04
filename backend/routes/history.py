@@ -12,8 +12,9 @@ from backend.models.record import (
 )
 from backend.storage.repository import HistoryFilters
 from backend.storage.service import InspectionStorage
+from backend.utils.model_loader import ModelRegistry
 
-from .dependencies import get_storage
+from .dependencies import get_model_registry, get_storage
 from .filters import get_history_filters
 from .serialization import to_detail, to_summary
 
@@ -25,14 +26,16 @@ router = APIRouter(prefix="/api/history", tags=["history"])
 def list_history(
     filters: HistoryFilters = Depends(get_history_filters),
     storage: InspectionStorage = Depends(get_storage),
+    registry: ModelRegistry = Depends(get_model_registry),
 ) -> list[InspectionSummaryRecord]:
-    return [to_summary(record) for record in storage.list(filters)]
+    return [to_summary(record, registry=registry) for record in storage.list(filters)]
 
 
 @router.get("/{inspection_id}", response_model=InspectionDetailRecord)
 def get_inspection(
     inspection_id: str,
     storage: InspectionStorage = Depends(get_storage),
+    registry: ModelRegistry = Depends(get_model_registry),
 ) -> InspectionDetailRecord:
     stored = storage.get_with_media(inspection_id)
     if stored is None:
@@ -42,6 +45,7 @@ def get_inspection(
         record,
         original_bytes=original_bytes,
         annotated_bytes=annotated_bytes,
+        registry=registry,
     )
 
 

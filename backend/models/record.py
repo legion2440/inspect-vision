@@ -35,8 +35,18 @@ class DefectRecord(ContractModel):
 
 
 class ModelRecord(ContractModel):
-    name: str = Field(min_length=1)
-    version: str = "1"
+    id: str = Field(min_length=1)
+    display_name: str = Field(min_length=1)
+
+
+class AvailableModelRecord(ModelRecord):
+    role: Literal["general", "specialist"]
+    domain: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    classes: tuple[str, ...] = Field(min_length=1)
+    preprocessing_profile: Literal["standard-color", "steel-enhanced"]
+    is_default: bool
+    installed: bool
 
 
 class InspectionSummaryRecord(ContractModel):
@@ -83,6 +93,7 @@ class StreamInspectionRecord(ContractModel):
     total_defects: int = Field(ge=0)
     quality_score: int = Field(ge=0, le=100)
     status: Literal["passed", "failed"]
+    model: ModelRecord
 
     @model_validator(mode="after")
     def validate_invariants(self) -> StreamInspectionRecord:

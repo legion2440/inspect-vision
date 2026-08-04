@@ -36,7 +36,7 @@ def test_csv_writer_escapes_cells_and_keeps_unique_type_order() -> None:
             "totalDefects": 3,
             "qualityScore": 70,
             "status": "failed",
-            "model": {"name": "neu-defect-yolov8", "version": "1"},
+            "model": {"id": "neu-defect-yolov8", "displayName": "Steel Surface"},
         }
     )
 

@@ -182,24 +182,30 @@ def validate_demo_samples() -> list[str]:
     if not COMMIT_PATTERN.fullmatch(str(dataset.get("sourceRevision", ""))):
         errors.append("Demo dataset source revision must be a full commit SHA")
 
-    selected_model_id = model_manifest.get("selectedModelId")
-    selected_model = next(
+    model_contract = manifest.get("modelObservationContract", {})
+    observation_model_id = model_contract.get("modelId")
+    observation_model = next(
         (
             model
             for model in model_manifest.get("models", [])
-            if model.get("id") == selected_model_id
+            if model.get("id") == observation_model_id
         ),
         None,
     )
     expected_model_contract = {
         "groundTruth": False,
         "accuracyClaim": False,
-        "modelId": selected_model_id,
-        "modelSha256": selected_model.get("sha256") if selected_model else None,
-        "confidenceThreshold": 0.25,
-        "nativeClasses": selected_model.get("classes", []) if selected_model else [],
+        "modelId": observation_model_id,
+        "modelSha256": observation_model.get("sha256") if observation_model else None,
+        "confidenceThreshold": (
+            observation_model.get("confidence") if observation_model else None
+        ),
+        "nativeClasses": (
+            observation_model.get("nativeClasses", []) if observation_model else []
+        ),
     }
-    model_contract = manifest.get("modelObservationContract", {})
+    if observation_model is None:
+        errors.append("Demo observation model is not registered")
     if model_contract != expected_model_contract:
         errors.append("Demo model observation contract is invalid or claims ground truth")
 

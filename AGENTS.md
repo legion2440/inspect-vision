@@ -62,18 +62,19 @@ recorded command or evidence artifact proves the real path executed.
   video dimensions.
 - Invalid type, oversize input, model failure, and missing record errors preserve
   the messages defined in `docs/api-contract.md`.
-- Model paths and runtime tuning belong in environment configuration. Model
-  weights, local databases, media, secrets, and `.env` files are never committed.
+- The model directory and device belong in environment configuration. Registered
+  checkpoint metadata, inference thresholds, preprocessing profiles, and quality
+  weights belong in `backend/models/model-manifest.json`. Model weights, local
+  databases, media, secrets, and `.env` files are never committed.
 - Detection input is a non-empty `uint8 H x W x 3` BGR NumPy array. The reusable
   core returns every native model class as `class_id`, `class_name`, `confidence`,
   and input-image `xyxy`; it contains no class-specific filter.
-- `DetectionService` is the production inspection boundary. It owns the single
-  640-square letterbox, grayscale, CLAHE, three-channel conversion, one restore
-  to original coordinates, selected-model class mapping, annotation, verdict,
-  and authoritative `quality-v1` score.
-- The service supports the selected six-class model by default. A different
-  model requires its own explicit service class mapping and must never fall back
-  to an inferred or partial mapping.
+- `DetectionRuntimeManager` resolves the optional request `modelId`, lazy-loads
+  one `DetectionService` per registered model, and caches successful loads.
+- `DetectionService` is the production inspection boundary. It owns one
+  manifest-selected preprocessing profile, one restore to original coordinates,
+  native class validation, annotation, verdict, and authoritative per-model
+  `quality-v1` score. Native class names are never semantically remapped.
 - `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by
   `defect-detection`, despite living outside that module's primary root.
 

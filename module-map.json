@@ -14,7 +14,8 @@
       ],
       "public_interfaces": [
         { "path": "frontend/src/utils/apiClient.js", "status": "implemented" },
-        { "path": "frontend/src/context/InspectionProvider.jsx", "status": "implemented" }
+        { "path": "frontend/src/context/InspectionProvider.jsx", "status": "implemented" },
+        { "path": "frontend/src/components/ModelSelector.jsx", "status": "implemented" }
       ],
       "tests": [
         { "path": "frontend/tests/utils.test.js", "status": "implemented" }
@@ -58,6 +59,7 @@
         { "path": "backend/routes/filters.py", "status": "implemented" },
         { "path": "backend/routes/history.py", "status": "implemented" },
         { "path": "backend/routes/images.py", "status": "implemented" },
+        { "path": "backend/routes/models.py", "status": "implemented" },
         { "path": "backend/routes/serialization.py", "status": "implemented" },
         { "path": "backend/routes/stream.py", "status": "implemented" }
       ],
@@ -84,12 +86,12 @@
         "backend/utils/__init__.py",
         "backend/utils/preprocessing.py",
         "backend/utils/model_loader.py",
-        "scripts/install_selected_model.py"
+        "scripts/install_models.py"
       ],
       "entrypoints": [
         { "path": "backend/detection/__init__.py", "status": "implemented" },
         { "path": "backend/detection/service.py", "status": "implemented" },
-        { "path": "scripts/install_selected_model.py", "status": "implemented" }
+        { "path": "scripts/install_models.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "backend/detection/annotation.py", "status": "implemented" },
@@ -97,6 +99,7 @@
         { "path": "backend/detection/dto.py", "status": "implemented" },
         { "path": "backend/detection/device.py", "status": "implemented" },
         { "path": "backend/detection/quality.py", "status": "implemented" },
+        { "path": "backend/detection/runtime.py", "status": "implemented" },
         { "path": "backend/detection/ultralytics_backend.py", "status": "implemented" },
         { "path": "backend/utils/preprocessing.py", "status": "implemented" },
         { "path": "backend/utils/model_loader.py", "status": "implemented" }
@@ -198,23 +201,15 @@
       ],
       "generated_artifacts": [
         {
-          "path": "docs/evidence/models/ultralytics-model-probe.json",
-          "status": "generated",
-          "generator": "scripts/probe_models.py",
-          "sources": [
-            "backend/models/model-manifest.json",
-            "backend/samples/model-probe-samples.json"
-          ]
-        },
-        {
-          "path": "docs/evidence/models/detection-core-acceptance.json",
+          "path": "docs/evidence/models/model-registry-acceptance.json",
           "status": "generated",
           "generator": "scripts/probe_models.py",
           "sources": [
             "backend/models/model-manifest.json",
             "backend/samples/model-probe-samples.json",
             "backend/detection",
-            "backend/utils/model_loader.py"
+            "backend/utils/model_loader.py",
+            "backend/utils/preprocessing.py"
           ]
         },
         {

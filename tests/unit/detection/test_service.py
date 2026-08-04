@@ -11,6 +11,40 @@ from backend.detection.dto import Detection, InferenceResult
 from backend.detection.device import DeviceInfo
 from backend.detection.service import DetectionService
 from backend.detection.ultralytics_backend import UltralyticsBackend
+from backend.utils.preprocessing import InspectionPreprocessingConfig
+
+
+STEEL_CLASSES = (
+    "crazing",
+    "inclusion",
+    "patches",
+    "pitted_surface",
+    "rolled-in_scale",
+    "scratches",
+)
+STEEL_WEIGHTS = {
+    "crazing": 1.25,
+    "inclusion": 1.1,
+    "patches": 0.9,
+    "pitted_surface": 1.0,
+    "rolled-in_scale": 1.2,
+    "scratches": 0.85,
+}
+
+
+def service_for(
+    detector: object,
+    *,
+    profile: str = "steel-enhanced",
+    native_classes: tuple[str, ...] = STEEL_CLASSES,
+    quality_weights: dict[str, float] | None = None,
+) -> DetectionService:
+    return DetectionService(
+        detector,  # type: ignore[arg-type]
+        preprocessing=InspectionPreprocessingConfig(profile=profile),  # type: ignore[arg-type]
+        native_classes=native_classes,
+        quality_class_weights=STEEL_WEIGHTS if quality_weights is None else quality_weights,
+    )
 
 
 class DetectorStub:
@@ -90,7 +124,7 @@ def test_service_runs_single_letterbox_and_restores_original_coordinates_once(
 ) -> None:
     detection = Detection(0, "crazing", 0.8, (32.0, 192.0, 96.0, 256.0))
     detector = DetectorStub((detection,))
-    service = DetectionService(detector)  # type: ignore[arg-type]
+    service = service_for(detector)
     restore_calls = 0
     real_restore = service_module.restore_boxes
 
@@ -121,7 +155,7 @@ def test_service_drops_box_that_collapses_when_padding_is_removed() -> None:
     padding_only = Detection(0, "crazing", 0.9, (10.0, 10.0, 20.0, 20.0))
     detector = DetectorStub((padding_only,))
 
-    result = DetectionService(detector).inspect(  # type: ignore[arg-type]
+    result = service_for(detector).inspect(
         np.zeros((100, 200, 3), dtype=np.uint8)
     )
 
@@ -139,7 +173,7 @@ def test_service_maps_multiple_native_classes_and_preserves_source_image() -> No
     image = np.full((100, 200, 3), 127, dtype=np.uint8)
     original = image.copy()
 
-    result = DetectionService(DetectorStub(detections)).inspect(image)  # type: ignore[arg-type]
+    result = service_for(DetectorStub(detections)).inspect(image)
 
     assert [defect.type for defect in result.defects] == ["inclusion", "scratches"]
     assert result.total_defects == 2
@@ -152,23 +186,36 @@ def test_service_maps_multiple_native_classes_and_preserves_source_image() -> No
 def test_service_rejects_unknown_native_class() -> None:
     detector = DetectorStub((Detection(6, "pcb_short", 0.8, (10.0, 170.0, 30.0, 190.0)),))
 
-    with pytest.raises(ValueError, match="Unknown service class"):
-        DetectionService(detector).inspect(  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="Unknown native class"):
+        service_for(detector).inspect(
             np.zeros((100, 200, 3), dtype=np.uint8)
         )
 
 
-def test_alternative_model_requires_an_explicit_service_mapping() -> None:
-    detector = DetectorStub(model_id="factory-defect-guard-v6-mc")
+def test_registered_alternative_uses_native_classes_without_mapping() -> None:
+    detector = DetectorStub(
+        (Detection(0, "pcb_short", 0.8, (32.0, 192.0, 96.0, 256.0)),),
+        model_id="factory-defect-guard-v6-mc",
+    )
+    image = np.zeros((100, 200, 3), dtype=np.uint8)
+    image[:, :] = [10, 80, 220]
 
-    with pytest.raises(ValueError, match="No service class mapping"):
-        DetectionService(detector)  # type: ignore[arg-type]
+    result = service_for(
+        detector,
+        profile="standard-color",
+        native_classes=("pcb_short",),
+        quality_weights={},
+    ).inspect(image)
+
+    assert result.defects[0].type == "pcb_short"
+    assert detector.received is not None
+    assert not np.array_equal(detector.received[:, :, 0], detector.received[:, :, 2])
 
 
 def test_clean_image_returns_authoritative_clean_result() -> None:
     image = np.zeros((60, 90, 3), dtype=np.uint8)
 
-    result = DetectionService(DetectorStub()).inspect(image)  # type: ignore[arg-type]
+    result = service_for(DetectorStub()).inspect(image)
 
     assert result.defects == ()
     assert result.total_defects == 0
@@ -178,7 +225,7 @@ def test_clean_image_returns_authoritative_clean_result() -> None:
 
 def test_model_exception_propagates_unchanged() -> None:
     model_error = RuntimeError("inference failed")
-    service = DetectionService(FailingDetectorStub(model_error))  # type: ignore[arg-type]
+    service = service_for(FailingDetectorStub(model_error))
 
     with pytest.raises(RuntimeError) as captured:
         service.inspect(np.zeros((60, 90, 3), dtype=np.uint8))
@@ -187,7 +234,7 @@ def test_model_exception_propagates_unchanged() -> None:
 
 
 def test_service_rejects_invalid_bgr_input() -> None:
-    service = DetectionService(DetectorStub())  # type: ignore[arg-type]
+    service = service_for(DetectorStub())
 
     with pytest.raises(ValueError, match="HxWx3"):
         service.inspect(np.zeros((60, 90), dtype=np.uint8))
@@ -207,7 +254,7 @@ def test_ultralytics_service_path_receives_preprocessed_640_square(
         model_factory=lambda *_args, **_kwargs: model,
     )
 
-    result = DetectionService(detector).inspect(
+    result = service_for(detector).inspect(
         np.zeros((100, 200, 3), dtype=np.uint8)
     )
 

@@ -40,7 +40,7 @@ function Dashboard() {
           <h6 className="qc-kicker">Quality control / overview</h6>
           <h1>Inspection dashboard</h1>
           <p className="text-muted qc-lede">
-            Live defect detection across the finishing line — selected YOLOv8 defect model, 6 classes.
+            Selectable broad and specialist YOLO detectors for manufacturing visual inspection.
           </p>
         </div>
         <Link to="/inspect" className="btn btn-primary">

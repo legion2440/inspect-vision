@@ -1,24 +1,25 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-04T05:52:25.093243Z",
-  "sourceCommit": "24e910fc14272e7e10825b4b527b796421580108",
+  "recordedAt": "2026-08-04T07:32:18.851702Z",
+  "sourceCommit": "7f733935d0c785bf5a9122b030a08df683c50ed6",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
-    "backend/config.py": "1022ea1350822463600130a4aee9c7d583c4dcf3dd745132fc219b0b0b847a83",
-    "backend/main.py": "5ea7172c877daff54576251623c7c055c48df0d91402a09bf877c0de798f422c",
-    "backend/models/record.py": "fb1b8ac0e904b4b8b03fa5fd87ab04225faaefe524513c4ae6516f15c8316ecb",
-    "backend/routes/dependencies.py": "5935b0fd1f5916fe6e5527d18824434a94708e728cc30aa384f0e760cc62657b",
-    "backend/routes/detect.py": "f9361a8c0680ac1215b5e46851674ecd045d34f84593b99f1d1e0af7f9650ccc",
-    "backend/routes/history.py": "76153803865becb8bf31d9232888476f8c6c6bd89b3b439ff01781102a4c0f91",
-    "backend/routes/serialization.py": "6044fde30eaf96a3b1b165d165430cb528040930549ca190e7f9148ce40b09f3",
+    "backend/config.py": "d3a6c11276b5c1d5435c3367157772000a6e15afbd094226dd59382c6c54197f",
+    "backend/main.py": "6c627a6756f3dbcde120927ce172a76fa2930a3543f447948ff57efa4edf9102",
+    "backend/models/record.py": "fb0cdf5f6a6f598dc02792b665530c6afceaf5f7d16189f0bafe0ac71a975367",
+    "backend/routes/dependencies.py": "11fc1424be5dd282fc3e10ab2ddc222e7bb1c1b1e5e646cf01fe281d15045962",
+    "backend/routes/detect.py": "180d4b3c882107463de672fc0976f6c67a6e85714700d05cd2c5f8970ce57dc5",
+    "backend/routes/history.py": "8bd6f262952382128db432a28343e7704d8dad5d79e42753cd55e75856cbc38b",
+    "backend/routes/serialization.py": "4d7bfc058bd87151a1e175663b15272c88db9f6336503ce27456bc6509bcc9de",
     "backend/storage/media.py": "49fb29640c3a1e473a06998e11ec675198ab8547cb1421c7be87d23745c490eb",
     "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
     "backend/storage/service.py": "caab843cd53754c4bb2846b0d4a3cce190a71a4fef34dfceb445904a62c3f84e",
-    "backend/detection/service.py": "bb3b8a5b22901cd472f74b723bffa7a6060df1ef05766f5cba909f7793cb4be9",
-    "backend/utils/model_loader.py": "e4e7414f314411ce641277c721423f526f251f7e99e82dcee71aa596d4e02a5b",
-    "backend/utils/preprocessing.py": "252f5b69490fb09e4a8e5b509a52fb9f68befb160c3563c5452d95a959350f35",
+    "backend/detection/service.py": "a94a9acdf13b2fa0519195c592f58c6e3f9e72ee589e757f93416f1ce9379bb4",
+    "backend/detection/runtime.py": "6cd4c834fafc86cc4b9e0e084291939b1fca80b7fd62336700e1342730559cfa",
+    "backend/utils/model_loader.py": "0e12b549a5a1486c15cd5054d81c31337be55c43f97ad9d85b97165aefc245e8",
+    "backend/utils/preprocessing.py": "795f50f559bfab51c7946fb73a0ced346576cc40947ed2b114ea2c25734cec39",
     "requirements-api.txt": "e59a3662be62054d80a270ba5d5c6a8059efbdd5ee40b04340cca61374d39531",
-    "scripts/probe_api_persistence.py": "b15c2e5ad486cfaf3e16cbd5b2d69263af2e975b1b4a0c69f246d537eba8c8f5"
+    "scripts/probe_api_persistence.py": "7d75786a3ff7dc55cac10b0ff85134c0b952af7c2ffc56872f3fb687394950d3"
   },
   "runtime": {
     "python": "3.13.5",
@@ -78,19 +79,19 @@
   "httpOutputs": [
     {
       "path": "docs/evidence/api-persistence/post-inspect.json",
-      "sha256": "9249c04ffaeed906124881f1e4feb21cdb23c2f897c6b15f998ad80f853aff86"
+      "sha256": "3abee86db51d37375e7dbd8f5a4b91e4200cd553c5a5cbec69d203b7e426a5cb"
     },
     {
       "path": "docs/evidence/api-persistence/get-history.json",
-      "sha256": "9c4530cea291c859b6d2d0430140daee56e4cb946a74cb6b7abeb6650af7a2f4"
+      "sha256": "e3703947eb98e6952955ed1ca2d9f403f42be15810e28a6a6dc1273f90720a24"
     },
     {
       "path": "docs/evidence/api-persistence/get-detail.json",
-      "sha256": "9249c04ffaeed906124881f1e4feb21cdb23c2f897c6b15f998ad80f853aff86"
+      "sha256": "3abee86db51d37375e7dbd8f5a4b91e4200cd553c5a5cbec69d203b7e426a5cb"
     },
     {
       "path": "docs/evidence/api-persistence/delete-history.json",
-      "sha256": "3ee0e6211771ca0de2fca352c8e959894df90d05a42ba9d970d55b95cd123873"
+      "sha256": "b1af48f96f3c7c3e2ab78baf9f4293ab6215f0366ec5f7b1de2331fd8913059e"
     },
     {
       "path": "docs/evidence/api-persistence/get-history-after-delete.json",
@@ -98,20 +99,20 @@
     }
   ],
   "inspection": {
-    "inspectionId": "insp_20260804T055224766682Z_a847330e",
+    "inspectionId": "insp_20260804T073218578131Z_dbe545af",
     "totalDefects": 4,
     "qualityScore": 62,
     "status": "failed",
     "model": {
-      "name": "neu-defect-yolov8",
-      "version": "1"
+      "id": "neu-defect-yolov8",
+      "displayName": "Steel Surface"
     }
   },
   "persistenceBeforeDelete": {
     "recordExists": true,
     "databaseFields": {
-      "inspectionId": "insp_20260804T055224766682Z_a847330e",
-      "timestamp": "2026-08-04T05:52:24.766682Z",
+      "inspectionId": "insp_20260804T073218578131Z_dbe545af",
+      "timestamp": "2026-08-04T07:32:18.578131Z",
       "fileName": "evidence-inclusion.jpg",
       "imageWidth": 200,
       "imageHeight": 200,
@@ -121,12 +122,12 @@
       "modelId": "neu-defect-yolov8"
     },
     "original": {
-      "relativePath": "original/insp_20260804T055224766682Z_a847330e.jpg",
+      "relativePath": "original/insp_20260804T073218578131Z_dbe545af.jpg",
       "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
       "byteExactToSource": true
     },
     "annotated": {
-      "relativePath": "annotated/insp_20260804T055224766682Z_a847330e.jpg",
+      "relativePath": "annotated/insp_20260804T073218578131Z_dbe545af.jpg",
       "sha256": "cc7f6d0c4b4c6a2586925d2b6b495e6b5aa1f5cd8b5bbf89624c3c919ee93970",
       "dimensions": {
         "width": 200,
@@ -140,7 +141,7 @@
     "remainingMediaFiles": []
   },
   "acceptance": {
-    "realSelectedModelViaDetectionService": true,
+    "realRegisteredModelViaDetectionService": true,
     "postAndDetailIncludeDualDataUrls": true,
     "historyListOmitsImagePayloads": true,
     "originalStoredByteForByte": true,

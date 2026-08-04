@@ -9,13 +9,14 @@ from datetime import UTC, datetime
 from pathlib import PurePath
 
 import cv2
-from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile, status
 
 from backend.detection.dto import InspectionResult
-from backend.detection.service import DetectionService
+from backend.detection.runtime import DetectionRuntimeManager
 from backend.models.record import InspectionDetailRecord
 from backend.storage.service import InspectionDraft, InspectionStorage
-from .dependencies import get_detection_service, get_inference_lock, get_storage
+from backend.utils.model_loader import ModelNotFoundError, ModelNotInstalledError
+from .dependencies import get_detection_runtime, get_inference_lock, get_storage
 from .images import decode_upload
 from .serialization import to_detail
 
@@ -54,7 +55,8 @@ def defects_for_storage(result: InspectionResult) -> tuple[dict[str, object], ..
 def inspect_image(
     request: Request,
     image: UploadFile,
-    detection_service: DetectionService = Depends(get_detection_service),
+    model_id: str | None = Form(default=None, alias="modelId"),
+    detection_runtime: DetectionRuntimeManager = Depends(get_detection_runtime),
     storage: InspectionStorage = Depends(get_storage),
     inference_lock: threading.Lock = Depends(get_inference_lock),
 ) -> InspectionDetailRecord:
@@ -65,7 +67,11 @@ def inspect_image(
 
     try:
         with inference_lock:
-            result = detection_service.inspect(decoded.image)
+            result = detection_runtime.inspect(decoded.image, model_id)
+    except ModelNotFoundError:
+        raise HTTPException(status_code=404, detail="Detection model not found") from None
+    except ModelNotInstalledError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from None
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -103,4 +109,5 @@ def inspect_image(
         record,
         original_bytes=decoded.payload,
         annotated_bytes=annotated_buffer.tobytes(),
+        registry=detection_runtime.registry,
     )

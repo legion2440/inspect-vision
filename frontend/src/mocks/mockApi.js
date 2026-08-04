@@ -4,7 +4,45 @@
  */
 const SAMPLE = '/samples/sample-part.jpg';
 
-const rec = (id, iso, defects, file) => ({
+const MODELS = [
+  {
+    id: 'factory-defect-guard-v6-mc',
+    displayName: 'General Manufacturing',
+    role: 'general',
+    domain: 'General manufacturing',
+    description: 'Coverage-oriented detector for several manufacturing domains.',
+    classes: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled_in_scale', 'scratches', 'pcb_missing_hole', 'pcb_mouse_bite', 'pcb_open_circuit', 'pcb_short', 'pcb_spur', 'pcb_spurious_copper', 'tile_defect', 'transistor_defect', 'screw_defect', 'metal_nut_defect', 'capsule_defect'],
+    preprocessingProfile: 'standard-color',
+    isDefault: true,
+    installed: true,
+  },
+  {
+    id: 'neu-defect-yolov8',
+    displayName: 'Steel Surface',
+    role: 'specialist',
+    domain: 'Steel surface',
+    description: 'Specialist detector for six steel surface defect classes.',
+    classes: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches'],
+    preprocessingProfile: 'steel-enhanced',
+    isDefault: false,
+    installed: true,
+  },
+  {
+    id: 'concrete-crack-yolov8',
+    displayName: 'Concrete & Structural Cracks',
+    role: 'specialist',
+    domain: 'Concrete and structural surfaces',
+    description: 'Specialist detector for visible cracks on concrete and masonry.',
+    classes: ['crack'],
+    preprocessingProfile: 'standard-color',
+    isDefault: false,
+    installed: true,
+  },
+];
+
+const modelOf = (modelId) => MODELS.find((model) => model.id === modelId) || MODELS[0];
+
+const rec = (id, iso, defects, file, model = MODELS[0]) => ({
   inspectionId: id,
   timestamp: iso,
   fileName: file,
@@ -14,7 +52,9 @@ const rec = (id, iso, defects, file) => ({
   imageHeight: 1187,
   defects,
   totalDefects: defects.length,
+  qualityScore: defects.length ? 80 : 100,
   status: defects.length ? 'failed' : 'passed',
+  model: { id: model.id, displayName: model.displayName },
 });
 
 const box = (x, y, width, height) => ({ x, y, width, height });
@@ -53,18 +93,26 @@ const dataUrlOf = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
-export async function inspectImage(file) {
+export async function getModels() {
+  await wait(80);
+  return MODELS;
+}
+
+export async function inspectImage(file, { modelId } = {}) {
   await wait(1400);
+  const model = modelOf(modelId);
   const id = 'insp_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(store.length + 1).padStart(3, '0');
-  const pool = [
-    { type: 'scratches', confidence: 0.93, boundingBox: box(200, 150, 250, 90) },
-    { type: 'inclusion', confidence: 0.84, boundingBox: box(660, 390, 170, 150) },
-    { type: 'crazing', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
-  ];
+  const pool = model.id === 'concrete-crack-yolov8'
+    ? [{ type: 'crack', confidence: 0.93, boundingBox: box(200, 150, 250, 90) }]
+    : [
+      { type: 'scratches', confidence: 0.93, boundingBox: box(200, 150, 250, 90) },
+      { type: 'inclusion', confidence: 0.84, boundingBox: box(660, 390, 170, 150) },
+      { type: 'crazing', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
+    ];
   const defects = pool.slice(0, 1 + Math.floor(Math.random() * 3));
   const imageUrl = await dataUrlOf(file);
   const record = {
-    ...rec(id, new Date().toISOString(), defects, file?.name || 'upload.jpg'),
+    ...rec(id, new Date().toISOString(), defects, file?.name || 'upload.jpg', model),
     imageUrl,
     originalImageUrl: imageUrl,
   };
@@ -72,14 +120,24 @@ export async function inspectImage(file) {
   return record;
 }
 
-export async function inspectFrame() {
+export async function inspectFrame({ modelId } = {}) {
   await wait(120);
+  const model = modelOf(modelId);
   const jitter = () => Math.round((Math.random() - 0.5) * 60);
-  return {
-    defects: [
+  const defects = model.id === 'concrete-crack-yolov8'
+    ? [{ type: 'crack', confidence: 0.9, boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90) }]
+    : [
       { type: 'scratches', confidence: 0.9, boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90) },
       { type: 'inclusion', confidence: 0.71, boundingBox: box(700 + jitter(), 380 + jitter(), 150, 140) },
-    ],
+    ];
+  return {
+    frameWidth: 1280,
+    frameHeight: 720,
+    defects,
+    totalDefects: defects.length,
+    qualityScore: 80,
+    status: defects.length ? 'failed' : 'passed',
+    model: { id: model.id, displayName: model.displayName },
   };
 }
 

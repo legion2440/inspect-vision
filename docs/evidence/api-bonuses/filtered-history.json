@@ -1,7 +1,7 @@
 [
   {
-    "inspectionId": "insp_20260804T055342770520Z_b8ae0ef1",
-    "timestamp": "2026-08-04T05:53:42.770520Z",
+    "inspectionId": "insp_20260804T073225568335Z_598d97cc",
+    "timestamp": "2026-08-04T07:32:25.568335Z",
     "fileName": "target-inclusion-newest.jpg",
     "imageWidth": 200,
     "imageHeight": 200,
@@ -51,13 +51,13 @@
     "qualityScore": 62,
     "status": "failed",
     "model": {
-      "name": "neu-defect-yolov8",
-      "version": "1"
+      "id": "neu-defect-yolov8",
+      "displayName": "Steel Surface"
     }
   },
   {
-    "inspectionId": "insp_20260804T055342624691Z_d4d1765c",
-    "timestamp": "2026-08-04T05:53:42.624691Z",
+    "inspectionId": "insp_20260804T073225404799Z_772b763d",
+    "timestamp": "2026-08-04T07:32:25.404799Z",
     "fileName": "target-inclusion-a.jpg",
     "imageWidth": 200,
     "imageHeight": 200,
@@ -107,8 +107,8 @@
     "qualityScore": 62,
     "status": "failed",
     "model": {
-      "name": "neu-defect-yolov8",
-      "version": "1"
+      "id": "neu-defect-yolov8",
+      "displayName": "Steel Surface"
     }
   }
 ]

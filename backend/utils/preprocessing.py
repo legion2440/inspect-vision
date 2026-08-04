@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 import cv2
 import numpy as np
@@ -20,12 +21,20 @@ class LetterboxInfo:
 @dataclass(frozen=True, slots=True)
 class InspectionPreprocessingConfig:
     input_size: int = 640
+    profile: Literal["standard-color", "steel-enhanced"] = "steel-enhanced"
+    padding_color: tuple[int, int, int] = (114, 114, 114)
     clahe_clip_limit: float = 2.0
     clahe_tile_grid_size: tuple[int, int] = (8, 8)
 
     def __post_init__(self) -> None:
         if self.input_size <= 0:
             raise ValueError("input_size must be positive")
+        if self.profile not in {"standard-color", "steel-enhanced"}:
+            raise ValueError(f"Unsupported preprocessing profile: {self.profile}")
+        if len(self.padding_color) != 3 or any(
+            value < 0 or value > 255 for value in self.padding_color
+        ):
+            raise ValueError("padding_color must contain three uint8 values")
         if self.clahe_clip_limit <= 0.0:
             raise ValueError("clahe_clip_limit must be positive")
         if (
@@ -39,8 +48,8 @@ class InspectionPreprocessingConfig:
 @dataclass(frozen=True, slots=True)
 class InspectionPreprocessingResult:
     model_input: np.ndarray
-    grayscale: np.ndarray
-    contrast_adjusted: np.ndarray
+    grayscale: np.ndarray | None
+    contrast_adjusted: np.ndarray | None
     letterbox_info: LetterboxInfo
 
 
@@ -157,7 +166,15 @@ def preprocess_inspection_image(
     """Build the single 640-square geometry used by the inspection service."""
 
     validate_bgr_image(image)
-    padded, info = letterbox(image, config.input_size)
+    padded, info = letterbox(image, config.input_size, config.padding_color)
+    if config.profile == "standard-color":
+        return InspectionPreprocessingResult(
+            model_input=np.ascontiguousarray(padded),
+            grayscale=None,
+            contrast_adjusted=None,
+            letterbox_info=info,
+        )
+
     grayscale = to_grayscale(padded)
     contrast_adjusted = apply_clahe(
         grayscale,

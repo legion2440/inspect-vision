@@ -25,7 +25,7 @@ pixels with `(0, 0)` at the top-left.
   "totalDefects": 1,
   "qualityScore": 82,
   "status": "failed",
-  "model": { "name": "neu-defect-yolov8", "version": "1" }
+  "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" }
 }
 ```
 
@@ -40,18 +40,19 @@ Contract invariants:
 - `totalDefects` equals `defects.length`.
 - `status` is `passed` only when `totalDefects` is zero; otherwise it is `failed`.
 - `qualityScore` is an integer from `0` to `100` and is authoritative.
-- `model.name` is the persisted manifest model ID; `model.version` is the API
-  projection version and currently equals `1`.
-- `type` preserves one of the selected model's native names: `crazing`,
-  `inclusion`, `patches`, `pitted_surface`, `rolled-in_scale`, or `scratches`.
+- `model.id` is the persisted manifest model ID and `model.displayName` is its
+  operator-facing registry label.
+- `type` preserves the chosen checkpoint's native class name without semantic
+  remapping.
 
 ## Endpoints
 
 ### `POST /api/inspect`
 
-Accepts `multipart/form-data` with one field named `image`. Supported content is
-JPEG or PNG up to 10 MiB. Validation uses decoded content, not only the extension
-or client-supplied MIME type.
+Accepts `multipart/form-data` with one required field named `image` and an
+optional text field named `modelId`. Omission selects `defaultModelId` from the
+tracked registry. Supported content is JPEG or PNG up to 10 MiB. Validation uses
+decoded content, not only the extension or client-supplied MIME type.
 
 Returns the full inspection detail and persists metadata plus both image assets.
 The original payload is stored byte-for-byte. The annotated image uses the same
@@ -95,7 +96,8 @@ Clears all metadata and owned media and returns:
 
 ### `POST /api/stream`
 
-Accepts one JPEG frame in multipart field `frame`. Only one request at a time is
+Accepts one JPEG frame in multipart field `frame` plus the same optional
+`modelId` field as inspect. Only one request at a time is
 issued by the frontend. Validation is content-based and rejects PNG or
 undecodable payloads even when their filename or MIME type says JPEG. The API
 uses the same `DetectionService` instance and inference lock as `/api/inspect`.
@@ -108,11 +110,39 @@ The response uses frame pixel coordinates:
   "defects": [],
   "totalDefects": 0,
   "qualityScore": 100,
-  "status": "passed"
+  "status": "passed",
+  "model": {
+    "id": "factory-defect-guard-v6-mc",
+    "displayName": "General Manufacturing"
+  }
 }
 ```
 
 Stream frames are not persisted in SQLite or media storage.
+
+### `GET /api/models`
+
+Returns the validated registry projection used by the upload and live selectors:
+
+```json
+[
+  {
+    "id": "factory-defect-guard-v6-mc",
+    "displayName": "General Manufacturing",
+    "role": "general",
+    "domain": "General manufacturing",
+    "description": "Coverage-oriented detector for steel, PCB, tile, electronics, fasteners, and capsules.",
+    "classes": ["crazing", "inclusion", "..."],
+    "preprocessingProfile": "standard-color",
+    "isDefault": true,
+    "installed": true
+  }
+]
+```
+
+The endpoint does not load a checkpoint. `installed` means the local filename,
+size, and SHA-256 currently match the manifest. Uninstalled entries remain
+visible so the UI can explain how to install them.
 
 ### `GET /api/export`
 
@@ -137,7 +167,9 @@ FastAPI errors use `{ "detail": "message" }`.
 | --- | ---: | --- |
 | Undecodable or unsupported image | 415 | `Unsupported file type` |
 | More than 10 MiB | 413 | `File size exceeds 10MB limit` |
-| Model load or inference failure | 500 | `Detection model error` |
+| Model inference failure after a successful load | 500 | `Detection model error` |
+| Unknown `modelId` | 404 | `Detection model not found` |
+| Registered checkpoint missing or invalid | 409 | Message includes `python scripts/install_models.py --model <id>` |
 | Unknown inspection ID | 404 | `Inspection not found` |
 
 Internal paths, stack traces, model paths, and original unsafe filenames are not
