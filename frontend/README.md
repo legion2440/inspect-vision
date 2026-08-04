@@ -23,8 +23,9 @@ standalone responses in `src/mocks/mockApi.js`.
 
 | Route | File | Purpose |
 | --- | --- | --- |
-| `/` | `src/routes/index.jsx` | Dashboard: statistics + quick upload + recent inspections |
+| `/` | `src/routes/index.jsx` | Dashboard: statistics + model-aware quick upload + recent inspections |
 | `/inspect` | `src/routes/inspect.jsx` | Upload / live-stream inspection with canvas overlay |
+| `/samples` | `src/routes/samples.jsx` | Attributed sample cards inspected with the current global model |
 | `/history` | `src/routes/history.jsx` | History table with date, type and text filters, CSV export |
 | `/details/:id` | `src/routes/details.$id.jsx` | Full record: annotated image, defect breakdown, actions |
 
@@ -35,6 +36,8 @@ standalone responses in `src/mocks/mockApi.js`.
 | Method | Path | Used in |
 | --- | --- | --- |
 | GET | `/api/models` | model selector metadata and installed/default state |
+| GET | `/api/samples` | offline showcase metadata without image payloads |
+| GET | `/api/samples/{id}/image` | original showcase image by manifest ID |
 | POST | `/api/inspect` (multipart `image`, optional `modelId`) | `utils/apiClient.js` → `inspectImage` |
 | GET | `/api/history?from&to&type&q` | server-filtered `getHistory` |
 | GET | `/api/history/{id}` | `getInspection` |
@@ -97,6 +100,9 @@ src/
 - `/inspect` selects the installed API default, disables uninstalled registry
   entries, and sends the same `modelId` for upload and live frames. Changing a
   selection aborts in-flight work and clears stale upload/live results.
+- Dashboard Quick Upload and `/samples` reuse that same global selection.
+  Sample recommendations are advisory; the user must opt into one. Inspecting a
+  sample performs fresh persisted inference through the normal upload workflow.
 - Uninstalled registry entries remain visible and show their exact
   `python scripts/install_models.py --model <id>` installation command.
 - History defect filters are derived from all registry-native class names.

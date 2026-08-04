@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import csv
+import hashlib
 import io
 import threading
 import time
@@ -286,6 +287,46 @@ def test_models_endpoint_exposes_three_registry_entries(api_factory) -> None:
     assert sum(model["isDefault"] for model in models) == 1
     assert models[0]["installed"] is True
     assert models[2]["installed"] is False
+
+
+def test_samples_endpoint_exposes_manifest_metadata_without_image_payloads(api_factory) -> None:
+    client = api_factory()
+
+    response = client.get("/api/samples")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["notice"] == "Source labels describe dataset metadata, not model predictions."
+    assert len(body["datasets"]) == 3
+    assert len(body["samples"]) == 9
+    assert "base64" not in response.text.casefold()
+    registered_ids = {model["id"] for model in client.get("/api/models").json()}
+    recommended_ids = [sample["recommendedModelId"] for sample in body["samples"]]
+    assert set(recommended_ids) == registered_ids
+    assert all(recommended_ids.count(model_id) == 3 for model_id in registered_ids)
+    assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
+
+
+def test_sample_image_is_served_by_manifest_id_with_matching_hash(api_factory) -> None:
+    client = api_factory()
+    sample = client.get("/api/samples").json()["samples"][0]
+
+    response = client.get(sample["imageUrl"])
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == sample["mediaType"]
+    assert hashlib.sha256(response.content).hexdigest() == sample["sha256"]
+
+
+def test_unknown_sample_id_returns_404_without_path_lookup(api_factory) -> None:
+    client = api_factory()
+
+    response = client.get("/api/samples/unknown-sample/image")
+    traversal = client.get("/api/samples/..%2Fmodel-manifest.json/image")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Sample not found"}
+    assert traversal.status_code == 404
 
 
 def test_stream_accepts_jpeg_and_does_not_persist(api_factory) -> None:

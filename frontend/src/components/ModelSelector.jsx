@@ -1,10 +1,10 @@
 import { installModelCommand, modelClassesLabel } from '../utils/models.js';
 
-export default function ModelSelector({ models = [], value, onChange, loading, error }) {
+export default function ModelSelector({ models = [], value, onChange, loading, error, compact = false }) {
   const selected = models.find((model) => model.id === value);
   const uninstalled = models.filter((model) => !model.installed);
   return (
-    <section className="qc-model-selector" aria-label="Detection model">
+    <section className={`qc-model-selector${compact ? ' is-compact' : ''}`} aria-label="Detection model">
       <div className="field">
         <label htmlFor="inspection-model">Detection model</label>
         <select

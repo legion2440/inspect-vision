@@ -5,7 +5,7 @@
   "modules": [
     {
       "id": "frontend-app",
-      "description": "Provides the operator dashboard, upload and live inspection UI, history, details, Canvas overlays, and HTTP client boundary.",
+      "description": "Provides the operator dashboard, upload and live inspection UI, model-aware sample showcase, history, details, Canvas overlays, and HTTP client boundary.",
       "module_type": "application",
       "root": "frontend",
       "entrypoints": [
@@ -15,7 +15,8 @@
       "public_interfaces": [
         { "path": "frontend/src/utils/apiClient.js", "status": "implemented" },
         { "path": "frontend/src/context/InspectionProvider.jsx", "status": "implemented" },
-        { "path": "frontend/src/components/ModelSelector.jsx", "status": "implemented" }
+        { "path": "frontend/src/components/ModelSelector.jsx", "status": "implemented" },
+        { "path": "frontend/src/routes/samples.jsx", "status": "implemented" }
       ],
       "tests": [
         { "path": "frontend/tests/utils.test.js", "status": "implemented" }
@@ -46,7 +47,9 @@
       "root": "backend/routes",
       "additional_owned_paths": [
         "backend/config.py",
-        "backend/main.py"
+        "backend/main.py",
+        "backend/samples/showcase-samples.json",
+        "backend/samples/showcase"
       ],
       "entrypoints": [
         { "path": "backend/main.py", "status": "implemented" }
@@ -60,6 +63,7 @@
         { "path": "backend/routes/history.py", "status": "implemented" },
         { "path": "backend/routes/images.py", "status": "implemented" },
         { "path": "backend/routes/models.py", "status": "implemented" },
+        { "path": "backend/routes/samples.py", "status": "implemented" },
         { "path": "backend/routes/serialization.py", "status": "implemented" },
         { "path": "backend/routes/stream.py", "status": "implemented" }
       ],
@@ -184,7 +188,8 @@
         { "path": "scripts/probe_api_bonuses.py", "status": "implemented" },
         { "path": "scripts/prepare_demo_samples.py", "status": "implemented" },
         { "path": "scripts/probe_demo_samples.py", "status": "implemented" },
-        { "path": "scripts/validate_demo_samples.py", "status": "implemented" }
+        { "path": "scripts/validate_demo_samples.py", "status": "implemented" },
+        { "path": "scripts/validate_showcase_samples.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "docs/verification.md", "status": "implemented" },

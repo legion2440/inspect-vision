@@ -26,3 +26,17 @@ all images through the selected production service at confidence `0.25` with
 `scripts/probe_demo_samples.py`. `scripts/prepare_demo_samples.py` can rebuild
 the source-quota inventory from the official archive; no synthetic image or fake
 detection is used.
+
+`showcase/` is a separate operator-facing collection of nine original source
+images: three PCB images from DefectDet V1, three blade-surface images from the
+GKN Blade Surface Defect Dataset V1, and three pavement/wall crack contexts from
+HU Infrastructure Cracks V1. All three sources are pinned to a published
+version under CC BY 4.0. `showcase-samples.json` records source paths, dataset
+labels, attribution, hashes, dimensions, media types, and a recommended
+registered model. It never stores model predictions.
+
+The `/api/samples` metadata endpoint and `/api/samples/{id}/image` asset endpoint
+serve this offline collection by manifest ID. Running one from the frontend
+uses the operator's current model selection and the ordinary `/api/inspect`
+path, so the result is persisted to history. Validate the catalog with
+`scripts/validate_showcase_samples.py`.

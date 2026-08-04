@@ -13,6 +13,10 @@ Implemented routes:
   detail response;
 - `GET /api/models`: registry metadata plus default and installed state without
   loading checkpoints;
+- `GET /api/samples`: attributed showcase metadata without image bodies or
+  model predictions;
+- `GET /api/samples/{id}/image`: one original local image resolved only through
+  its manifest ID;
 - `GET /api/history`: combined server-side date/type/query filters;
 - `GET /api/history/{id}`: persisted detail with dual data URLs;
 - `DELETE /api/history/{id}` and `POST /api/history/clear`: metadata plus media
@@ -24,4 +28,5 @@ Implemented routes:
 
 Image decoding and history-filter parsing are shared route utilities so inspect,
 stream, history, and export cannot silently diverge. Detection and persistence
-logic stay in their owning modules.
+logic stay in their owning modules. Showcase inspection deliberately reuses
+`POST /api/inspect`; there is no sample-specific inference route.

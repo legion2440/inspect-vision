@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as InspectRouteImport } from './routes/inspect'
+import { Route as SamplesRouteImport } from './routes/samples'
 import { Route as DetailsIdRouteImport } from './routes/details.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const InspectRoute = InspectRouteImport.update({
   path: '/inspect',
   getParentRoute: () => rootRouteImport,
 })
+const SamplesRoute = SamplesRouteImport.update({
+  id: '/samples',
+  path: '/samples',
+  getParentRoute: () => rootRouteImport,
+})
 const DetailsIdRoute = DetailsIdRouteImport.update({
   id: '/details/$id',
   path: '/details/$id',
@@ -39,6 +45,7 @@ const rootRouteChildren = {
   IndexRoute: IndexRoute,
   HistoryRoute: HistoryRoute,
   InspectRoute: InspectRoute,
+  SamplesRoute: SamplesRoute,
   DetailsIdRoute: DetailsIdRoute,
 }
 export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)

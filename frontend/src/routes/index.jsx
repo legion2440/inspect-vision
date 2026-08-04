@@ -3,13 +3,24 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Upload } from 'lucide-react';
 import ImageUploader from '../components/ImageUploader.jsx';
 import InspectionCard from '../components/InspectionCard.jsx';
+import ModelSelector from '../components/ModelSelector.jsx';
 import StatCell from '../components/StatCell.jsx';
 import { useInspection } from '../hooks/useInspection.js';
 
 export const Route = createFileRoute('/')({ component: Dashboard });
 
 function Dashboard() {
-  const { history, loadHistory, runInspection, error } = useInspection();
+  const {
+    history,
+    loadHistory,
+    runInspection,
+    error,
+    models,
+    modelsStatus,
+    modelsError,
+    selectedModelId,
+    selectModel,
+  } = useInspection();
   const navigate = useNavigate();
 
   useEffect(() => { loadHistory(); }, [loadHistory]);
@@ -30,7 +41,7 @@ function Dashboard() {
 
   const handleFile = async (file) => {
     navigate({ to: '/inspect' });
-    await runInspection(file);
+    await runInspection(file, selectedModelId);
   };
 
   return (
@@ -58,6 +69,14 @@ function Dashboard() {
       <div className="qc-row qc-row-dash">
         <section>
           <h6 className="qc-sectionhead">Quick upload</h6>
+          <ModelSelector
+            compact
+            models={models}
+            value={selectedModelId}
+            onChange={selectModel}
+            loading={modelsStatus === 'loading'}
+            error={modelsError}
+          />
           <ImageUploader onFile={handleFile} error={error} />
         </section>
         <section>

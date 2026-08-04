@@ -3,14 +3,12 @@
 ## Status
 
 The frontend application, reusable multiclass core, multi-model inspection
-service, SQLite/media persistence, and main FastAPI inspection/history API are
-implemented. All registered models have service-level probe evidence. The steel
-specialist has HTTP persistence, deletion, non-persisted stream, and filtered
-CSV evidence; the all-model HTTP matrix remains deferred. Twelve redistributed
-VisA samples have license, hash,
-decode, dimension, source-annotation provenance, and separate selected-model
-observations. See
-`docs/project-status.json` for the precise baseline and limitations.
+service, SQLite/media persistence, main FastAPI inspection/history API, and
+model-aware sample showcase are implemented. Twelve redistributed VisA samples
+retain source/model-observation separation. A separate nine-image showcase
+provides attributed PCB, steel, and concrete examples for fresh inspection with
+the operator's selected model. See `docs/project-status.json` for the precise
+baseline and limitations.
 
 ## System context
 
@@ -20,6 +18,7 @@ flowchart LR
     Frontend -->|"HTTP multipart and JSON"| API["FastAPI"]
     API --> Detection["OpenCV and defect model"]
     API --> History["Inspection history"]
+    API --> Samples["Offline sample showcase"]
     Detection --> Media["Original and annotated images"]
     History --> Database["SQLite metadata"]
 ```
@@ -37,6 +36,10 @@ flowchart LR
   color transforms while Canvas remains a separate overlay.
 - Upload model changes abort and sequence-invalidate in-flight requests before
   clearing preview, result, metadata, error, and status state.
+- The same global model selector drives Dashboard Quick Upload, the Inspect
+  page, and the Samples page. Sample recommendations never auto-switch it.
+- Sample cards fetch original bytes and call the ordinary persisted inspection
+  workflow; there is no sample-specific prediction endpoint.
 - Calls only interfaces defined in `docs/api-contract.md`.
 - Implemented and build-verified.
 
@@ -51,13 +54,16 @@ flowchart LR
   one storage service, and one shared inference lock. Checkpoints are loaded only
   on first use and successful services remain cached by model ID.
 - Implements `POST /api/inspect`, `POST /api/stream`, `GET /api/export`,
-  list/detail/delete history, and history clear.
+  list/detail/delete history, history clear, and manifest-based sample list/image
+  endpoints.
 - Stream inference reuses the application service and lock without persistence;
   export reuses the canonical history filters and newest-first query path.
 - Keeps model inference and persistence implementation behind their public
   service boundaries.
 - Serializes a retired historical model with its persisted ID as the display
   fallback instead of requiring the model to remain in the current registry.
+- Serves showcase images only through manifest IDs; list responses contain
+  metadata and URLs without binary or precomputed detection payloads.
 
 ### Defect detection
 
@@ -117,6 +123,9 @@ flowchart LR
   archive paths, hashes, dimensions, and four tracked `image_anno.csv` files.
 - `sourceGroundTruth` is annotation-backed; `modelObservation` is reproduced at
   confidence `0.25` and explicitly makes no accuracy claim.
+- The showcase validator enforces three images per registered model, pinned
+  source/license metadata, source-label vocabularies, hashes, dimensions,
+  decodeability, the upload-size limit, and absence of prediction fields.
 
 ## Boundary rules
 
@@ -147,5 +156,5 @@ sequenceDiagram
 ## Deferred decisions
 
 The primary runtime model is registered in `backend/models/model-manifest.json`.
-Production confidence calibration and the final evidence `sourceCommit`
-rebinding remain deferred, as does the all-model HTTP evidence matrix.
+Production confidence calibration and a ground-truth accuracy benchmark remain
+outside the current product scope.

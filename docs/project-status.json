@@ -4,7 +4,7 @@
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "multi-model-runtime-verified-final-evidence-rebinding-pending",
+  "state": "model-aware-showcase-implemented",
   "verified": [
     "manifest schema version 2 validates one default and three uniquely registered detect checkpoints",
     "General Manufacturing is the coverage-oriented default; Steel Surface and Concrete & Structural Cracks are selectable specialists",
@@ -23,23 +23,18 @@
     "registry installer supports default, --model, and --all with pinned size/SHA checks and atomic replacement",
     "frontend mock mode exposes the same three-model selection contract",
     "existing upload, stream, history, persistence, filtering, deletion, CSV, annotation, severity, and demo-sample behavior remains covered",
-    "frontend tests and Vite production build pass after the multi-model change"
+    "frontend tests and Vite production build pass after the multi-model change",
+    "Dashboard Quick Upload, Inspect, live stream, and the Samples page share one explicit global model selection",
+    "nine offline CC BY 4.0 showcase images cover PCB, steel, and concrete/crack domains with three samples per registered model",
+    "showcase source labels, provenance, attribution, hashes, dimensions, media types, and recommended models are validated without storing predictions",
+    "GET /api/samples returns metadata without image payloads and GET /api/samples/{id}/image serves originals only by manifest ID",
+    "Inspect sample performs fresh inference with the current model through POST /api/inspect and persists the resulting history record"
   ],
   "known_limitations": [
     {
       "id": "broad-model-low-probe-confidence",
       "area": "defect-detection",
       "detail": "The broad default uses confidence 0.05 based on observed runtime behavior. Its mixed-domain probe records predictions, including mismatched source labels, and does not claim accuracy superiority."
-    },
-    {
-      "id": "runtime-evidence-commit-pointers-provisional",
-      "area": "verification-evidence",
-      "detail": "Runtime evidence is bound to executed source-file hashes; final sourceCommit convenience pointers remain a later cleanup milestone."
-    },
-    {
-      "id": "all-model-http-matrix-pending",
-      "area": "verification-evidence",
-      "detail": "All three models have real DetectionRuntimeManager-to-DetectionService evidence, while committed inspect/stream HTTP evidence currently exercises the steel specialist; the three-model HTTP matrix remains part of the final evidence milestone."
     },
     {
       "id": "demo-observations-not-an-accuracy-benchmark",

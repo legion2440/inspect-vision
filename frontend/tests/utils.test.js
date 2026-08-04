@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { toCsv } from '../src/utils/csv.js';
 import { boxLabel, coordinate } from '../src/utils/format.js';
@@ -14,6 +15,11 @@ import {
   selectInitialModel,
 } from '../src/utils/models.js';
 import { scoreOf, severityScore } from '../src/utils/severity.js';
+import {
+  groupSamplesByDomain,
+  inspectShowcaseSample,
+  recommendedModelFor,
+} from '../src/utils/samples.js';
 
 test('CSV export keeps the canonical columns and escapes values', () => {
   const csv = toCsv([
@@ -139,4 +145,68 @@ test('coordinates are presented with at most one decimal place', () => {
   assert.equal(coordinate(12.04), '12');
   assert.equal(coordinate(12.06), '12.1');
   assert.equal(boxLabel({ x: 1.234, y: 2, width: 3.96, height: 4.01 }), '1.2, 2, 4, 4');
+});
+
+test('showcase manifest produces three cards for each registered model domain', () => {
+  const manifest = JSON.parse(readFileSync(
+    new URL('../../backend/samples/showcase-samples.json', import.meta.url),
+    'utf8',
+  ));
+  const groups = groupSamplesByDomain(manifest.samples);
+
+  assert.equal(manifest.samples.length, 9);
+  assert.deepEqual([...groups.values()].map((samples) => samples.length), [3, 3, 3]);
+  assert.deepEqual(
+    [...new Set(manifest.samples.map((sample) => sample.recommendedModelId))],
+    ['factory-defect-guard-v6-mc', 'neu-defect-yolov8', 'concrete-crack-yolov8'],
+  );
+});
+
+test('showcase reports an unavailable recommended model without substituting another', () => {
+  const sample = { recommendedModelId: 'concrete-crack-yolov8' };
+  const models = [
+    { id: 'factory-defect-guard-v6-mc', installed: true },
+    { id: 'concrete-crack-yolov8', installed: false },
+  ];
+
+  assert.deepEqual(recommendedModelFor(sample, models), models[1]);
+  assert.equal(recommendedModelFor({ recommendedModelId: 'retired' }, models), null);
+});
+
+test('inspect sample uses the current global model selection and navigates after success', async () => {
+  const calls = [];
+  class FakeFile {
+    constructor(parts, name, options) {
+      Object.assign(this, { parts, name, type: options.type });
+    }
+  }
+  const sample = {
+    id: 'concrete-demo',
+    filename: 'concrete.jpg',
+    mediaType: 'image/jpeg',
+    recommendedModelId: 'concrete-crack-yolov8',
+  };
+
+  const record = await inspectShowcaseSample({
+    sample,
+    selectedModelId: 'neu-defect-yolov8',
+    loadSample: async () => ({ type: 'image/jpeg', bytes: 'source' }),
+    runInspection: async (file, modelId) => {
+      calls.push({ file, modelId });
+      return { inspectionId: 'insp-sample' };
+    },
+    navigate: (options) => calls.push({ navigate: options }),
+    FileConstructor: FakeFile,
+  });
+
+  assert.equal(record.inspectionId, 'insp-sample');
+  assert.equal(calls[0].modelId, 'neu-defect-yolov8');
+  assert.equal(calls[0].file.name, 'concrete.jpg');
+  assert.deepEqual(calls[1], { navigate: { to: '/inspect' } });
+});
+
+test('dashboard quick upload is wired to the shared selected model', () => {
+  const dashboard = readFileSync(new URL('../src/routes/index.jsx', import.meta.url), 'utf8');
+  assert.match(dashboard, /<ModelSelector[\s\S]*value=\{selectedModelId\}/);
+  assert.match(dashboard, /runInspection\(file, selectedModelId\)/);
 });

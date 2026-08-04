@@ -146,6 +146,26 @@ The endpoint does not load a checkpoint. `installed` means the local filename,
 size, and SHA-256 currently match the manifest. Uninstalled entries remain
 visible so the UI can explain how to install them.
 
+### `GET /api/samples`
+
+Returns the offline showcase manifest as `notice`, `datasets`, and `samples`.
+Each sample includes its manifest ID, domain, `recommendedModelId`, `datasetId`,
+source labels, dimensions, hash, media type, attribution lookup, and an
+`imageUrl`. The list contains no image bytes, base64 payloads, detections,
+confidence values, or other precomputed model output. Source labels are dataset
+metadata and are not model predictions.
+
+The recommended model is advisory. The frontend never changes the operator's
+selection automatically; `Inspect sample` fetches the original image and sends
+it through the normal `POST /api/inspect` path with the currently selected
+`modelId`. The resulting inspection is persisted to history.
+
+### `GET /api/samples/{id}/image`
+
+Returns the original local JPEG or PNG for a manifest sample ID with the correct
+media type. Filesystem paths are never accepted as request input. Unknown IDs
+return HTTP 404.
+
 ### `GET /api/export`
 
 Accepts the same filters as history and returns `text/csv; charset=utf-8` with a
@@ -173,6 +193,7 @@ FastAPI errors use `{ "detail": "message" }`.
 | Unknown `modelId` | 404 | `Detection model not found` |
 | Registered checkpoint missing or invalid | 409 | Message includes `python scripts/install_models.py --model <id>` |
 | Unknown inspection ID | 404 | `Inspection not found` |
+| Unknown showcase sample ID | 404 | `Sample not found` |
 
 Internal paths, stack traces, model paths, and original unsafe filenames are not
 returned. Filenames are sanitized before any filesystem use.

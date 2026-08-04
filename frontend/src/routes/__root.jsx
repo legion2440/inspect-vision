@@ -22,6 +22,7 @@ function RootLayout() {
         <nav className="qc-navlinks">
           <Link to="/" activeOptions={{ exact: true }} className="qc-navlink">Dashboard</Link>
           <Link to="/inspect" className="qc-navlink">Inspect</Link>
+          <Link to="/samples" className="qc-navlink">Samples</Link>
           <Link to="/history" className="qc-navlink">History</Link>
         </nav>
         <div className="qc-line">

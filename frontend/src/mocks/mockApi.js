@@ -40,6 +40,54 @@ const MODELS = [
   },
 ];
 
+const SAMPLE_DATASETS = [
+  {
+    id: 'defectdet-v1',
+    name: 'DefectDet PCB Dataset',
+    version: '1',
+    sourceUrl: 'https://data.mendeley.com/datasets/t9d9zs3bmb/1',
+    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+    attribution: 'DefectDet V1 contributors, licensed CC BY 4.0.',
+  },
+  {
+    id: 'gkn-blade-v1',
+    name: 'GKN Blade Surface Defect Dataset',
+    version: '1',
+    sourceUrl: 'https://data.mendeley.com/datasets/3bh998k78g/1',
+    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+    attribution: 'GKN Blade Surface Defect Dataset V1 by Qianyu Zhou, licensed CC BY 4.0.',
+  },
+  {
+    id: 'hu-infrastructure-cracks-v1',
+    name: 'HU Infrastructure Cracks Dataset',
+    version: '1',
+    sourceUrl: 'https://zenodo.org/records/20829348',
+    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+    attribution: 'HU Infrastructure Cracks Dataset V1 contributors, licensed CC BY 4.0.',
+  },
+];
+
+const MOCK_SAMPLES = [
+  ['mock-pcb-open', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['open circuit']],
+  ['mock-pcb-short', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['short circuit']],
+  ['mock-pcb-copper', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['spurious copper']],
+  ['mock-steel-good', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Good']],
+  ['mock-steel-nick', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Nick']],
+  ['mock-steel-scratch', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Scratch']],
+  ['mock-concrete-transverse', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'transverse']],
+  ['mock-concrete-longitudinal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['wall', 'longitudinal']],
+  ['mock-concrete-diagonal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'diagonal']],
+].map(([id, domain, recommendedModelId, datasetId, sourceLabels]) => ({
+  id,
+  domain,
+  recommendedModelId,
+  datasetId,
+  sourceLabels,
+  filename: 'sample-part.jpg',
+  mediaType: 'image/jpeg',
+  imageUrl: SAMPLE,
+}));
+
 const modelOf = (modelId) => MODELS.find((model) => model.id === modelId) || MODELS[0];
 
 const rec = (id, iso, defects, file, model = MODELS[0]) => ({
@@ -96,6 +144,15 @@ const dataUrlOf = (file) => new Promise((resolve, reject) => {
 export async function getModels() {
   await wait(80);
   return MODELS;
+}
+
+export async function getSamples() {
+  await wait(80);
+  return {
+    notice: 'Source labels describe dataset metadata, not model predictions.',
+    datasets: SAMPLE_DATASETS,
+    samples: MOCK_SAMPLES,
+  };
 }
 
 export async function inspectImage(file, { modelId } = {}) {

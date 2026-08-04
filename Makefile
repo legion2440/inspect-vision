@@ -36,6 +36,7 @@ probe-bonuses:
 
 validate-samples:
 	$(PYTHON) scripts/validate_demo_samples.py
+	$(PYTHON) scripts/validate_showcase_samples.py
 
 probe-samples:
 	$(PYTHON) scripts/probe_demo_samples.py

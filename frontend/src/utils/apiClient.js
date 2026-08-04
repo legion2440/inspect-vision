@@ -56,6 +56,24 @@ export async function getModels({ signal } = {}) {
   return unwrap(await fetch(BASE + '/api/models', { signal }));
 }
 
+/** GET /api/samples — curated metadata only; image bytes use the image endpoint. */
+export async function getSamples({ signal } = {}) {
+  if (USE_MOCK) return mock.getSamples();
+  return unwrap(await fetch(BASE + '/api/samples', { signal }));
+}
+
+export function sampleImageUrl(sample) {
+  const path = sample?.imageUrl || '';
+  if (USE_MOCK || /^(?:data:|blob:|https?:)/i.test(path)) return path;
+  return BASE + path;
+}
+
+/** GET /api/samples/{id}/image — original redistributable sample bytes. */
+export async function getSampleImage(sample, { signal } = {}) {
+  const response = await fetch(sampleImageUrl(sample), { signal });
+  return unwrapBlob(response);
+}
+
 /** GET /api/history?from=&to=&type=&q= */
 export async function getHistory(filters = {}, { signal } = {}) {
   if (USE_MOCK) return mock.getHistory(filters);

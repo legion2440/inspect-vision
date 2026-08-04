@@ -108,6 +108,8 @@ JPEG/PNG bytes -> validated BGR -> one square letterbox
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/models` | List registry metadata and installed/default state |
+| `GET` | `/api/samples` | List attributed offline showcase metadata |
+| `GET` | `/api/samples/{id}/image` | Read one original showcase image by manifest ID |
 | `POST` | `/api/inspect` | Inspect and persist `image` with optional `modelId` |
 | `POST` | `/api/stream` | Inspect JPEG `frame` with optional `modelId`, without persistence |
 | `GET` | `/api/history` | List records with `from`, `to`, `type`, and `q` filters |
@@ -118,6 +120,12 @@ JPEG/PNG bytes -> validated BGR -> one square letterbox
 
 The complete request, response, filtering, image, and error contracts are in
 `docs/api-contract.md`.
+
+The Samples page contains nine attributed CC BY 4.0 images across PCB, steel,
+and concrete/crack domains. Dataset labels are shown as source metadata only.
+Inspecting a sample uses the currently selected model, performs fresh inference
+through `/api/inspect`, and stores the result in normal history. The selector is
+also available above Quick Upload on the Dashboard.
 
 ### Real inspection example
 
@@ -234,6 +242,7 @@ Useful individual commands:
 .venv/Scripts/python.exe scripts/validate_architecture.py
 .venv/Scripts/python.exe scripts/generate_dependency_graph.py --check
 .venv/Scripts/python.exe scripts/validate_demo_samples.py
+.venv/Scripts/python.exe scripts/validate_showcase_samples.py
 .venv/Scripts/python.exe -m pytest
 npm --prefix frontend test
 npm --prefix frontend run build

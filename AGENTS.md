@@ -79,6 +79,11 @@ recorded command or evidence artifact proves the real path executed.
   preview/result state, and prevents a late response from restoring stale data.
 - Historical inspections remain readable after their model leaves the current
   registry; the persisted model ID is also the display-name fallback.
+- Dashboard Quick Upload, Inspect, live stream, and Samples share one explicit
+  model selection. A sample recommendation must never switch it automatically.
+- Showcase source labels are dataset metadata, never predictions. Showcase
+  images are served only by manifest ID, and inspection reuses the ordinary
+  persisted `/api/inspect` path.
 - `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by
   `defect-detection`, despite living outside that module's primary root.
 
@@ -113,6 +118,7 @@ make status
 .venv/Scripts/python.exe scripts/probe_api_persistence.py
 .venv/Scripts/python.exe scripts/probe_api_bonuses.py
 .venv/Scripts/python.exe scripts/validate_demo_samples.py
+.venv/Scripts/python.exe scripts/validate_showcase_samples.py
 .venv/Scripts/python.exe scripts/probe_demo_samples.py
 ```
 
@@ -127,5 +133,8 @@ unmodified VisA subset described by `backend/samples/demo-samples.json`.
 Selection is based only on source annotation quotas. Keep `sourceGroundTruth`
 from tracked CSVs separate from `modelObservation`; zero detections and false
 positives must be recorded without relabeling source truth.
+The separate operator showcase is described by
+`backend/samples/showcase-samples.json`; it contains no model observations and
+must remain independently hash/provenance validated.
 GNU Make is optional on Windows;
 `.venv/Scripts/python.exe scripts/validate.py` is the canonical Windows check.
