@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { toCsv } from '../src/utils/csv.js';
-import { boxLabel, coordinate } from '../src/utils/format.js';
+import { boxLabel, coordinate, modelLabel } from '../src/utils/format.js';
 import {
   initialInspectionState,
   inspectionReducer,
@@ -145,6 +145,18 @@ test('coordinates are presented with at most one decimal place', () => {
   assert.equal(coordinate(12.04), '12');
   assert.equal(coordinate(12.06), '12.1');
   assert.equal(boxLabel({ x: 1.234, y: 2, width: 3.96, height: 4.01 }), '1.2, 2, 4, 4');
+});
+
+test('history model label uses display name and preserves retired-model fallback', () => {
+  assert.equal(
+    modelLabel({ model: { id: 'neu-defect-yolov8', displayName: 'Steel Surface' } }),
+    'Steel Surface',
+  );
+  assert.equal(
+    modelLabel({ model: { id: 'retired-manufacturing-model', displayName: 'retired-manufacturing-model' } }),
+    'retired-manufacturing-model',
+  );
+  assert.equal(modelLabel({}), 'Unknown model');
 });
 
 test('showcase manifest produces three cards for each registered model domain', () => {

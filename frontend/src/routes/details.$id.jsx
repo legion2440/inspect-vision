@@ -6,7 +6,7 @@ import InspectionViewer from '../components/InspectionViewer.jsx';
 import StatusTag from '../components/StatusTag.jsx';
 import { deleteInspection, getInspection } from '../utils/apiClient.js';
 import { confidenceColor } from '../utils/colors.js';
-import { boxLabel, pct, stamp } from '../utils/format.js';
+import { boxLabel, modelLabel, pct, stamp } from '../utils/format.js';
 import { annotatedImageFilename } from '../utils/media.js';
 import { scoreOf } from '../utils/severity.js';
 
@@ -66,9 +66,10 @@ function Details() {
         <StatusTag status={record.status} size="lg" />
       </div>
 
-      <div className="qc-metagrid">
+      <div className="qc-metagrid qc-metagrid-five">
         <div className="qc-cell"><span className="qc-lab">Timestamp</span><span className="qc-mono">{stamp(record.timestamp)}</span></div>
         <div className="qc-cell"><span className="qc-lab">Source file</span><span className="qc-mono">{record.fileName || '—'}</span></div>
+        <div className="qc-cell"><span className="qc-lab">Model</span><span>{modelLabel(record)}</span></div>
         <div className="qc-cell"><span className="qc-lab">Total defects</span><span className="qc-mono">{record.totalDefects ?? defects.length}</span></div>
         <div className="qc-cell"><span className="qc-lab">Severity score</span><span className="qc-mono">{scoreOf(record)} / 100</span></div>
       </div>

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import Blueprint from './Blueprint.jsx';
 import StatusTag from './StatusTag.jsx';
-import { stamp } from '../utils/format.js';
+import { modelLabel, stamp } from '../utils/format.js';
 import { scoreOf } from '../utils/severity.js';
 
 export default function InspectionCard({ record }) {
@@ -14,7 +14,7 @@ export default function InspectionCard({ record }) {
           {count ? count + ' defects · ' + record.defects[0].type : 'No defects detected'}
         </span>
         <span className="qc-lab">
-          {stamp(record.timestamp)} · score {scoreOf(record)}
+          {stamp(record.timestamp)} · {modelLabel(record)} · score {scoreOf(record)}
         </span>
       </Link>
       <StatusTag status={record.status} />

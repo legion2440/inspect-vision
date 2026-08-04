@@ -19,3 +19,5 @@ export const coordinate = (value) => {
 export const boxLabel = (b) => [b.x, b.y, b.width, b.height].map(coordinate).join(', ');
 
 export const defectTypes = (rec) => [...new Set((rec.defects || []).map((d) => d.type))];
+
+export const modelLabel = (rec) => rec?.model?.displayName || rec?.model?.id || 'Unknown model';
