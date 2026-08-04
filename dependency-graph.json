@@ -6,7 +6,7 @@
     "defect-detection",
     "inspection-history",
     "shared-contracts",
-    "audit-evidence"
+    "verification-evidence"
   ],
   "allowed_edges": [
     {
@@ -52,28 +52,28 @@
       "rationale": "Persistence stores and returns shared inspection semantics."
     },
     {
-      "from": "audit-evidence",
+      "from": "verification-evidence",
       "to": "frontend-app",
       "type": "verification",
-      "rationale": "Audit checks verify the public frontend build and behavior."
+      "rationale": "Executable checks verify the public frontend build and behavior."
     },
     {
-      "from": "audit-evidence",
+      "from": "verification-evidence",
       "to": "backend-api",
       "type": "verification",
       "rationale": "Integration tests and loopback HTTP evidence verify the public inspection and history API."
     },
     {
-      "from": "audit-evidence",
+      "from": "verification-evidence",
       "to": "defect-detection",
       "type": "verification",
-      "rationale": "Audit evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs."
+      "rationale": "Runtime evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs."
     },
     {
-      "from": "audit-evidence",
+      "from": "verification-evidence",
       "to": "inspection-history",
       "type": "verification",
-      "rationale": "Unit and loopback HTTP evidence verify history persistence and media consistency; CSV remains deferred."
+      "rationale": "Unit and loopback HTTP evidence verify history persistence, media consistency, and the CSV projection."
     }
   ],
   "forbidden_edges": [

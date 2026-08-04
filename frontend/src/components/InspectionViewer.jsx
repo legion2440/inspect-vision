@@ -17,13 +17,11 @@ export default function InspectionViewer({
     <figure className="qc-figure">
       <Blueprint className="qc-figure-frame">
         <div className="qc-image-stack">
-          <div className="duotone">
-            <img
-              src={src}
-              alt="Inspected part"
-              onLoad={(e) => setDims({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
-            />
-          </div>
+          <img
+            src={src}
+            alt="Inspected part"
+            onLoad={(e) => setDims({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
+          />
           {!busy && dims.w > 0 && (
             <DefectOverlay
               defects={defects}

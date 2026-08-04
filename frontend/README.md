@@ -13,9 +13,11 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-The default is `VITE_USE_MOCK=false`: the UI calls the FastAPI backend configured
-by `VITE_API_BASE_URL`. Set `VITE_USE_MOCK=true` explicitly to run against the
-bundled standalone responses in `src/mocks/mockApi.js`.
+The default is `VITE_USE_MOCK=false`: browser calls use relative `/api` URLs and
+the development server proxies them to `http://localhost:8000`. Set the optional
+`VITE_API_BASE_URL` only when a production frontend must call a different
+origin. Set `VITE_USE_MOCK=true` explicitly to run against the bundled
+standalone responses in `src/mocks/mockApi.js`.
 
 ## Routes
 

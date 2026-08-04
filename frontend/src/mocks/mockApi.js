@@ -46,6 +46,13 @@ let store = [
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const dataUrlOf = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.addEventListener('load', () => resolve(reader.result), { once: true });
+  reader.addEventListener('error', () => reject(new Error('Could not read selected image')), { once: true });
+  reader.readAsDataURL(file);
+});
+
 export async function inspectImage(file) {
   await wait(1400);
   const id = 'insp_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(store.length + 1).padStart(3, '0');
@@ -55,7 +62,7 @@ export async function inspectImage(file) {
     { type: 'crazing', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
   ];
   const defects = pool.slice(0, 1 + Math.floor(Math.random() * 3));
-  const imageUrl = URL.createObjectURL(file);
+  const imageUrl = await dataUrlOf(file);
   const record = {
     ...rec(id, new Date().toISOString(), defects, file?.name || 'upload.jpg'),
     imageUrl,

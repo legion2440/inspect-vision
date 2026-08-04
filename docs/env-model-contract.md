@@ -15,7 +15,7 @@ profile includes Streamlit, supervision, tracking, or video runtimes.
 | `INSPECT_VISION_HOST` | no | FastAPI bind host; defaults to loopback |
 | `INSPECT_VISION_PORT` | no | FastAPI port |
 | `INSPECT_VISION_CORS_ORIGINS` | yes | Comma-separated exact frontend origins |
-| `INSPECT_VISION_MAX_UPLOAD_BYTES` | yes | Upload limit; canonical value is 10485760 |
+| `INSPECT_VISION_MAX_UPLOAD_BYTES` | yes | Upload limit from 1 through the hard maximum of 10485760 bytes |
 | `INSPECT_VISION_MODEL_KIND` | yes | Registered adapter kind; currently `ultralytics` |
 | `INSPECT_VISION_MODEL_PATH` | yes | Repository-relative or deployment-local model path |
 | `INSPECT_VISION_MODEL_INPUT_SIZE` | yes | Square model input size, initially 640 |
@@ -35,6 +35,9 @@ API mode and it must not be changed back to implicit mock mode.
 - `backend/models/model-manifest.json` is the tracked model registry. The selected
   model, immutable source revision, MIT license metadata, SHA-256, byte size,
   input size, task, and checkpoint-native classes are recorded there.
+- `scripts/install_selected_model.py` downloads only `selectedModelId` from its
+  pinned HTTPS revision, verifies byte size and SHA-256, and atomically installs
+  the checkpoint beside the manifest.
 - Verify the local weight byte size and SHA-256 before constructing the adapter.
 - Load one model instance during FastAPI lifespan startup.
 - Validate kind, readable path, class names, input size, and supported device.

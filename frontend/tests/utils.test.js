@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { toCsv } from '../src/utils/csv.js';
+import { boxLabel, coordinate } from '../src/utils/format.js';
+import { annotatedImageFilename, imageExtension } from '../src/utils/media.js';
 import { scoreOf, severityScore } from '../src/utils/severity.js';
 
 test('CSV export keeps the canonical columns and escapes values', () => {
@@ -53,4 +55,19 @@ test('client fallback mirrors backend quality-v1', () => {
   };
 
   assert.equal(severityScore([defect], 100 * 100), 89);
+});
+
+test('annotated download filename follows the image media type', () => {
+  assert.equal(imageExtension('data:image/jpeg;base64,AA=='), 'jpg');
+  assert.equal(imageExtension('data:image/png;base64,AA=='), 'png');
+  assert.equal(annotatedImageFilename('insp/unsafe', 'data:image/png;base64,AA=='), 'insp_unsafe.png');
+  assert.equal(annotatedImageFilename('insp-1', '/media/annotated.jpeg?token=1'), 'insp-1.jpg');
+  assert.equal(annotatedImageFilename('insp-2', 'data:application/octet-stream;base64,AA=='), 'insp-2');
+});
+
+test('coordinates are presented with at most one decimal place', () => {
+  assert.equal(coordinate(12), '12');
+  assert.equal(coordinate(12.04), '12');
+  assert.equal(coordinate(12.06), '12.1');
+  assert.equal(boxLabel({ x: 1.234, y: 2, width: 3.96, height: 4.01 }), '1.2, 2, 4, 4');
 });

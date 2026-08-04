@@ -1,160 +1,238 @@
 # Inspect-Vision
 
-Visual quality-control system for manufacturing images. The React/Vite frontend,
-selected-model inspection service, crash-recoverable SQLite/media persistence,
-and main FastAPI inspection/history API are implemented and verified. Live
-stream inference and server CSV export are also implemented and verified. The
-tracked source-balanced VisA demo dataset is hash/provenance validated and its
-separate selected-model observations are reproducible.
+Inspect-Vision is a manufacturing image-inspection application. A React/Vite
+interface sends images to a FastAPI backend, the selected Ultralytics model
+detects surface defects, OpenCV produces an annotated image, and SQLite plus
+owned media storage provide searchable inspection history.
 
-## Current state
+## Requirements
 
-- Frontend routes, upload UI, history, Canvas overlays, severity fallback, live
-  capture UI, and CSV integration are implemented.
-- Real API mode is the default (`VITE_USE_MOCK=false`).
-- Two local Ultralytics detection models are registered by source revision,
-  license, SHA-256, input size, and native classes; `.pt` files remain ignored.
-- The Python core accepts a BGR `numpy.ndarray` and returns normalized multiclass
-  detections with `class_id`, `class_name`, `confidence`, and input-image `xyxy`
-  coordinates.
-- `DetectionService` owns the production inspection path: 640-square letterbox,
-  grayscale, CLAHE, three-channel YOLO input, one original-coordinate restore,
-  six-class identity mapping, positive-area filtering, original-size annotation,
-  `quality-v1`, and the passed/failed verdict.
-- SQLite metadata, combined server-side filters, staged media creation,
-  quarantined deletion, failure compensation, and restart reconciliation are
-  implemented.
-- FastAPI loads one detector/service during lifespan, serializes inference, and
-  implements upload plus history list/detail/delete/clear.
-- Original media is stored byte-for-byte; annotation uses the same detected
-  JPEG/PNG format; POST/detail use the dual-image data URL contract.
-- `/api/stream` reuses the selected service and inference lock without
-  persistence; `/api/export` reuses the canonical history filters and ordering.
-- Twelve unmodified CC BY 4.0 VisA images cover four normal and eight anomaly
-  cases across four products and ten source defect labels. Ground truth comes
-  from tracked `image_anno.csv` files; model observations remain separate.
-- The authoritative limitations and baseline SHA are in
-  `docs/project-status.json`.
+- Windows 11 with Git Bash;
+- Python 3.13.5;
+- Node.js and npm;
+- enough disk space for Python packages, the selected 6.3 MB checkpoint, and
+  local inspection media.
 
-## Python setup
+The tracked `.pt` files are intentionally excluded from Git.
 
-Inspect-Vision uses Python 3.13.5 on Windows. From Git Bash:
+## Fresh-clone setup
+
+Run these commands from Git Bash:
 
 ```bash
-python --version
-python -m venv .venv
+git clone https://01.tomorrow-school.ai/git/nyestaye/inspect-vision.git
+cd inspect-vision
+
+py -3.13 -m venv .venv
 .venv/Scripts/python.exe -m pip install --upgrade pip
 .venv/Scripts/python.exe -m pip install -r requirements-api.txt
+
+cp .env.example .env
+.venv/Scripts/python.exe scripts/install_selected_model.py
 ```
 
-The API profile includes the exact CPU detection profile. Install a compatible
-CUDA PyTorch build separately before selecting `cuda` or `cuda:N`. For
-detection-only work, install `requirements-detection.txt` instead.
+The installer reads `selectedModelId` from
+`backend/models/model-manifest.json`, downloads its immutable revision, checks
+the declared byte size and SHA-256, and only then installs the checkpoint. It
+does not change the selected model or download registered alternatives.
 
-Model weights must match `backend/models/model-manifest.json`. Verify both local
-models through the detection core with:
+Install and configure the frontend:
 
 ```bash
-.venv/Scripts/python.exe scripts/probe_models.py --engine core --device cpu --confidence 0.05
+cp frontend/.env.example frontend/.env
+npm --prefix frontend ci
 ```
 
-Run the selected model through the complete inspection service at production
-confidence and regenerate JSON plus annotated PNG evidence with:
-
-```bash
-.venv/Scripts/python.exe scripts/probe_inspection_service.py
-```
-
-Run the real selected model through a loopback Uvicorn server, POST/list/detail/
-delete persistence sequence, and regenerate HTTP JSON evidence with:
-
-```bash
-.venv/Scripts/python.exe scripts/probe_api_persistence.py
-```
-
-Verify real stream inference without persistence and filtered history/CSV row
-parity with:
-
-```bash
-.venv/Scripts/python.exe scripts/probe_api_bonuses.py
-```
-
-Validate the tracked demo dataset without inference, or regenerate its real
-selected-model evidence:
-
-```bash
-.venv/Scripts/python.exe scripts/validate_demo_samples.py
-.venv/Scripts/python.exe scripts/probe_demo_samples.py
-```
-
-`scripts/prepare_demo_samples.py` reads bounded ranges from the official VisA
-archive, applies normal/anomaly/category quotas before inference, preserves the
-selected image bytes and annotation CSVs, then records model observations. It
-is not required for normal setup.
+The default frontend configuration uses the real API through relative `/api`
+requests. Vite proxies them to `http://localhost:8000` during development.
+`VITE_API_BASE_URL` is only needed when a production frontend calls a different
+origin. Set `VITE_USE_MOCK=true` only for explicit standalone UI work.
 
 ## Run
 
-Copy `.env.example` to `.env`, keep the registered model weight at the configured
-path, then start the backend from the repository root:
+Start the backend from the repository root:
 
 ```bash
 .venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-In another Git Bash terminal:
+In a second Git Bash terminal:
 
 ```bash
 cd frontend
-npm ci
 npm run dev
 ```
 
-## Commands
+Open `http://localhost:5173`. FastAPI documentation is available at
+`http://localhost:8000/docs`.
+
+CUDA is optional. The supplied dependency profile uses CPU PyTorch; install a
+compatible CUDA PyTorch build separately before setting
+`INSPECT_VISION_MODEL_DEVICE=cuda` or `cuda:N`.
+
+## Configuration
+
+Backend settings use the `INSPECT_VISION_` prefix and are documented in
+`docs/env-model-contract.md`. The main values are the model path/device,
+confidence and IoU thresholds, CORS origins, SQLite/media paths, and upload
+limit. `INSPECT_VISION_MAX_UPLOAD_BYTES` may be lowered but cannot exceed the
+hard 10 MiB maximum (`10485760` bytes).
+
+The production inspection path is:
+
+```text
+JPEG/PNG bytes -> validated BGR -> 640-square letterbox -> grayscale -> CLAHE
+-> 3-channel YOLO inference -> original-coordinate boxes -> annotation
+-> quality score/status -> SQLite record and original/annotated media
+```
+
+## API
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/inspect` | Inspect and persist multipart field `image` |
+| `POST` | `/api/stream` | Inspect a JPEG multipart field `frame` without persistence |
+| `GET` | `/api/history` | List records with `from`, `to`, `type`, and `q` filters |
+| `GET` | `/api/history/{id}` | Read one record with original and annotated data URLs |
+| `DELETE` | `/api/history/{id}` | Delete metadata and owned media |
+| `POST` | `/api/history/clear` | Clear all metadata and owned media |
+| `GET` | `/api/export` | Export the filtered history projection as UTF-8 CSV |
+
+The complete request, response, filtering, image, and error contracts are in
+`docs/api-contract.md`.
+
+### Real inspection example
+
+With the backend running, inspect one of the tracked demo images:
+
+```bash
+curl -sS -X POST http://localhost:8000/api/inspect \
+  -F "image=@backend/samples/demo/visa-chewinggum-normal-000.jpg;type=image/jpeg"
+```
+
+This response was recorded from that image with the selected model at the
+default confidence. Only the two base64 bodies are shortened here:
+
+```json
+{
+  "inspectionId": "insp_20260804T054824288330Z_2df23070",
+  "timestamp": "2026-08-04T05:48:24.288330Z",
+  "fileName": "visa-chewinggum-normal-000.jpg",
+  "imageWidth": 1342,
+  "imageHeight": 1118,
+  "defects": [
+    {
+      "type": "patches",
+      "confidence": 0.46318528056144714,
+      "boundingBox": {
+        "x": 368.910888671875,
+        "y": 283.77960205078125,
+        "width": 573.1429443359375,
+        "height": 172.46771240234375
+      }
+    }
+  ],
+  "totalDefects": 1,
+  "qualityScore": 93,
+  "status": "failed",
+  "model": { "name": "neu-defect-yolov8", "version": "1" },
+  "imageUrl": "data:image/jpeg;base64,<base64 omitted>",
+  "originalImageUrl": "data:image/jpeg;base64,<base64 omitted>"
+}
+```
+
+Demo source labels and model observations are intentionally separate; this
+example describes runtime behavior and is not an accuracy claim.
+
+### Real history example
+
+Query the record using the same server-side type filter used by CSV export:
+
+```bash
+curl -sS "http://localhost:8000/api/history?type=patches"
+```
+
+The corresponding response contains the same persisted fields but no image
+payloads:
+
+```json
+[
+  {
+    "inspectionId": "insp_20260804T054824288330Z_2df23070",
+    "timestamp": "2026-08-04T05:48:24.288330Z",
+    "fileName": "visa-chewinggum-normal-000.jpg",
+    "imageWidth": 1342,
+    "imageHeight": 1118,
+    "defects": [
+      {
+        "type": "patches",
+        "confidence": 0.46318528056144714,
+        "boundingBox": {
+          "x": 368.910888671875,
+          "y": 283.77960205078125,
+          "width": 573.1429443359375,
+          "height": 172.46771240234375
+        }
+      }
+    ],
+    "totalDefects": 1,
+    "qualityScore": 93,
+    "status": "failed",
+    "model": { "name": "neu-defect-yolov8", "version": "1" }
+  }
+]
+```
+
+## Folder structure
+
+```text
+backend/
+  detection/       preprocessing orchestration, annotation, scoring, detector DTOs
+  models/          tracked model registry; local .pt checkpoints are ignored
+  routes/          FastAPI inspect, stream, history, image, and export boundaries
+  samples/         attributed demo images and source provenance
+  storage/         SQLite repository and consistent media lifecycle
+frontend/
+  src/             React routes, components, context, API client, mocks, and styles
+docs/               API/environment contracts, verification status, runtime evidence
+scripts/            model installation, validation, and reproducible runtime probes
+tests/              Python unit and integration coverage
+```
+
+## Validation
+
+The canonical Windows command runs structure, dataset, architecture, dependency,
+Python, frontend, production-build, and dependency-vulnerability checks:
 
 ```bash
 .venv/Scripts/python.exe scripts/validate.py
 ```
 
-If GNU Make is installed, the same checks are available as:
-
-```bash
-make validate
-make validate-architecture
-make validate-frontend
-make test
-make architecture
-make check-architecture
-make probe-service
-make probe-api
-make probe-bonuses
-make validate-samples
-make probe-samples
-make status
-```
-
-Without Make:
+Useful individual commands:
 
 ```bash
 .venv/Scripts/python.exe scripts/validate_structure.py
 .venv/Scripts/python.exe scripts/validate_architecture.py
 .venv/Scripts/python.exe scripts/generate_dependency_graph.py --check
-.venv/Scripts/python.exe -m pytest tests/unit/backend_api tests/unit/contracts tests/unit/detection tests/unit/history tests/unit/evidence tests/integration/api
+.venv/Scripts/python.exe scripts/validate_demo_samples.py
+.venv/Scripts/python.exe -m pytest
 npm --prefix frontend test
 npm --prefix frontend run build
 npm --prefix frontend audit --audit-level=high
-.venv/Scripts/python.exe scripts/show_status.py
 ```
 
-Frontend development:
+Check the fresh backend template without creating a local runtime database:
 
 ```bash
-cd frontend
-npm ci
-npm run dev
+.venv/Scripts/python.exe -c "from backend.config import Settings; print(Settings(_env_file='.env.example').max_upload_bytes)"
 ```
 
-Copy `frontend/.env.example` to `frontend/.env`. Real API mode remains the
-default; set `VITE_USE_MOCK=true` only for explicit standalone UI work.
+Validate the locally installed selected checkpoint without downloading it again:
 
-Read `AGENTS.md` before changing the repository. Architecture, API, environment,
-model, and audit contracts live under `docs/`.
+```bash
+.venv/Scripts/python.exe scripts/install_selected_model.py
+```
+
+Repository navigation and ownership rules are in `AGENTS.md`; current capability
+status and executable evidence links are in `docs/project-status.json` and
+`docs/verification.md`.

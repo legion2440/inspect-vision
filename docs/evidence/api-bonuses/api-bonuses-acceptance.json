@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-03T19:06:08.305588Z",
+  "recordedAt": "2026-08-04T05:53:42.984381Z",
   "sourceCommit": "24e910fc14272e7e10825b4b527b796421580108",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
-    "backend/config.py": "f9cc81077c88058e17f12622322261a6e6fd29800127c2fab2183a19555971bb",
+    "backend/config.py": "1022ea1350822463600130a4aee9c7d583c4dcf3dd745132fc219b0b0b847a83",
     "backend/main.py": "5ea7172c877daff54576251623c7c055c48df0d91402a09bf877c0de798f422c",
     "backend/models/record.py": "fb1b8ac0e904b4b8b03fa5fd87ab04225faaefe524513c4ae6516f15c8316ecb",
     "backend/routes/dependencies.py": "5935b0fd1f5916fe6e5527d18824434a94708e728cc30aa384f0e760cc62657b",
@@ -117,11 +117,11 @@
     },
     {
       "path": "docs/evidence/api-bonuses/filtered-history.json",
-      "sha256": "2e894656151cf649220dbfa5113da7b76164494673bf4bdcaa1f192115a9dba1"
+      "sha256": "dfdfd66457e80b0890d8ec6263d80a350cdc93ed0b40e25b85cbaf8014db41e6"
     },
     {
       "path": "docs/evidence/api-bonuses/filtered-export.csv",
-      "sha256": "b9f258a4d1c88c7a342b4350d47e641aa1e96791820260cfaceca36fca6a279d"
+      "sha256": "ea2518a3995013c2eef161672922716c22cd6d6f5bb262b5fc2cbd4d41c19fb9"
     }
   ],
   "stream": {
@@ -134,18 +134,18 @@
   },
   "export": {
     "filters": {
-      "from": "2026-08-03",
-      "to": "2026-08-03",
+      "from": "2026-08-04",
+      "to": "2026-08-04",
       "type": "inclusion",
       "q": "target"
     },
     "historyInspectionIds": [
-      "insp_20260803T190608084718Z_351e0a75",
-      "insp_20260803T190607943049Z_d6eb4926"
+      "insp_20260804T055342770520Z_b8ae0ef1",
+      "insp_20260804T055342624691Z_d4d1765c"
     ],
     "csvInspectionIds": [
-      "insp_20260803T190608084718Z_351e0a75",
-      "insp_20260803T190607943049Z_d6eb4926"
+      "insp_20260804T055342770520Z_b8ae0ef1",
+      "insp_20260804T055342624691Z_d4d1765c"
     ],
     "rowsMatchHistoryProjection": true,
     "contentType": "text/csv; charset=utf-8",
@@ -154,12 +154,12 @@
   "persistence": {
     "createdInspectionCount": 3,
     "mediaFilesBeforeClear": [
-      "annotated/insp_20260803T190607943049Z_d6eb4926.jpg",
-      "annotated/insp_20260803T190608013445Z_bbf825f1.jpg",
-      "annotated/insp_20260803T190608084718Z_351e0a75.jpg",
-      "original/insp_20260803T190607943049Z_d6eb4926.jpg",
-      "original/insp_20260803T190608013445Z_bbf825f1.jpg",
-      "original/insp_20260803T190608084718Z_351e0a75.jpg"
+      "annotated/insp_20260804T055342624691Z_d4d1765c.jpg",
+      "annotated/insp_20260804T055342702788Z_78466946.jpg",
+      "annotated/insp_20260804T055342770520Z_b8ae0ef1.jpg",
+      "original/insp_20260804T055342624691Z_d4d1765c.jpg",
+      "original/insp_20260804T055342702788Z_78466946.jpg",
+      "original/insp_20260804T055342770520Z_b8ae0ef1.jpg"
     ],
     "clearResponse": {
       "cleared": 3

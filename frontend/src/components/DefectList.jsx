@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { confidenceColor } from '../utils/colors.js';
-import { pct } from '../utils/format.js';
+import { coordinate, pct } from '../utils/format.js';
 
 /** Defect rows: type + icon, color-coded confidence, coordinates. */
 export default function DefectList({ defects = [], onSelect, selectedIndex }) {
@@ -42,7 +42,8 @@ export default function DefectList({ defects = [], onSelect, selectedIndex }) {
               />
             </span>
             <span className="qc-mono qc-defect-coords">
-              x {d.boundingBox.x} · y {d.boundingBox.y} · w {d.boundingBox.width} · h {d.boundingBox.height}
+              x {coordinate(d.boundingBox.x)} · y {coordinate(d.boundingBox.y)} ·
+              {' '}w {coordinate(d.boundingBox.width)} · h {coordinate(d.boundingBox.height)}
             </span>
           </span>
         </button>

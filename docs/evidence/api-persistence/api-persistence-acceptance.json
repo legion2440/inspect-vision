@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-03T19:06:19.892671Z",
+  "recordedAt": "2026-08-04T05:52:25.093243Z",
   "sourceCommit": "24e910fc14272e7e10825b4b527b796421580108",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
-    "backend/config.py": "f9cc81077c88058e17f12622322261a6e6fd29800127c2fab2183a19555971bb",
+    "backend/config.py": "1022ea1350822463600130a4aee9c7d583c4dcf3dd745132fc219b0b0b847a83",
     "backend/main.py": "5ea7172c877daff54576251623c7c055c48df0d91402a09bf877c0de798f422c",
     "backend/models/record.py": "fb1b8ac0e904b4b8b03fa5fd87ab04225faaefe524513c4ae6516f15c8316ecb",
     "backend/routes/dependencies.py": "5935b0fd1f5916fe6e5527d18824434a94708e728cc30aa384f0e760cc62657b",
@@ -78,19 +78,19 @@
   "httpOutputs": [
     {
       "path": "docs/evidence/api-persistence/post-inspect.json",
-      "sha256": "6bf827e13a28e1dcf084a4e4af42c49ca3c95c533293ddb85daa1b206874e5cd"
+      "sha256": "9249c04ffaeed906124881f1e4feb21cdb23c2f897c6b15f998ad80f853aff86"
     },
     {
       "path": "docs/evidence/api-persistence/get-history.json",
-      "sha256": "c049a80df885e4954102dfd418acf63bd597d6ec604230121cc915ca126e255e"
+      "sha256": "9c4530cea291c859b6d2d0430140daee56e4cb946a74cb6b7abeb6650af7a2f4"
     },
     {
       "path": "docs/evidence/api-persistence/get-detail.json",
-      "sha256": "6bf827e13a28e1dcf084a4e4af42c49ca3c95c533293ddb85daa1b206874e5cd"
+      "sha256": "9249c04ffaeed906124881f1e4feb21cdb23c2f897c6b15f998ad80f853aff86"
     },
     {
       "path": "docs/evidence/api-persistence/delete-history.json",
-      "sha256": "9d3a40e4f21b1fe79a3bd1afcb4b1aa6b0133fe8ac4278f90356903ed0206497"
+      "sha256": "3ee0e6211771ca0de2fca352c8e959894df90d05a42ba9d970d55b95cd123873"
     },
     {
       "path": "docs/evidence/api-persistence/get-history-after-delete.json",
@@ -98,7 +98,7 @@
     }
   ],
   "inspection": {
-    "inspectionId": "insp_20260803T190619644293Z_6b8e3000",
+    "inspectionId": "insp_20260804T055224766682Z_a847330e",
     "totalDefects": 4,
     "qualityScore": 62,
     "status": "failed",
@@ -110,8 +110,8 @@
   "persistenceBeforeDelete": {
     "recordExists": true,
     "databaseFields": {
-      "inspectionId": "insp_20260803T190619644293Z_6b8e3000",
-      "timestamp": "2026-08-03T19:06:19.644293Z",
+      "inspectionId": "insp_20260804T055224766682Z_a847330e",
+      "timestamp": "2026-08-04T05:52:24.766682Z",
       "fileName": "evidence-inclusion.jpg",
       "imageWidth": 200,
       "imageHeight": 200,
@@ -121,12 +121,12 @@
       "modelId": "neu-defect-yolov8"
     },
     "original": {
-      "relativePath": "original/insp_20260803T190619644293Z_6b8e3000.jpg",
+      "relativePath": "original/insp_20260804T055224766682Z_a847330e.jpg",
       "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
       "byteExactToSource": true
     },
     "annotated": {
-      "relativePath": "annotated/insp_20260803T190619644293Z_6b8e3000.jpg",
+      "relativePath": "annotated/insp_20260804T055224766682Z_a847330e.jpg",
       "sha256": "cc7f6d0c4b4c6a2586925d2b6b495e6b5aa1f5cd8b5bbf89624c3c919ee93970",
       "dimensions": {
         "width": 200,

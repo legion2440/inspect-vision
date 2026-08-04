@@ -7,6 +7,7 @@ import StatusTag from '../components/StatusTag.jsx';
 import { deleteInspection, getInspection } from '../utils/apiClient.js';
 import { confidenceColor } from '../utils/colors.js';
 import { boxLabel, pct, stamp } from '../utils/format.js';
+import { annotatedImageFilename } from '../utils/media.js';
 import { scoreOf } from '../utils/severity.js';
 
 export const Route = createFileRoute('/details/$id')({ component: Details });
@@ -15,20 +16,22 @@ function Details() {
   const { id } = Route.useParams();
   const navigate = Route.useNavigate();
   const [record, setRecord] = useState(null);
-  const [error, setError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let alive = true;
     getInspection(id)
       .then((r) => alive && setRecord(r))
-      .catch((e) => alive && setError(e.message || 'Inspection not found'));
+      .catch((e) => alive && setLoadError(e.message || 'Inspection not found'));
     return () => { alive = false; };
   }, [id]);
 
-  if (error) {
+  if (loadError) {
     return (
       <main className="qc-main">
-        <h1>{error}</h1>
+        <h1>{loadError}</h1>
         <Link to="/history" className="btn btn-secondary">Back to history</Link>
       </main>
     );
@@ -38,6 +41,18 @@ function Details() {
   const defects = record.defects || [];
   const viewerSrc = record.originalImageUrl || record.imageUrl;
   const overlayDefects = record.originalImageUrl ? defects : [];
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteInspection(record.inspectionId);
+      await navigate({ to: '/history' });
+    } catch (deleteFailure) {
+      setDeleteError(deleteFailure.message || 'Could not delete inspection');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <main className="qc-main">
@@ -81,17 +96,23 @@ function Details() {
             </tbody>
           </table>
           <div className="qc-toolbar qc-toolbar-lg">
-            <a className="btn btn-primary" href={record.imageUrl} download={record.inspectionId + '.jpg'}>
+            <a
+              className="btn btn-primary"
+              href={record.imageUrl}
+              download={annotatedImageFilename(record.inspectionId, record.imageUrl)}
+            >
               <Download size={16} strokeWidth={1.5} /> Download annotated
             </a>
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={async () => { await deleteInspection(record.inspectionId); navigate({ to: '/history' }); }}
+              disabled={deleting}
+              onClick={handleDelete}
             >
-              Delete record
+              {deleting ? 'Deleting…' : 'Delete record'}
             </button>
           </div>
+          {deleteError && <p className="qc-error" role="alert">{deleteError}</p>}
         </div>
       </div>
     </main>

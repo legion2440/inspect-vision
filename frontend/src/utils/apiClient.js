@@ -1,7 +1,7 @@
 import * as mock from '../mocks/mockApi.js';
 
-const BASE = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
-const USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false') === 'true';
+const BASE = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+const USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false').trim().toLowerCase() === 'true';
 
 async function unwrap(res) {
   if (!res.ok) {

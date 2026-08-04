@@ -1,10 +1,10 @@
-# Audit evidence matrix
+# Verification matrix
 
 Statuses describe the repository today: `PASS` has executable evidence,
 `PARTIAL` has only part of the required end-to-end path, and `PLANNED` has no
 implementation claim.
 
-| Audit item | Status | Implementation or plan | Evidence |
+| Requirement | Status | Implementation or plan | Evidence |
 | --- | --- | --- | --- |
 | Repository structure | PASS | Required frontend, FastAPI, detection, storage, model, shared contract, test, and evidence paths exist | `.venv/Scripts/python.exe scripts/validate_structure.py` |
 | Comprehensive root README | PASS | Setup, run, validation, evidence, model, and known-deferred scope are documented | `README.md` |

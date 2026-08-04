@@ -10,6 +10,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 class Settings(BaseSettings):
@@ -25,7 +26,7 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = Field(default=8000, ge=1, le=65535)
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
-    max_upload_bytes: Literal[10485760] = 10 * 1024 * 1024
+    max_upload_bytes: int = Field(default=MAX_UPLOAD_BYTES, gt=0, le=MAX_UPLOAD_BYTES)
 
     model_kind: Literal["ultralytics"] = "ultralytics"
     model_id: str | None = None

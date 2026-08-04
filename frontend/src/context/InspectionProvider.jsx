@@ -1,4 +1,4 @@
-import { createContext, useCallback, useMemo, useReducer, useRef } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import * as api from '../utils/apiClient.js';
 import { validateImage } from '../utils/validateImage.js';
 
@@ -38,6 +38,13 @@ function reducer(state, action) {
 export function InspectionProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initial);
   const historyRequestId = useRef(0);
+
+  useEffect(() => {
+    const previewUrl = state.preview;
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [state.preview]);
 
   const runInspection = useCallback(async (file) => {
     const invalid = validateImage(file);
@@ -85,9 +92,11 @@ export function InspectionProvider({ children }) {
     dispatch({ type: 'history', records: [] });
   }, []);
 
+  const reset = useCallback(() => dispatch({ type: 'reset' }), []);
+
   const value = useMemo(
-    () => ({ ...state, runInspection, loadHistory, removeInspection, clearAll, reset: () => dispatch({ type: 'reset' }) }),
-    [state, runInspection, loadHistory, removeInspection, clearAll],
+    () => ({ ...state, runInspection, loadHistory, removeInspection, clearAll, reset }),
+    [state, runInspection, loadHistory, removeInspection, clearAll, reset],
   );
 
   return <InspectionContext.Provider value={value}>{children}</InspectionContext.Provider>;

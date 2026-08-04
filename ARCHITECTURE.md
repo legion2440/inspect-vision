@@ -30,6 +30,10 @@ flowchart LR
 - Root: `frontend`.
 - Owns routing, upload interaction, Canvas overlays, history UI, real/mock API
   selection, live frame capture, CSV download, and client-side severity fallback.
+- Uses relative `/api` URLs by default so development traffic crosses the Vite
+  proxy; a cross-origin production base remains an explicit environment option.
+- Owns uploaded preview URL cleanup and displays inspection pixels without CSS
+  color transforms while Canvas remains a separate overlay.
 - Calls only interfaces defined in `docs/api-contract.md`.
 - Implemented and build-verified.
 
@@ -38,6 +42,8 @@ flowchart LR
 - Root: `backend/routes` with application entrypoint `backend/main.py`.
 - Owns environment validation, lifespan composition, CORS, multipart/content
   validation, response serialization, inference locking, and error mapping.
+- Accepts a configurable positive upload limit with a hard 10 MiB ceiling; the
+  tracked environment template is directly loadable by Pydantic Settings.
 - Lifespan creates exactly one selected detector/service and one storage service.
 - Implements `POST /api/inspect`, `POST /api/stream`, `GET /api/export`,
   list/detail/delete history, and history clear.
@@ -54,6 +60,9 @@ flowchart LR
 - Implements model integrity checks, `auto | cpu | cuda | cuda:N` selection,
   Ultralytics loading, multiclass inference, bbox clamping, and normalized core
   DTOs independent of Ultralytics result objects.
+- Provides an install command that reads only the selected manifest entry,
+  downloads its pinned revision, verifies byte size and SHA-256, and atomically
+  installs the untracked checkpoint.
 - Implements the production `DetectionService`: one 640-square letterbox,
   grayscale, CLAHE, three-channel conversion, selected-model inference, one
   restore to original coordinates, explicit identity class mapping, annotation,
@@ -90,11 +99,11 @@ flowchart LR
 - Owns stable cross-module schemas and documented DTO semantics only.
 - It must not depend on application, model, or persistence implementation.
 
-### Audit evidence
+### Verification evidence
 
 - Root: `docs/evidence`.
 - Owns reproducible command output and runtime artifacts mapped by
-  `docs/audit-evidence.md`.
+  `docs/verification.md`.
 - Evidence is immutable per verified milestone and may not contain secrets, host
   paths, large model weights, or personal data.
 - The demo manifest and CC BY 4.0 attribution bind twelve unmodified images to
@@ -109,7 +118,7 @@ flowchart LR
 - Detection never writes inspection records.
 - History never loads or runs a model.
 - Shared contracts depend on no higher-level module.
-- Audit tooling may inspect public outputs but must not become a runtime dependency.
+- Verification tooling may inspect public outputs but must not become a runtime dependency.
 
 ## Inspection sequence
 

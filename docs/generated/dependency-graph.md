@@ -9,7 +9,7 @@ flowchart LR
     defect_detection["defect-detection"]
     inspection_history["inspection-history"]
     shared_contracts["shared-contracts"]
-    audit_evidence["audit-evidence"]
+    verification_evidence["verification-evidence"]
     frontend_app -->|"runtime"| backend_api
     frontend_app -->|"contract"| shared_contracts
     backend_api -->|"runtime"| defect_detection
@@ -17,10 +17,10 @@ flowchart LR
     backend_api -->|"contract"| shared_contracts
     defect_detection -->|"contract"| shared_contracts
     inspection_history -->|"contract"| shared_contracts
-    audit_evidence -->|"verification"| frontend_app
-    audit_evidence -->|"verification"| backend_api
-    audit_evidence -->|"verification"| defect_detection
-    audit_evidence -->|"verification"| inspection_history
+    verification_evidence -->|"verification"| frontend_app
+    verification_evidence -->|"verification"| backend_api
+    verification_evidence -->|"verification"| defect_detection
+    verification_evidence -->|"verification"| inspection_history
 ```
 
 ## Allowed dependencies
@@ -34,10 +34,10 @@ flowchart LR
 | backend-api | shared-contracts | contract | FastAPI validates and serializes the shared DTOs. |
 | defect-detection | shared-contracts | contract | Detection emits normalized defects independent of model-library objects. |
 | inspection-history | shared-contracts | contract | Persistence stores and returns shared inspection semantics. |
-| audit-evidence | frontend-app | verification | Audit checks verify the public frontend build and behavior. |
-| audit-evidence | backend-api | verification | Integration tests and loopback HTTP evidence verify the public inspection and history API. |
-| audit-evidence | defect-detection | verification | Audit evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs. |
-| audit-evidence | inspection-history | verification | Unit and loopback HTTP evidence verify history persistence and media consistency; CSV remains deferred. |
+| verification-evidence | frontend-app | verification | Executable checks verify the public frontend build and behavior. |
+| verification-evidence | backend-api | verification | Integration tests and loopback HTTP evidence verify the public inspection and history API. |
+| verification-evidence | defect-detection | verification | Runtime evidence verifies model integrity, preprocessing, service inference, scoring, and annotation outputs. |
+| verification-evidence | inspection-history | verification | Unit and loopback HTTP evidence verify history persistence, media consistency, and the CSV projection. |
 
 ## Forbidden dependencies
 

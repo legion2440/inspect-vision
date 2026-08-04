@@ -9,6 +9,13 @@ export const stamp = (iso) => {
 
 export const dayOf = (iso) => (iso ? String(iso).slice(0, 10) : '');
 
-export const boxLabel = (b) => [b.x, b.y, b.width, b.height].join(', ');
+export const coordinate = (value) => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return '—';
+  const rounded = Math.round(numeric * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+};
+
+export const boxLabel = (b) => [b.x, b.y, b.width, b.height].map(coordinate).join(', ');
 
 export const defectTypes = (rec) => [...new Set((rec.defects || []).map((d) => d.type))];

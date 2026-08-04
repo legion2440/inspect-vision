@@ -7,7 +7,12 @@
   "state": "functional-scope-runtime-verified-final-evidence-rebinding-pending",
   "verified": [
     "frontend production build with Vite 8.2.0",
-    "npm audit with zero known vulnerabilities",
+    "frontend dependency vulnerability scan with zero known vulnerabilities",
+    "tracked backend environment template loads through Pydantic Settings with a configurable limit capped at 10485760 bytes",
+    "selected-model installer uses the pinned manifest URL and atomically installs only after byte-size and SHA-256 verification",
+    "frontend real mode uses relative /api through the Vite development proxy while mock mode remains explicit and buildable",
+    "inspection previews release owned object URLs on replacement, reset, and unmount; downloaded image names follow the actual JPEG/PNG media type",
+    "inspection and details views preserve original image colors, format coordinates to at most one decimal, and keep failed deletion on the details page",
     "dashboard, history, filtering, details, and upload mock browser smoke",
     "generated JavaScript route tree contains no TypeScript syntax",
     "Python 3.13.5 detection environment with pinned CPU dependencies",
@@ -30,7 +35,7 @@
     "CSV export reuses the canonical combined history filters and newest-first ordering with exact row parity",
     "loopback Uvicorn bonus evidence returned four real stream defects, proved unchanged history, and matched two filtered history rows to CSV",
     "detail media hydration is serialized with delete/clear and database/media path overlap is rejected symmetrically",
-    "one hundred two Python tests across API, contracts, detection, persistence, evidence, and integration plus four frontend utility tests",
+    "one hundred eight Python tests across API, contracts, detection, persistence, evidence, and integration plus six frontend utility tests",
     "twelve unmodified VisA images have pinned CC BY 4.0 provenance: four normal and eight anomaly samples across four products and ten source defect labels",
     "four tracked VisA image_anno.csv files make source ground truth executable and separate from model observations",
     "the selected DetectionService reproduced sixty-five observations across all twelve samples at production confidence 0.25; all four source-normal samples retained their observed false positives"
@@ -48,17 +53,17 @@
     },
     {
       "id": "runtime-evidence-commit-pointers-provisional",
-      "area": "audit-evidence",
+      "area": "verification-evidence",
       "detail": "Runtime evidence is authoritatively bound by executed source-file hashes; sourceCommit convenience pointers will be rebased in the final evidence commit."
     },
     {
       "id": "demo-observations-not-an-accuracy-benchmark",
-      "area": "audit-evidence",
+      "area": "verification-evidence",
       "detail": "The source-balanced demo run records predictions, including false positives, but does not compute or claim benchmark accuracy; accurate boxes/types/confidence remains PARTIAL."
     },
     {
       "id": "automated-coverage-partial",
-      "area": "audit-evidence",
+      "area": "verification-evidence",
       "detail": "Detection, persistence, contract, and API tests plus evidence freshness, import boundaries, frontend utilities, and builds exist; React component and browser end-to-end automation remain planned."
     }
   ]

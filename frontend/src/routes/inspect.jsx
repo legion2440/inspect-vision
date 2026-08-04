@@ -7,6 +7,7 @@ import DefectList from '../components/DefectList.jsx';
 import SeverityScore from '../components/SeverityScore.jsx';
 import LiveStream from '../components/LiveStream.jsx';
 import { useInspection } from '../hooks/useInspection.js';
+import { annotatedImageFilename } from '../utils/media.js';
 import { scoreOf } from '../utils/severity.js';
 
 export const Route = createFileRoute('/inspect')({ component: Inspect });
@@ -46,7 +47,7 @@ function Inspect() {
               <a
                 className="btn btn-secondary"
                 href={current.imageUrl}
-                download={current.inspectionId + '.jpg'}
+                download={annotatedImageFilename(current.inspectionId, current.imageUrl)}
               >
                 <Download size={16} strokeWidth={1.5} /> Download annotated
               </a>

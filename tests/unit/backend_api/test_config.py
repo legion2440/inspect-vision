@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from backend.config import REPOSITORY_ROOT, Settings
+from backend.config import MAX_UPLOAD_BYTES, REPOSITORY_ROOT, Settings
 
 
 def test_relative_runtime_paths_resolve_from_repository_root() -> None:
@@ -35,9 +35,40 @@ def test_invalid_model_device_is_rejected(value: str) -> None:
         Settings(model_device=value)
 
 
-def test_upload_limit_is_the_exact_contract_value() -> None:
+def test_upload_limit_may_be_lowered_but_not_raised() -> None:
+    assert Settings(max_upload_bytes=1024).max_upload_bytes == 1024
+
     with pytest.raises(ValidationError):
-        Settings(max_upload_bytes=1024)
+        Settings(max_upload_bytes=MAX_UPLOAD_BYTES + 1)
+
+
+def test_settings_load_integer_upload_limit_from_env_file(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("INSPECT_VISION_MAX_UPLOAD_BYTES", raising=False)
+    monkeypatch.delenv("INSPECT_VISION_MODEL_DEVICE", raising=False)
+    env_file = tmp_path / "runtime.env"
+    env_file.write_text(
+        "INSPECT_VISION_MAX_UPLOAD_BYTES=10485760\n"
+        "INSPECT_VISION_MODEL_DEVICE=cpu\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+    settings = Settings(_env_file=env_file)
+
+    assert settings.max_upload_bytes == MAX_UPLOAD_BYTES
+    assert settings.model_device == "cpu"
+
+
+def test_repository_env_example_loads_without_validation_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("INSPECT_VISION_MAX_UPLOAD_BYTES", raising=False)
+    settings = Settings(_env_file=REPOSITORY_ROOT / ".env.example")
+
+    assert settings.max_upload_bytes == MAX_UPLOAD_BYTES
 
 
 @pytest.mark.parametrize(

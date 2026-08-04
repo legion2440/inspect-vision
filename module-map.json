@@ -83,11 +83,13 @@
         "backend/__init__.py",
         "backend/utils/__init__.py",
         "backend/utils/preprocessing.py",
-        "backend/utils/model_loader.py"
+        "backend/utils/model_loader.py",
+        "scripts/install_selected_model.py"
       ],
       "entrypoints": [
         { "path": "backend/detection/__init__.py", "status": "implemented" },
-        { "path": "backend/detection/service.py", "status": "implemented" }
+        { "path": "backend/detection/service.py", "status": "implemented" },
+        { "path": "scripts/install_selected_model.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "backend/detection/annotation.py", "status": "implemented" },
@@ -165,8 +167,8 @@
       ]
     },
     {
-      "id": "audit-evidence",
-      "description": "Maps audit criteria to executable checks and sanitized runtime evidence tied to source commits.",
+      "id": "verification-evidence",
+      "description": "Maps acceptance criteria to executable checks and sanitized runtime evidence tied to source commits.",
       "module_type": "verification",
       "root": "docs/evidence",
       "entrypoints": [
@@ -182,7 +184,7 @@
         { "path": "scripts/validate_demo_samples.py", "status": "implemented" }
       ],
       "public_interfaces": [
-        { "path": "docs/audit-evidence.md", "status": "implemented" },
+        { "path": "docs/verification.md", "status": "implemented" },
         { "path": "docs/project-status.json", "status": "implemented" }
       ],
       "tests": [

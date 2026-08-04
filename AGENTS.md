@@ -32,7 +32,7 @@ change.
 - `defect-detection`
 - `inspection-history`
 - `shared-contracts`
-- `audit-evidence`
+- `verification-evidence`
 
 Do not move detection logic into API routes, persistence into React, or backend
 implementation details into shared contracts. The frontend communicates with
@@ -84,7 +84,7 @@ recorded command or evidence artifact proves the real path executed.
 3. Update `module-map.json` for path, status, interface, test, or artifact changes.
 4. Update `dependency-graph.json` when dependencies change.
 5. Regenerate architecture documentation.
-6. Update `docs/audit-evidence.md` only with evidence that actually exists.
+6. Update `docs/verification.md` only with evidence that actually exists.
 7. Update `docs/project-status.json` after a material milestone.
 8. Run scoped checks, then `make validate`.
 
