@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-04T07:57:12.607700Z",
-  "sourceCommit": "e398df1f20708370609d2e06703f131243c6093a",
+  "recordedAt": "2026-08-04T10:52:39.617943Z",
+  "sourceCommit": "78ab6b97642134965d3aefcf84f5ec8bf553ce5d",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
     "backend/config.py": "d3a6c11276b5c1d5435c3367157772000a6e15afbd094226dd59382c6c54197f",
@@ -79,19 +79,19 @@
   "httpOutputs": [
     {
       "path": "docs/evidence/api-persistence/post-inspect.json",
-      "sha256": "444fdfb0a36586501a197c8abb1cb4adad3cd940e0f3de0767f2cfdbb0815e9a"
+      "sha256": "5bb178dc9c331091d4e4eaf6a3dafa82da86e65d18d6deaceacdf2e2ead0be84"
     },
     {
       "path": "docs/evidence/api-persistence/get-history.json",
-      "sha256": "d7183b136494289c7886413c4dc5d9ecec2d7f414bac4d4fe0ed23d1ae03f001"
+      "sha256": "0f8bfcf32960fdd018db4515e9b260edb478a80e1b902c3f3a1ed4463fb3c479"
     },
     {
       "path": "docs/evidence/api-persistence/get-detail.json",
-      "sha256": "444fdfb0a36586501a197c8abb1cb4adad3cd940e0f3de0767f2cfdbb0815e9a"
+      "sha256": "5bb178dc9c331091d4e4eaf6a3dafa82da86e65d18d6deaceacdf2e2ead0be84"
     },
     {
       "path": "docs/evidence/api-persistence/delete-history.json",
-      "sha256": "ecd41c381ecb3147866d6eded60602f6f99ed6ca27d589b8d0c75a3ec470c9c5"
+      "sha256": "1e773e3e757ee84632383494c61cbcc23d930ea36df580aea93be57ffe06da0c"
     },
     {
       "path": "docs/evidence/api-persistence/get-history-after-delete.json",
@@ -99,7 +99,7 @@
     }
   ],
   "inspection": {
-    "inspectionId": "insp_20260804T075712283136Z_e2014b73",
+    "inspectionId": "insp_20260804T105239289033Z_f6b69e68",
     "totalDefects": 4,
     "qualityScore": 62,
     "status": "failed",
@@ -111,8 +111,8 @@
   "persistenceBeforeDelete": {
     "recordExists": true,
     "databaseFields": {
-      "inspectionId": "insp_20260804T075712283136Z_e2014b73",
-      "timestamp": "2026-08-04T07:57:12.283136Z",
+      "inspectionId": "insp_20260804T105239289033Z_f6b69e68",
+      "timestamp": "2026-08-04T10:52:39.289033Z",
       "fileName": "evidence-inclusion.jpg",
       "imageWidth": 200,
       "imageHeight": 200,
@@ -122,12 +122,12 @@
       "modelId": "neu-defect-yolov8"
     },
     "original": {
-      "relativePath": "original/insp_20260804T075712283136Z_e2014b73.jpg",
+      "relativePath": "original/insp_20260804T105239289033Z_f6b69e68.jpg",
       "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
       "byteExactToSource": true
     },
     "annotated": {
-      "relativePath": "annotated/insp_20260804T075712283136Z_e2014b73.jpg",
+      "relativePath": "annotated/insp_20260804T105239289033Z_f6b69e68.jpg",
       "sha256": "cc7f6d0c4b4c6a2586925d2b6b495e6b5aa1f5cd8b5bbf89624c3c919ee93970",
       "dimensions": {
         "width": 200,

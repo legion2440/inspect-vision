@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "recordedAt": "2026-08-04T07:57:19.857876Z",
-  "sourceCommit": "e398df1f20708370609d2e06703f131243c6093a",
+  "recordedAt": "2026-08-04T10:52:51.557801Z",
+  "sourceCommit": "78ab6b97642134965d3aefcf84f5ec8bf553ce5d",
   "sourceBinding": "sourceFiles contains the authoritative SHA-256 of executed source files",
   "sourceFiles": {
     "backend/config.py": "d3a6c11276b5c1d5435c3367157772000a6e15afbd094226dd59382c6c54197f",
@@ -118,11 +118,11 @@
     },
     {
       "path": "docs/evidence/api-bonuses/filtered-history.json",
-      "sha256": "013c16b384a320bc85fee43c269b8196d5ac0016f182d1b7f8a55e0a1deaa382"
+      "sha256": "6d613a489c391db913f4aceeb760f0a36db9411b0f44b6f1894c3ff740dd33d2"
     },
     {
       "path": "docs/evidence/api-bonuses/filtered-export.csv",
-      "sha256": "76db988e479992253891c79b77dfe8da397e1e008a96ed304ddf7d14fba5c8b4"
+      "sha256": "042f890ea6274dcd485ac7b4d8d0adacc9ced21d2895fc73ac08b56c7693a540"
     }
   ],
   "stream": {
@@ -141,12 +141,12 @@
       "q": "target"
     },
     "historyInspectionIds": [
-      "insp_20260804T075719655748Z_c949630e",
-      "insp_20260804T075719496043Z_5bf682f4"
+      "insp_20260804T105251298707Z_7355fd0e",
+      "insp_20260804T105251134112Z_2e8b600a"
     ],
     "csvInspectionIds": [
-      "insp_20260804T075719655748Z_c949630e",
-      "insp_20260804T075719496043Z_5bf682f4"
+      "insp_20260804T105251298707Z_7355fd0e",
+      "insp_20260804T105251134112Z_2e8b600a"
     ],
     "rowsMatchHistoryProjection": true,
     "contentType": "text/csv; charset=utf-8",
@@ -155,12 +155,12 @@
   "persistence": {
     "createdInspectionCount": 3,
     "mediaFilesBeforeClear": [
-      "annotated/insp_20260804T075719496043Z_5bf682f4.jpg",
-      "annotated/insp_20260804T075719576595Z_60bea66c.jpg",
-      "annotated/insp_20260804T075719655748Z_c949630e.jpg",
-      "original/insp_20260804T075719496043Z_5bf682f4.jpg",
-      "original/insp_20260804T075719576595Z_60bea66c.jpg",
-      "original/insp_20260804T075719655748Z_c949630e.jpg"
+      "annotated/insp_20260804T105251134112Z_2e8b600a.jpg",
+      "annotated/insp_20260804T105251218304Z_28126125.jpg",
+      "annotated/insp_20260804T105251298707Z_7355fd0e.jpg",
+      "original/insp_20260804T105251134112Z_2e8b600a.jpg",
+      "original/insp_20260804T105251218304Z_28126125.jpg",
+      "original/insp_20260804T105251298707Z_7355fd0e.jpg"
     ],
     "clearResponse": {
       "cleared": 3
