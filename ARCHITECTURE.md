@@ -34,6 +34,8 @@ flowchart LR
   proxy; a cross-origin production base remains an explicit environment option.
 - Owns uploaded preview URL cleanup and displays inspection pixels without CSS
   color transforms while Canvas remains a separate overlay.
+- Presents image-file and live-stream inspection as a labelled mode selector;
+  file selection is a separate, explicit button inside the image mode.
 - Upload model changes abort and sequence-invalidate in-flight requests before
   clearing preview, result, metadata, error, and status state.
 - The same global model selector drives Dashboard Quick Upload, the Inspect

@@ -268,3 +268,16 @@ test('dashboard quick upload is wired to the shared selected model', () => {
   assert.match(dashboard, /<ModelSelector[\s\S]*value=\{selectedModelId\}/);
   assert.match(dashboard, /runInspection\(file, selectedModelId\)/);
 });
+
+test('inspect separates mode selection from the image file picker action', () => {
+  const inspectRoute = readFileSync(new URL('../src/routes/inspect.jsx', import.meta.url), 'utf8');
+  const uploader = readFileSync(new URL('../src/components/ImageUploader.jsx', import.meta.url), 'utf8');
+
+  assert.match(inspectRoute, /Inspection mode/);
+  assert.match(inspectRoute, /Image file/);
+  assert.match(inspectRoute, /Live stream/);
+  assert.doesNotMatch(inspectRoute, />\s*Upload\s*</);
+  assert.match(uploader, /<button[\s\S]*Choose image[\s\S]*<input/);
+  assert.match(uploader, /type="file"/);
+  assert.doesNotMatch(uploader, /role="button"/);
+});

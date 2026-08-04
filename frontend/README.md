@@ -24,7 +24,7 @@ standalone responses in `src/mocks/mockApi.js`.
 | Route | File | Purpose |
 | --- | --- | --- |
 | `/` | `src/routes/index.jsx` | Dashboard: statistics + model-aware quick upload + recent inspections |
-| `/inspect` | `src/routes/inspect.jsx` | Upload / live-stream inspection with canvas overlay |
+| `/inspect` | `src/routes/inspect.jsx` | Explicit image-file / live-stream modes with canvas overlay |
 | `/samples` | `src/routes/samples.jsx` | Attributed sample cards inspected with the current global model |
 | `/history` | `src/routes/history.jsx` | History table with date, type and text filters, CSV export |
 | `/details/:id` | `src/routes/details.$id.jsx` | Full record: annotated image, defect breakdown, actions |
@@ -100,6 +100,8 @@ src/
 - `/inspect` selects the installed API default, disables uninstalled registry
   entries, and sends the same `modelId` for upload and live frames. Changing a
   selection aborts in-flight work and clears stale upload/live results.
+- The inspection mode switch only selects `Image file` or `Live stream`;
+  `Choose image` is the separate action that opens the system file picker.
 - Dashboard Quick Upload and `/samples` reuse that same global selection.
   Sample recommendations are advisory; the user must opt into one. Inspecting a
   sample performs fresh persisted inference through the normal upload workflow.

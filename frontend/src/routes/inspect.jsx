@@ -29,33 +29,52 @@ function Inspect() {
     selectModel,
   } = useInspection();
   const [selected, setSelected] = useState(null);
-  const [mode, setMode] = useState('upload');
+  const [mode, setMode] = useState('image');
 
   const busy = status === 'detecting';
   const defects = current?.defects || [];
   const count = current?.totalDefects ?? defects.length;
   const viewerSrc = current?.originalImageUrl || current?.imageUrl || preview;
   const overlayDefects = current && !current.originalImageUrl ? [] : defects;
+  const imageMode = mode === 'image';
+  const heading = !imageMode
+    ? 'Live camera inspection'
+    : current
+      ? 'Detection result'
+      : 'Inspect an image file';
 
   return (
     <main className="qc-main">
       <div className="qc-pagehead">
         <div>
           <h6 className="qc-kicker">Real-time inspection</h6>
-          <h1>{current ? 'Detection result' : 'Upload a part image'}</h1>
+          <h1>{heading}</h1>
         </div>
         <div className="qc-toolbar">
-          <span className="seg">
-            <label className="seg-opt">
-              <input type="radio" name="mode" checked={mode === 'upload'} onChange={() => setMode('upload')} />
-              Upload
-            </label>
-            <label className="seg-opt">
-              <input type="radio" name="mode" checked={mode === 'live'} onChange={() => setMode('live')} />
-              Live stream
-            </label>
-          </span>
-          {current && (
+          <div className="qc-mode-control">
+            <span className="qc-mode-label" id="inspection-mode-label">Inspection mode:</span>
+            <div className="seg" role="radiogroup" aria-labelledby="inspection-mode-label">
+              <label className="seg-opt">
+                <input
+                  type="radio"
+                  name="inspection-mode"
+                  checked={imageMode}
+                  onChange={() => setMode('image')}
+                />
+                Image file
+              </label>
+              <label className="seg-opt">
+                <input
+                  type="radio"
+                  name="inspection-mode"
+                  checked={!imageMode}
+                  onChange={() => setMode('live')}
+                />
+                Live stream
+              </label>
+            </div>
+          </div>
+          {imageMode && current && (
             <>
               <button type="button" className="btn btn-secondary" onClick={reset}>Clear</button>
               <a
@@ -81,7 +100,7 @@ function Inspect() {
         error={modelsError}
       />
 
-      {mode === 'live' ? (
+      {!imageMode ? (
         <div className="qc-row qc-row-inspect">
           <LiveStream modelId={selectedModelId} />
           <aside className="qc-aside">
