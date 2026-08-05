@@ -71,10 +71,14 @@ recorded command or evidence artifact proves the real path executed.
   and input-image `xyxy`; it contains no class-specific filter.
 - `DetectionRuntimeManager` resolves the optional request `modelId`, lazy-loads
   one `DetectionService` per registered model, and caches successful loads.
-- `DetectionService` is the production inspection boundary. It owns one
-  manifest-selected preprocessing profile, one restore to original coordinates,
-  native class validation, annotation, verdict, and authoritative per-model
-  `quality-v1` score. Native class names are never semantically remapped.
+- `DetectionService` is the production inspection boundary. It always owns native
+  class validation, annotation, verdict, and the authoritative per-model
+  `quality-v1` score. Geometry ownership is capability-driven: for
+  `GeometryOwnership.SERVICE`, the service owns the manifest-selected preprocessing
+  profile and one restore to original coordinates; for `GeometryOwnership.BACKEND`,
+  AnomalyCLIP owns preprocessing, anomaly-map postprocessing, and original-coordinate
+  restoration, and the service must not transform its boxes again. Native class
+  names are never semantically remapped.
 - Changing the upload model aborts and invalidates the active request, clears its
   preview/result state, and prevents a late response from restoring stale data.
 - Historical inspections remain readable after their model leaves the current

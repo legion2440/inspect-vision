@@ -2,7 +2,6 @@
   "schema_version": 1,
   "recorded_at": "2026-08-05",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
-  "model_registry_commit": "75593ce2e996c615ba0fe98c07a8e550dbdacbc3",
   "current_commit_command": "git rev-parse HEAD",
   "state": "hidden-anomaly-map-backend-implemented",
   "verified": [
