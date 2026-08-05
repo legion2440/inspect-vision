@@ -47,14 +47,19 @@ class FakeDetectionRuntime:
         self.active = 0
         self.max_active = 0
 
-    def registered_models(self) -> tuple[RegisteredModel, ...]:
+    def registered_models(
+        self,
+        *,
+        exposed_only: bool = False,
+    ) -> tuple[RegisteredModel, ...]:
+        specs = self.registry.exposed_models if exposed_only else self.registry.models
         return tuple(
             RegisteredModel(
                 spec=spec,
                 is_default=self.registry.is_default(spec.model_id),
                 installed=spec.model_id != self.missing_model_id,
             )
-            for spec in self.registry.models
+            for spec in specs
         )
 
     def inspect(self, image: np.ndarray, model_id: str | None = None) -> InspectionResult:
@@ -269,6 +274,40 @@ def test_model_lookup_and_installation_errors_are_distinct(api_factory) -> None:
     assert unknown.json() == {"detail": "Detection model not found"}
     assert missing.status_code == 409
     assert f"install_models.py --model {missing_id}" in missing.json()["detail"]
+
+
+@pytest.mark.parametrize(
+    ("endpoint", "field", "filename"),
+    [
+        ("/api/inspect", "image", "part.jpg"),
+        ("/api/stream", "frame", "frame.jpg"),
+    ],
+)
+def test_hidden_model_id_is_not_available_through_public_inference_routes(
+    api_factory,
+    endpoint: str,
+    field: str,
+    filename: str,
+) -> None:
+    class ExposureAwareRuntime(FakeDetectionRuntime):
+        def inspect(
+            self,
+            image: np.ndarray,
+            model_id: str | None = None,
+        ) -> InspectionResult:
+            self.registry.get_exposed(model_id)
+            return super().inspect(image, model_id)
+
+    client = api_factory(ExposureAwareRuntime())
+
+    response = client.post(
+        endpoint,
+        data={"modelId": "anomalyclip-general-v1"},
+        files={field: (filename, encoded_image(".jpg"), "image/jpeg")},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Detection model not found"}
 
 
 def test_models_endpoint_exposes_three_registry_entries(api_factory) -> None:

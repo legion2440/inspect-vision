@@ -35,7 +35,8 @@ cp .env.example .env
 
 Without arguments the installer reads `defaultModelId` from
 `backend/models/model-manifest.json`. Use `--model <id>` for one specialist or
-`--all` for the complete registry. Every download uses an immutable revision,
+`--all` for all exposed models. Hidden candidates require an explicit
+`--model <id>`. Every download uses an immutable revision,
 checks byte size and SHA-256, and is atomically installed only after validation.
 
 Install and configure the frontend:
@@ -255,7 +256,7 @@ Check the fresh backend template without creating a local runtime database:
 .venv/Scripts/python.exe -c "from backend.config import Settings; print(Settings(_env_file='.env.example').max_upload_bytes)"
 ```
 
-Validate the locally installed default or the complete registry without
+Validate the locally installed default or all exposed models without
 downloading verified files again:
 
 ```bash

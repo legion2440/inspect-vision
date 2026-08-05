@@ -1,13 +1,13 @@
 # Detection models
 
-`model-manifest.json` is the tracked source of truth for selectable Ultralytics
-detectors. It records product metadata, immutable checkpoint provenance,
-license, byte size, SHA-256, native classes, input size, inference thresholds,
-preprocessing profile, and quality weights. `defaultModelId` identifies the
-coverage-oriented starting model.
+`model-manifest.json` v3 is the tracked source of truth for detector backends.
+It records product metadata, one or more immutable artifacts, literal license
+scope, byte size, SHA-256, native classes, input size, backend-specific runtime
+configuration, and quality weights. `defaultModelId` identifies the
+coverage-oriented starting model; `exposed` controls public API selection.
 
-The `.pt` files remain local and are ignored by Git. A checkpoint is installed
-only when filename, byte size, and SHA-256 match the manifest.
+The `.pt` and `.pth` files remain local and are ignored by Git. An artifact is
+installed only when filename, byte size, and SHA-256 match the manifest.
 
 ```bash
 # install default General Manufacturing model
@@ -16,12 +16,16 @@ only when filename, byte size, and SHA-256 match the manifest.
 # install one specialist
 .venv/Scripts/python.exe scripts/install_models.py --model neu-defect-yolov8
 
-# install the complete registry
+# install all exposed models
 .venv/Scripts/python.exe scripts/install_models.py --all
+
+# explicitly install the hidden AnomalyCLIP candidate and both of its artifacts
+.venv/Scripts/python.exe scripts/install_models.py --model anomalyclip-general-v1
 ```
 
 Downloads use pinned revisions and a temporary file followed by an atomic move.
-An already verified checkpoint is left untouched.
+An already verified artifact is left untouched. Hidden candidates are excluded
+from `--all` so the nearly 1 GB CLIP backbone is never downloaded implicitly.
 
 The registry currently contains:
 
@@ -30,13 +34,18 @@ The registry currently contains:
 - `neu-defect-yolov8`: Steel Surface specialist, six native classes,
   steel-enhanced preprocessing, confidence 0.25;
 - `concrete-crack-yolov8`: Concrete & Structural Cracks specialist, native class
-  `crack`, standard-color preprocessing, confidence 0.25.
+  `crack`, standard-color preprocessing, confidence 0.25;
+- `anomalyclip-general-v1`: hidden anomaly-map candidate with two artifacts,
+  fixed 518×518 stretch preprocessing, native class `anomaly`, and calibrated
+  component scores. It is not returned by `/api/models` or accepted by public
+  inspect/stream routes in this milestone.
 
-The broad checkpoint contains `capsule_defect` even though its model card names
-`cable_defect`; runtime `model.names` is authoritative. Its low threshold and
-probe observations are recorded without claiming accuracy superiority.
+The current broad checkpoint contains `capsule_defect` even though its model
+card names `cable_defect`; runtime `model.names` is authoritative. Its low
+threshold and probe observations are recorded without claiming accuracy
+superiority.
 
-Qualify all installed models through the production manager/service pipeline:
+Qualify installed public models through the production manager/service pipeline:
 
 ```bash
 .venv/Scripts/python.exe scripts/probe_models.py --device cpu

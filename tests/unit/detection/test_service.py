@@ -9,6 +9,7 @@ import pytest
 import backend.detection.service as service_module
 from backend.detection.dto import Detection, InferenceResult
 from backend.detection.device import DeviceInfo
+from backend.detection.base import GeometryOwnership
 from backend.detection.service import DetectionService
 from backend.detection.ultralytics_backend import UltralyticsBackend
 from backend.utils.preprocessing import InspectionPreprocessingConfig
@@ -69,6 +70,28 @@ class DetectorStub:
             latency_ms=1.0,
             backend="stub",
             device="cpu",
+            model_id=self.model_id,
+        )
+
+
+class BackendOwnedDetectorStub:
+    model_id = "anomalyclip-general-v1"
+    image_size = 518
+    geometry_ownership = GeometryOwnership.BACKEND
+
+    def __init__(self) -> None:
+        self.received: np.ndarray | None = None
+
+    def infer(self, frame: np.ndarray) -> InferenceResult:
+        self.received = frame
+        height, width = frame.shape[:2]
+        return InferenceResult(
+            detections=(Detection(0, "anomaly", 0.75, (10.0, 5.0, 30.0, 25.0)),),
+            image_width=width,
+            image_height=height,
+            latency_ms=1.0,
+            backend="anomalyclip",
+            device="CPU",
             model_id=self.model_id,
         )
 
@@ -149,6 +172,29 @@ def test_service_runs_single_letterbox_and_restores_original_coordinates_once(
     assert result.image_height == 100
     assert result.status == "failed"
     assert result.quality_score == 88
+
+
+def test_backend_owned_geometry_skips_letterbox_and_coordinate_restore(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    detector = BackendOwnedDetectorStub()
+    monkeypatch.setattr(
+        service_module,
+        "restore_boxes",
+        lambda *_args: pytest.fail("backend-owned coordinates must not be restored twice"),
+    )
+    image = np.zeros((80, 160, 3), dtype=np.uint8)
+    service = DetectionService(
+        detector,  # type: ignore[arg-type]
+        preprocessing=None,
+        native_classes=("anomaly",),
+    )
+
+    result = service.inspect(image)
+
+    assert detector.received is image
+    box = result.defects[0].bounding_box
+    assert (box.x, box.y, box.width, box.height) == (10.0, 5.0, 20.0, 20.0)
 
 
 def test_service_drops_box_that_collapses_when_padding_is_removed() -> None:

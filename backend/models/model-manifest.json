@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "defaultModelId": "factory-defect-guard-v6-mc",
   "defaultRationale": "Coverage-oriented starting point for an unknown manufacturing domain; specialist models are preferred when the inspected material is known.",
   "preprocessingProfiles": {
@@ -23,15 +23,25 @@
       "role": "general",
       "domain": "General manufacturing",
       "description": "Coverage-oriented detector for steel, PCB, tile, electronics, fasteners, and capsules.",
-      "filename": "factory_defect_guard_v6_mc.pt",
-      "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253",
-      "sizeBytes": 22525290,
-      "task": "detect",
-      "framework": {
-        "library": "ultralytics",
-        "modelFamily": "YOLOv8",
-        "testedVersion": "8.4.78"
-      },
+      "backend": "ultralytics",
+      "exposed": true,
+      "artifacts": [
+        {
+          "id": "checkpoint",
+          "filename": "factory_defect_guard_v6_mc.pt",
+          "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253",
+          "sizeBytes": 22525290,
+          "source": {
+            "repositoryUrl": "https://huggingface.co/negi3961/factory-defect-guard",
+            "downloadUrl": "https://huggingface.co/negi3961/factory-defect-guard/resolve/bddc831865368eb7a58b9db51490770a386786d2/best_v6_mc.pt",
+            "revision": "bddc831865368eb7a58b9db51490770a386786d2",
+            "sourceFilename": "best_v6_mc.pt",
+            "license": "MIT",
+            "licenseSourceUrl": "https://huggingface.co/negi3961/factory-defect-guard/blob/bddc831865368eb7a58b9db51490770a386786d2/README.md",
+            "licenseScope": "checkpoint"
+          }
+        }
+      ],
       "inputSize": {
         "width": 640,
         "height": 640
@@ -55,20 +65,20 @@
         "metal_nut_defect",
         "capsule_defect"
       ],
-      "confidence": 0.05,
-      "iou": 0.5,
-      "preprocessingProfile": "standard-color",
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {}
       },
-      "source": {
-        "repositoryUrl": "https://huggingface.co/negi3961/factory-defect-guard",
-        "downloadUrl": "https://huggingface.co/negi3961/factory-defect-guard/resolve/bddc831865368eb7a58b9db51490770a386786d2/best_v6_mc.pt",
-        "revision": "bddc831865368eb7a58b9db51490770a386786d2",
-        "sourceFilename": "best_v6_mc.pt",
-        "license": "MIT",
-        "licenseSourceUrl": "https://huggingface.co/negi3961/factory-defect-guard/blob/bddc831865368eb7a58b9db51490770a386786d2/README.md"
+      "backendConfig": {
+        "task": "detect",
+        "framework": {
+          "library": "ultralytics",
+          "modelFamily": "YOLOv8",
+          "testedVersion": "8.4.78"
+        },
+        "confidence": 0.05,
+        "iou": 0.5,
+        "preprocessingProfile": "standard-color"
       }
     },
     {
@@ -77,15 +87,25 @@
       "role": "specialist",
       "domain": "Steel surface",
       "description": "Specialist detector for six NEU steel surface defect classes.",
-      "filename": "defect_neu_yolov8.pt",
-      "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
-      "sizeBytes": 6257194,
-      "task": "detect",
-      "framework": {
-        "library": "ultralytics",
-        "modelFamily": "YOLOv8",
-        "testedVersion": "8.4.78"
-      },
+      "backend": "ultralytics",
+      "exposed": true,
+      "artifacts": [
+        {
+          "id": "checkpoint",
+          "filename": "defect_neu_yolov8.pt",
+          "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+          "sizeBytes": 6257194,
+          "source": {
+            "repositoryUrl": "https://huggingface.co/Ironman1612/defect-detection-model",
+            "downloadUrl": "https://huggingface.co/Ironman1612/defect-detection-model/resolve/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/best.pt",
+            "revision": "0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee",
+            "sourceFilename": "best.pt",
+            "license": "MIT",
+            "licenseSourceUrl": "https://huggingface.co/Ironman1612/defect-detection-model/blob/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/README.md",
+            "licenseScope": "checkpoint"
+          }
+        }
+      ],
       "inputSize": {
         "width": 640,
         "height": 640
@@ -98,9 +118,6 @@
         "rolled-in_scale",
         "scratches"
       ],
-      "confidence": 0.25,
-      "iou": 0.5,
-      "preprocessingProfile": "steel-enhanced",
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {
@@ -112,13 +129,16 @@
           "scratches": 0.85
         }
       },
-      "source": {
-        "repositoryUrl": "https://huggingface.co/Ironman1612/defect-detection-model",
-        "downloadUrl": "https://huggingface.co/Ironman1612/defect-detection-model/resolve/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/best.pt",
-        "revision": "0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee",
-        "sourceFilename": "best.pt",
-        "license": "MIT",
-        "licenseSourceUrl": "https://huggingface.co/Ironman1612/defect-detection-model/blob/0b1bfd7c1e7213b220dd6c32c30433ea7bddbdee/README.md"
+      "backendConfig": {
+        "task": "detect",
+        "framework": {
+          "library": "ultralytics",
+          "modelFamily": "YOLOv8",
+          "testedVersion": "8.4.78"
+        },
+        "confidence": 0.25,
+        "iou": 0.5,
+        "preprocessingProfile": "steel-enhanced"
       }
     },
     {
@@ -127,36 +147,140 @@
       "role": "specialist",
       "domain": "Concrete and structural surfaces",
       "description": "Specialist detector for visible cracks on concrete, masonry, wall, and floor surfaces.",
-      "filename": "crack_detection.pt",
-      "sha256": "386155cae09bee6af1ce99608fc42a32cafd40a25362b80037b4fa54f6999719",
-      "sizeBytes": 22522595,
-      "task": "detect",
-      "framework": {
-        "library": "ultralytics",
-        "modelFamily": "YOLOv8",
-        "testedVersion": "8.4.78"
-      },
+      "backend": "ultralytics",
+      "exposed": true,
+      "artifacts": [
+        {
+          "id": "checkpoint",
+          "filename": "crack_detection.pt",
+          "sha256": "386155cae09bee6af1ce99608fc42a32cafd40a25362b80037b4fa54f6999719",
+          "sizeBytes": 22522595,
+          "source": {
+            "repositoryUrl": "https://huggingface.co/Utbird/crack_detection",
+            "downloadUrl": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/crack.pt",
+            "revision": "a5382b48f32fab49f2881b18bc3125592c318c64",
+            "sourceFilename": "crack.pt",
+            "license": "Apache-2.0",
+            "licenseSourceUrl": "https://huggingface.co/Utbird/crack_detection/blob/a5382b48f32fab49f2881b18bc3125592c318c64/README.md",
+            "licenseScope": "checkpoint"
+          }
+        }
+      ],
       "inputSize": {
         "width": 640,
         "height": 640
       },
       "nativeClasses": ["crack"],
-      "confidence": 0.25,
-      "iou": 0.5,
-      "preprocessingProfile": "standard-color",
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {
           "crack": 1.35
         }
       },
-      "source": {
-        "repositoryUrl": "https://huggingface.co/Utbird/crack_detection",
-        "downloadUrl": "https://huggingface.co/Utbird/crack_detection/resolve/a5382b48f32fab49f2881b18bc3125592c318c64/crack.pt",
-        "revision": "a5382b48f32fab49f2881b18bc3125592c318c64",
-        "sourceFilename": "crack.pt",
-        "license": "Apache-2.0",
-        "licenseSourceUrl": "https://huggingface.co/Utbird/crack_detection/blob/a5382b48f32fab49f2881b18bc3125592c318c64/README.md"
+      "backendConfig": {
+        "task": "detect",
+        "framework": {
+          "library": "ultralytics",
+          "modelFamily": "YOLOv8",
+          "testedVersion": "8.4.78"
+        },
+        "confidence": 0.25,
+        "iou": 0.5,
+        "preprocessingProfile": "standard-color"
+      }
+    },
+    {
+      "id": "anomalyclip-general-v1",
+      "displayName": "General Manufacturing (AnomalyCLIP v1)",
+      "role": "general",
+      "domain": "Cross-domain manufacturing anomaly localization",
+      "description": "Qualified anomaly-map candidate with generic anomaly output; hidden until runtime API verification.",
+      "backend": "anomalyclip",
+      "exposed": false,
+      "artifacts": [
+        {
+          "id": "clip-backbone",
+          "filename": "ViT-L-14-336px.pt",
+          "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+          "sizeBytes": 934088680,
+          "source": {
+            "repositoryUrl": "https://github.com/openai/CLIP",
+            "downloadUrl": "https://openaipublic.azureedge.net/clip/models/3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02/ViT-L-14-336px.pt",
+            "revision": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+            "sourceFilename": "ViT-L-14-336px.pt",
+            "license": "MIT source code; binary checkpoint license not separately stated",
+            "licenseSourceUrl": "https://github.com/openai/CLIP/blob/main/LICENSE",
+            "licenseScope": "repository-code-only"
+          }
+        },
+        {
+          "id": "prompt-checkpoint",
+          "filename": "anomalyclip-visa-epoch15.pth",
+          "sha256": "94ce202da3e6486a864b904fdfed5057de75846c5834e446fd1d2fe7f97acb44",
+          "sizeBytes": 22631975,
+          "source": {
+            "repositoryUrl": "https://github.com/zqhang/AnomalyCLIP",
+            "downloadUrl": "https://raw.githubusercontent.com/zqhang/AnomalyCLIP/3911738c0867544f545a076ad78f3f11d9ecbfdf/checkpoints/9_12_4_multiscale/epoch_15.pth",
+            "revision": "3911738c0867544f545a076ad78f3f11d9ecbfdf",
+            "sourceFilename": "checkpoints/9_12_4_multiscale/epoch_15.pth",
+            "license": "MIT source code; binary checkpoint license not separately stated",
+            "licenseSourceUrl": "https://github.com/zqhang/AnomalyCLIP/blob/3911738c0867544f545a076ad78f3f11d9ecbfdf/LICENSE",
+            "licenseScope": "repository-code-only"
+          }
+        }
+      ],
+      "inputSize": {
+        "width": 518,
+        "height": 518
+      },
+      "nativeClasses": ["anomaly"],
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {}
+      },
+      "backendConfig": {
+        "task": "anomaly-localization",
+        "sourceCommit": "3911738c0867544f545a076ad78f3f11d9ecbfdf",
+        "preprocessing": {
+          "profileId": "anomalyclip-stretch",
+          "resize": {
+            "mode": "stretch",
+            "width": 518,
+            "height": 518,
+            "interpolation": "bicubic"
+          },
+          "normalization": {
+            "mean": [0.48145466, 0.4578275, 0.40821073],
+            "std": [0.26862954, 0.26130258, 0.27577711]
+          }
+        },
+        "featuresList": [6, 12, 18, 24],
+        "featureMapLayers": [0, 1, 2, 3],
+        "dpamLayer": 20,
+        "prompt": {
+          "className": "object",
+          "promptLength": 12,
+          "learnableTextEmbeddingDepth": 9,
+          "learnableTextEmbeddingLength": 4
+        },
+        "gaussianSigma": 4,
+        "postprocessing": {
+          "mapThreshold": 0.1,
+          "morphology": {
+            "kernel": "ellipse",
+            "kernelSize": 3,
+            "openIterations": 1,
+            "closeIterations": 1
+          },
+          "minComponentAreaRatio": 0.0005,
+          "mergeDistancePx": 6
+        },
+        "scoreCalibration": {
+          "path": "backend/models/config/anomalyclip-general-v1-score-calibration.json",
+          "sha256": "0e7bff5d4316627f9ece3a2203efcf55233fef5f1eae652bcca3028ba81041e4",
+          "sizeBytes": 4107,
+          "semanticMeaning": "anomaly confidence score relative to clean calibration artifacts; not a class probability"
+        }
       }
     }
   ]

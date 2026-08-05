@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from enum import StrEnum
 from pathlib import Path
 from typing import Sequence
 
@@ -12,8 +13,16 @@ from .device import DeviceInfo
 from .dto import InferenceResult
 
 
+class GeometryOwnership(StrEnum):
+    """Declare which layer owns input geometry and coordinate restoration."""
+
+    SERVICE = "service"
+    BACKEND = "backend"
+
+
 class DetectorBackend(ABC):
     name: str
+    geometry_ownership = GeometryOwnership.SERVICE
 
     def __init__(
         self,

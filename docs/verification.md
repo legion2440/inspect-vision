@@ -9,7 +9,7 @@ implementation claim.
 | Repository structure | PASS | Required frontend, FastAPI, detection, storage, model, shared contract, test, and evidence paths exist | `.venv/Scripts/python.exe scripts/validate_structure.py` |
 | Comprehensive root README | PASS | Setup, run, validation, evidence, model, and known-deferred scope are documented | `README.md` |
 | Full application starts without errors | PASS | Uvicorn lifespan validates storage and the registry without eagerly loading checkpoints; frontend production build passes | API tests; `npm --prefix frontend run build` |
-| Model registry and local paths | PASS | Shared model directory, ignored weights, pinned manifest hashes, default model, and per-model integrity state | `.env.example`, manifest, installer/runtime tests, model registry evidence |
+| Model registry and local paths | PASS | Manifest v3 supports pinned multi-artifact backends, an exposed default, hidden candidates, and per-model integrity state | `.env.example`, manifest, installer/runtime tests, model registry evidence |
 | Selectable models | PASS | `/api/models`, optional inspect/stream `modelId`, lazy cache, history model persistence, and shared upload/live selector | API/frontend tests and model registry evidence |
 | Required TanStack routes | PASS | Dashboard, inspect, history, and details | Production build and browser smoke |
 | Drag/drop and file selection | PASS | `ImageUploader.jsx` | Browser upload smoke with local JPG |
@@ -20,7 +20,7 @@ implementation claim.
 | OpenCV preprocessing | PASS | Shared letterbox/restore plus manifest-selected standard-color or grayscale/CLAHE profile | Detection/runtime tests; model registry evidence |
 | History GET/DELETE/clear | PASS | List/detail/delete/clear use persisted metadata and owned media cleanup | Saved list/detail/delete JSON; API/storage tests |
 | Required error messages | PASS | Unsupported content, >10 MiB, model failure, and missing ID map exactly | API integration tests |
-| Real YOLO/CNN inference | PASS | Three registered Ultralytics checkpoints execute through one production runtime/service path on model-scoped probes | `docs/evidence/models/model-registry-acceptance.json` |
+| Real YOLO/CNN inference | PASS | Three exposed Ultralytics checkpoints execute through one production runtime/service path on model-scoped probes; the hidden anomaly-map candidate is not included in this claim | `docs/evidence/models/model-registry-acceptance.json` |
 | Accurate boxes/types/confidence | PARTIAL | Native mapping, finite confidence, and positive bounded original-image boxes are verified; benchmark accuracy is not | Core and inspection-service acceptance evidence |
 | Annotated backend image | PASS | DetectionService annotation is encoded in source format, persisted, and returned as `imageUrl`; original remains separate | Service outputs plus API persistence evidence |
 | Persisted timestamped records | PASS | SQLite record, relative media paths, byte-exact original, annotated dimensions, reopen, and cleanup are verified | API persistence evidence; storage/API tests |

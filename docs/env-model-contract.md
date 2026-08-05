@@ -30,20 +30,23 @@ mode is the default; mock mode must be enabled explicitly.
 
 ## Registry and lifecycle
 
-The schema-validated manifest contains one `defaultModelId`, named
-preprocessing profiles, and exactly the registered models available to the
-product. Each model records:
+The schema-validated v3 manifest contains one exposed `defaultModelId`, named
+Ultralytics preprocessing profiles, and registered public or hidden models.
+Each model records:
 
 - ID, display name, role, domain, and cautious description;
-- pinned checkpoint URL/revision, source license, byte size, and SHA-256;
-- detect task, framework version, square input size, and checkpoint-native classes;
-- confidence, IoU, preprocessing profile, neutral quality default, and optional
-  class-specific quality weights.
+- `backend: ultralytics | anomalyclip` and `exposed`;
+- one or more pinned artifacts with URL/revision, literal license scope, byte
+  size, and SHA-256;
+- square input size, model-native classes, backend-specific configuration,
+  neutral quality default, and optional class-specific quality weights.
 
 The current default is `factory-defect-guard-v6-mc`. Specialists are
 `neu-defect-yolov8` for steel surfaces and `concrete-crack-yolov8` for concrete
-and structural cracks. Native checkpoint names are authoritative and are never
-translated into invented defect semantics.
+and structural cracks. A hidden `anomalyclip-general-v1` entry exercises the
+anomaly-map backend without changing the public model list or default. Native
+model names are authoritative and are never translated into invented defect
+semantics.
 
 FastAPI lifespan validates the manifest and creates one
 `DetectionRuntimeManager`; it does not load a checkpoint. On first use the
@@ -52,8 +55,9 @@ loads and validates task/classes, creates the matching `DetectionService`, and
 caches successful services. A shared application inference lock serializes both
 upload and live inference across all cached models.
 
-Unknown IDs return HTTP 404. A registered but missing or invalid checkpoint
-returns HTTP 409 with its `scripts/install_models.py --model <id>` command.
+Unknown and hidden IDs return HTTP 404 at public inspect/stream boundaries. A
+public registered model with missing or invalid artifacts returns HTTP 409 with
+its `scripts/install_models.py --model <id>` command.
 Actual inference exceptions remain HTTP 500 with exact detail
 `Detection model error`. Request handling never downloads a model and never
 falls back to mock or heuristic detections.
@@ -67,7 +71,7 @@ Install checkpoints atomically:
 # one registered model
 .venv/Scripts/python.exe scripts/install_models.py --model neu-defect-yolov8
 
-# every registered model
+# every exposed model; hidden candidates require explicit --model
 .venv/Scripts/python.exe scripts/install_models.py --all
 ```
 
@@ -75,7 +79,7 @@ Install checkpoints atomically:
 
 `decode_image(bytes)` validates JPEG/PNG content and returns a non-empty
 `uint8 H x W x 3` BGR image. `DetectionService` accepts only this decoded array.
-Every model shares one geometry path:
+Ultralytics models use the service-owned geometry path:
 
 1. Preserve original dimensions and pixels.
 2. Letterbox once to the model's square input using its manifest padding color.
@@ -98,6 +102,15 @@ Ultralytics still performs tensor conversion and normalization, but receives an
 already-sized square so there is no second geometric letterbox. API image
 encoding remains outside detection; original bytes stay unchanged and the
 annotation is encoded in the detected source format.
+
+The hidden AnomalyCLIP backend declares backend-owned geometry. It receives the
+original BGR image and owns the frozen 518×518 stretch, CLIP normalization,
+feature layers `6/12/18/24`, DPAM layer `20`, Gaussian sigma `4`, threshold
+`0.10`, ellipse `3×3` open/close, minimum-area ratio `0.0005`, merge distance
+`6`, connected components, and separate x/y coordinate restoration. The service
+therefore performs neither letterbox nor a second restore. Component confidence
+is the tracked empirical percentile against 131 clean-reference component
+means; it is not a class probability.
 
 ## Quality score
 

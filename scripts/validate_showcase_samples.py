@@ -221,7 +221,11 @@ def validate_showcase_samples() -> list[str]:
     registered_model_ids = {
         model.get("id")
         for model in model_manifest.get("models", [])
-        if isinstance(model, dict) and isinstance(model.get("id"), str)
+        if (
+            isinstance(model, dict)
+            and isinstance(model.get("id"), str)
+            and model.get("exposed") is True
+        )
     }
     datasets = manifest.get("datasets")
     if not isinstance(datasets, list) or not datasets:

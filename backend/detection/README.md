@@ -1,17 +1,17 @@
 # Defect detection
 
-This module owns the validated model registry projection, lazy Ultralytics
-runtime, preprocessing profiles, native multiclass inference, coordinate
-restoration, annotation, and authoritative quality scoring. It has no HTTP,
-persistence, tracking, video, or UI dependency.
+This module owns the validated model registry projection, lazy detector
+runtimes, preprocessing, native inference, coordinate restoration, annotation,
+and authoritative quality scoring. It has no HTTP, persistence, tracking,
+video, or UI dependency.
 
 Input is a non-empty `uint8 H x W x 3` BGR NumPy array. Core detections contain
 only `class_id`, `class_name`, `confidence`, and input-image `xyxy`; boxes are
 clamped and zero-area boxes are dropped.
 
-`DetectionRuntimeManager` resolves an optional model ID, loads a registered
-checkpoint only on first use, and caches successful `DetectionService` objects.
-The service uses the model's manifest configuration:
+`DetectionRuntimeManager` resolves an optional model ID, loads registered
+artifacts only on first use, and caches successful `DetectionService` objects.
+Ultralytics detectors retain the established service-owned geometry path:
 
 ```text
 original BGR
@@ -23,8 +23,25 @@ original BGR
 -> per-model quality-v1 and original-size annotation
 ```
 
-There is no class mapping layer: service defect types are the checkpoint-native
-names validated against the manifest. Quality weights are model-owned and fall
+Anomaly-map detectors declare backend-owned geometry instead:
+
+```text
+original BGR
+-> backend-owned 518×518 stretch + CLIP normalization
+-> anomaly map + frozen postprocessing
+-> calibrated anomaly components restored to original coordinates by the backend
+-> shared native class validation, quality-v1, and annotation
+```
+
+The ownership capability prevents `DetectionService` from applying a second
+letterbox or coordinate restore. The AnomalyCLIP runtime is registered as a
+hidden candidate in this milestone; public API selection still exposes only the
+three established Ultralytics models.
+
+There is no class mapping layer: service defect types are model-native names
+validated against the manifest. AnomalyCLIP emits only `anomaly`, and its
+confidence value is an empirical score relative to clean calibration
+components—not a class probability. Quality weights are model-owned and fall
 back only to the explicit neutral `1.0` declared by that model.
 
 `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by

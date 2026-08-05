@@ -19,7 +19,7 @@ from backend.utils.model_loader import (
 )
 from backend.utils.preprocessing import InspectionPreprocessingConfig
 
-from .base import DetectorBackend
+from .base import DetectorBackend, GeometryOwnership
 from .dto import InspectionResult
 from .service import DetectionService
 
@@ -78,14 +78,19 @@ class DetectionRuntimeManager:
         with self._cache_lock:
             return tuple(self._services)
 
-    def registered_models(self) -> tuple[RegisteredModel, ...]:
+    def registered_models(
+        self,
+        *,
+        exposed_only: bool = False,
+    ) -> tuple[RegisteredModel, ...]:
+        specs = self.registry.exposed_models if exposed_only else self.registry.models
         return tuple(
             RegisteredModel(
                 spec=spec,
                 is_default=self.registry.is_default(spec.model_id),
                 installed=model_is_installed(self.models_directory, spec),
             )
-            for spec in self.registry.models
+            for spec in specs
         )
 
     def _build_service(self, spec: ModelSpec) -> DetectionService:
@@ -109,7 +114,12 @@ class DetectionRuntimeManager:
 
         return DetectionService(
             detector,
-            preprocessing=preprocessing_config(spec),
+            preprocessing=(
+                preprocessing_config(spec)
+                if getattr(detector, "geometry_ownership", GeometryOwnership.SERVICE)
+                is GeometryOwnership.SERVICE
+                else None
+            ),
             native_classes=spec.native_classes,
             quality_class_weights=spec.class_weights,
             quality_default_weight=spec.quality_default_weight,
@@ -126,4 +136,5 @@ class DetectionRuntimeManager:
             return service
 
     def inspect(self, image: np.ndarray, model_id: str | None = None) -> InspectionResult:
-        return self.get_service(model_id).inspect(image)
+        spec = self.registry.get_exposed(model_id)
+        return self.get_service(spec.model_id).inspect(image)

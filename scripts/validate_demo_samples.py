@@ -196,9 +196,15 @@ def validate_demo_samples() -> list[str]:
         "groundTruth": False,
         "accuracyClaim": False,
         "modelId": observation_model_id,
-        "modelSha256": observation_model.get("sha256") if observation_model else None,
+        "modelSha256": (
+            observation_model.get("artifacts", [{}])[0].get("sha256")
+            if observation_model
+            else None
+        ),
         "confidenceThreshold": (
-            observation_model.get("confidence") if observation_model else None
+            observation_model.get("backendConfig", {}).get("confidence")
+            if observation_model
+            else None
         ),
         "nativeClasses": (
             observation_model.get("nativeClasses", []) if observation_model else []

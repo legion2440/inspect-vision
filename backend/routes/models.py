@@ -29,5 +29,5 @@ def list_models(
             is_default=registered.is_default,
             installed=registered.installed,
         )
-        for registered in detection_runtime.registered_models()
+        for registered in detection_runtime.registered_models(exposed_only=True)
     ]

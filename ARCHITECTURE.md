@@ -74,19 +74,24 @@ flowchart LR
 - Also owns the required `backend/utils/preprocessing.py` and
   `backend/utils/model_loader.py` paths declared explicitly in `module-map.json`.
 - Implements model integrity checks, `auto | cpu | cuda | cuda:N` selection,
-  Ultralytics loading, multiclass inference, bbox clamping, and normalized core
-  DTOs independent of Ultralytics result objects.
-- Provides a registry installer for the default, one named model, or all models;
-  every pinned download is size/SHA verified and atomically installed.
+  Ultralytics and anomaly-map backends, bbox clamping, and normalized core DTOs
+  independent of framework result objects.
+- Provides a multi-artifact registry installer for the default, one named model,
+  or all exposed models; every pinned download is size/SHA verified and
+  atomically installed.
 - Implements `standard-color` and `steel-enhanced` manifest profiles over one
   shared letterbox/restore pipeline. The latter adds grayscale and CLAHE.
 - `DetectionRuntimeManager` lazy-loads and caches registered models.
   `DetectionService` preserves checkpoint-native class names, applies per-model
   quality weights with an explicit neutral default, annotates original pixels,
   and returns passed/failed without Ultralytics objects.
+- Geometry ownership is an explicit backend capability. Ultralytics uses the
+  shared letterbox/restore path; AnomalyCLIP owns stretch preprocessing,
+  anomaly-map postprocessing, and original-coordinate restoration so the
+  service cannot transform its boxes twice.
 - Does not own HTTP routes, inspection history, video processing, tracking,
   scheduling, media encoding, or persistence.
-- All three registered models are runtime-qualified through the same production
+- All three exposed Ultralytics models are runtime-qualified through the same production
   manager/service path on domain-scoped probes. Probe observations make no
   benchmark-accuracy claim.
 - The selected service is also runtime-verified against all twelve tracked VisA

@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from backend.detection.dto import InferenceResult
+from backend.detection.base import GeometryOwnership
 from backend.detection.runtime import DetectionRuntimeManager
 from backend.utils.model_loader import ModelNotFoundError, ModelNotInstalledError, ModelRegistry
 
@@ -31,6 +32,10 @@ class DetectorStub:
             device="cpu",
             model_id=self.model_id,
         )
+
+
+class BackendOwnedDetectorStub(DetectorStub):
+    geometry_ownership = GeometryOwnership.BACKEND
 
 
 def test_runtime_uses_manifest_default_and_lazy_cache() -> None:
@@ -85,3 +90,20 @@ def test_runtime_rejects_unknown_and_missing_models(tmp_path: Path) -> None:
         runtime.get_service("unknown")
     with pytest.raises(ModelNotInstalledError, match="install_models.py --model"):
         runtime.get_service()
+
+
+def test_hidden_model_is_available_internally_but_rejected_by_public_inspect() -> None:
+    registry = ModelRegistry()
+    runtime = DetectionRuntimeManager(
+        registry,
+        detector_factory=lambda spec: BackendOwnedDetectorStub(spec),
+    )
+
+    service = runtime.get_service("anomalyclip-general-v1")
+
+    assert service.detector.model_id == "anomalyclip-general-v1"
+    with pytest.raises(ModelNotFoundError, match="publicly available"):
+        runtime.inspect(
+            np.zeros((20, 30, 3), dtype=np.uint8),
+            "anomalyclip-general-v1",
+        )

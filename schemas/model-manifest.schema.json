@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "defaultModelId", "preprocessingProfiles", "models"],
   "properties": {
-    "schemaVersion": { "const": 2 },
+    "schemaVersion": { "const": 3 },
     "defaultModelId": { "type": "string", "minLength": 1 },
     "defaultRationale": { "type": "string", "minLength": 1 },
     "preprocessingProfiles": {
@@ -30,6 +30,16 @@
         { "type": "integer", "minimum": 0, "maximum": 255 },
         { "type": "integer", "minimum": 0, "maximum": 255 },
         { "type": "integer", "minimum": 0, "maximum": 255 }
+      ],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "triplet": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number" },
+        { "type": "number" },
+        { "type": "number" }
       ],
       "minItems": 3,
       "maxItems": 3
@@ -73,7 +83,7 @@
         }
       ]
     },
-    "source": {
+    "artifactSource": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -82,48 +92,57 @@
         "revision",
         "sourceFilename",
         "license",
-        "licenseSourceUrl"
+        "licenseSourceUrl",
+        "licenseScope"
       ],
       "properties": {
         "repositoryUrl": { "type": "string", "format": "uri" },
         "downloadUrl": { "type": "string", "format": "uri" },
-        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "revision": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" },
         "sourceFilename": { "type": "string", "minLength": 1 },
         "license": { "type": "string", "minLength": 1 },
-        "licenseSourceUrl": { "type": "string", "format": "uri" }
+        "licenseSourceUrl": { "type": "string", "format": "uri" },
+        "licenseScope": { "enum": ["checkpoint", "repository", "repository-code-only"] }
       }
     },
-    "model": {
+    "artifact": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "id",
-        "displayName",
-        "role",
-        "domain",
-        "description",
-        "filename",
-        "sha256",
-        "sizeBytes",
-        "task",
-        "framework",
-        "inputSize",
-        "nativeClasses",
-        "confidence",
-        "iou",
-        "preprocessingProfile",
-        "quality",
-        "source"
-      ],
+      "required": ["id", "filename", "sha256", "sizeBytes", "source"],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
-        "displayName": { "type": "string", "minLength": 1 },
-        "role": { "enum": ["general", "specialist"] },
-        "domain": { "type": "string", "minLength": 1 },
-        "description": { "type": "string", "minLength": 1 },
-        "filename": { "type": "string", "pattern": "^[^/\\\\]+\\.pt$" },
+        "filename": { "type": "string", "pattern": "^[^/\\\\]+\\.(?:pt|pth)$" },
         "sha256": { "$ref": "#/$defs/sha256" },
         "sizeBytes": { "type": "integer", "minimum": 1 },
+        "source": { "$ref": "#/$defs/artifactSource" }
+      }
+    },
+    "inputSize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultWeight", "classWeights"],
+      "properties": {
+        "defaultWeight": { "type": "number", "exclusiveMinimum": 0 },
+        "classWeights": {
+          "type": "object",
+          "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "ultralyticsConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "framework", "confidence", "iou", "preprocessingProfile"],
+      "properties": {
         "task": { "const": "detect" },
         "framework": {
           "type": "object",
@@ -135,38 +154,176 @@
             "testedVersion": { "type": "string", "minLength": 1 }
           }
         },
-        "inputSize": {
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "iou": { "type": "number", "minimum": 0, "maximum": 1 },
+        "preprocessingProfile": { "type": "string", "minLength": 1 }
+      }
+    },
+    "anomalyclipConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task",
+        "sourceCommit",
+        "preprocessing",
+        "featuresList",
+        "featureMapLayers",
+        "dpamLayer",
+        "prompt",
+        "gaussianSigma",
+        "postprocessing",
+        "scoreCalibration"
+      ],
+      "properties": {
+        "task": { "const": "anomaly-localization" },
+        "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "preprocessing": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["width", "height"],
+          "required": ["profileId", "resize", "normalization"],
           "properties": {
-            "width": { "type": "integer", "minimum": 1 },
-            "height": { "type": "integer", "minimum": 1 }
+            "profileId": { "const": "anomalyclip-stretch" },
+            "resize": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["mode", "width", "height", "interpolation"],
+              "properties": {
+                "mode": { "const": "stretch" },
+                "width": { "const": 518 },
+                "height": { "const": 518 },
+                "interpolation": { "const": "bicubic" }
+              }
+            },
+            "normalization": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["mean", "std"],
+              "properties": {
+                "mean": { "$ref": "#/$defs/triplet" },
+                "std": { "$ref": "#/$defs/triplet" }
+              }
+            }
           }
         },
+        "featuresList": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "featureMapLayers": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "dpamLayer": { "type": "integer", "minimum": 0 },
+        "prompt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "className",
+            "promptLength",
+            "learnableTextEmbeddingDepth",
+            "learnableTextEmbeddingLength"
+          ],
+          "properties": {
+            "className": { "const": "object" },
+            "promptLength": { "type": "integer", "minimum": 1 },
+            "learnableTextEmbeddingDepth": { "type": "integer", "minimum": 1 },
+            "learnableTextEmbeddingLength": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "gaussianSigma": { "type": "number", "minimum": 0 },
+        "postprocessing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mapThreshold", "morphology", "minComponentAreaRatio", "mergeDistancePx"],
+          "properties": {
+            "mapThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+            "morphology": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kernel", "kernelSize", "openIterations", "closeIterations"],
+              "properties": {
+                "kernel": { "enum": ["ellipse", "rectangle", "none"] },
+                "kernelSize": { "type": "integer", "minimum": 1 },
+                "openIterations": { "type": "integer", "minimum": 0 },
+                "closeIterations": { "type": "integer", "minimum": 0 }
+              }
+            },
+            "minComponentAreaRatio": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "mergeDistancePx": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "scoreCalibration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256", "sizeBytes", "semanticMeaning"],
+          "properties": {
+            "path": {
+              "type": "string",
+              "pattern": "^backend/models/config/[A-Za-z0-9._-]+\\.json$"
+            },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "sizeBytes": { "type": "integer", "minimum": 1 },
+            "semanticMeaning": {
+              "const": "anomaly confidence score relative to clean calibration artifacts; not a class probability"
+            }
+          }
+        }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "displayName",
+        "role",
+        "domain",
+        "description",
+        "backend",
+        "exposed",
+        "artifacts",
+        "inputSize",
+        "nativeClasses",
+        "quality",
+        "backendConfig"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "displayName": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["general", "specialist"] },
+        "domain": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "backend": { "enum": ["ultralytics", "anomalyclip"] },
+        "exposed": { "type": "boolean" },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/artifact" }
+        },
+        "inputSize": { "$ref": "#/$defs/inputSize" },
         "nativeClasses": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
           "items": { "type": "string", "minLength": 1 }
         },
-        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "iou": { "type": "number", "minimum": 0, "maximum": 1 },
-        "preprocessingProfile": { "type": "string", "minLength": 1 },
-        "quality": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["defaultWeight", "classWeights"],
-          "properties": {
-            "defaultWeight": { "type": "number", "exclusiveMinimum": 0 },
-            "classWeights": {
-              "type": "object",
-              "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
-            }
-          }
+        "quality": { "$ref": "#/$defs/quality" },
+        "backendConfig": {}
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "backend": { "const": "ultralytics" } } },
+          "then": { "properties": { "backendConfig": { "$ref": "#/$defs/ultralyticsConfig" } } }
         },
-        "source": { "$ref": "#/$defs/source" }
-      }
+        {
+          "if": { "properties": { "backend": { "const": "anomalyclip" } } },
+          "then": { "properties": { "backendConfig": { "$ref": "#/$defs/anomalyclipConfig" } } }
+        }
+      ]
     }
   }
 }

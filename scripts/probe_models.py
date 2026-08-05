@@ -195,7 +195,7 @@ def main() -> int:
     if not isinstance(groups, list):
         raise ValueError("Probe sample manifest must contain a models array")
     if {group.get("modelId") for group in groups} != {
-        spec.model_id for spec in registry.models
+        spec.model_id for spec in registry.exposed_models
     }:
         raise ValueError("Probe sample groups must match registered model IDs")
 

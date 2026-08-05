@@ -14,7 +14,7 @@ from backend.utils.preprocessing import (
 )
 
 from .annotation import annotate_image
-from .base import DetectorBackend
+from .base import DetectorBackend, GeometryOwnership
 from .dto import BoundingBox, InspectionDefect, InspectionResult
 from .quality import calculate_quality_score
 
@@ -26,12 +26,27 @@ class DetectionService:
         self,
         detector: DetectorBackend,
         *,
-        preprocessing: InspectionPreprocessingConfig,
+        preprocessing: InspectionPreprocessingConfig | None,
         native_classes: Sequence[str],
         quality_class_weights: Mapping[str, float] | None = None,
         quality_default_weight: float = 1.0,
     ) -> None:
-        if detector.image_size != preprocessing.input_size:
+        geometry_ownership = getattr(
+            detector,
+            "geometry_ownership",
+            GeometryOwnership.SERVICE,
+        )
+        if (
+            geometry_ownership is GeometryOwnership.SERVICE
+            and preprocessing is None
+        ):
+            raise ValueError("Service-owned geometry requires preprocessing configuration")
+        if (
+            geometry_ownership is GeometryOwnership.BACKEND
+            and preprocessing is not None
+        ):
+            raise ValueError("Backend-owned geometry must not use service preprocessing")
+        if preprocessing is not None and detector.image_size != preprocessing.input_size:
             raise ValueError("Detector image_size must match service preprocessing input_size")
         normalized_classes = tuple(native_classes)
         if not normalized_classes or len(set(normalized_classes)) != len(normalized_classes):
@@ -48,6 +63,7 @@ class DetectionService:
         if quality_default_weight <= 0.0:
             raise ValueError("quality_default_weight must be positive")
         self.detector = detector
+        self.geometry_ownership = geometry_ownership
         self.preprocessing = preprocessing
         self.native_classes = normalized_classes
         self.quality_class_weights = normalized_weights
@@ -56,33 +72,46 @@ class DetectionService:
     def inspect(self, image: np.ndarray) -> InspectionResult:
         validate_bgr_image(image)
         image_height, image_width = image.shape[:2]
-        prepared = preprocess_inspection_image(image, self.preprocessing)
-        model_input = prepared.model_input
-        expected_shape = (
-            self.preprocessing.input_size,
-            self.preprocessing.input_size,
-            3,
-        )
-        if model_input.shape != expected_shape:
-            raise RuntimeError(
-                f"Inspection preprocessing returned {model_input.shape}, expected {expected_shape}"
-            )
-
-        inference = self.detector.infer(model_input)
-        if (
-            inference.image_width != self.preprocessing.input_size
-            or inference.image_height != self.preprocessing.input_size
-        ):
-            raise RuntimeError("Detector must return coordinates in the service input dimensions")
-
-        if inference.detections:
-            model_boxes = np.asarray(
+        if self.geometry_ownership is GeometryOwnership.BACKEND:
+            inference = self.detector.infer(image)
+            if inference.image_width != image_width or inference.image_height != image_height:
+                raise RuntimeError(
+                    "Backend-owned geometry must return coordinates in original dimensions"
+                )
+            original_boxes = np.asarray(
                 [detection.xyxy for detection in inference.detections],
                 dtype=np.float32,
-            )
-            original_boxes = restore_boxes(model_boxes, prepared.letterbox_info)
+            ).reshape((-1, 4))
         else:
-            original_boxes = np.empty((0, 4), dtype=np.float32)
+            if self.preprocessing is None:  # pragma: no cover - guarded in __init__
+                raise RuntimeError("Service preprocessing is unavailable")
+            prepared = preprocess_inspection_image(image, self.preprocessing)
+            model_input = prepared.model_input
+            expected_shape = (
+                self.preprocessing.input_size,
+                self.preprocessing.input_size,
+                3,
+            )
+            if model_input.shape != expected_shape:
+                raise RuntimeError(
+                    f"Inspection preprocessing returned {model_input.shape}, expected {expected_shape}"
+                )
+
+            inference = self.detector.infer(model_input)
+            if (
+                inference.image_width != self.preprocessing.input_size
+                or inference.image_height != self.preprocessing.input_size
+            ):
+                raise RuntimeError("Detector must return coordinates in the service input dimensions")
+
+            if inference.detections:
+                model_boxes = np.asarray(
+                    [detection.xyxy for detection in inference.detections],
+                    dtype=np.float32,
+                )
+                original_boxes = restore_boxes(model_boxes, prepared.letterbox_info)
+            else:
+                original_boxes = np.empty((0, 4), dtype=np.float32)
 
         defects: list[InspectionDefect] = []
         allowed_classes = set(self.native_classes)

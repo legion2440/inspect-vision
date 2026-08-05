@@ -98,6 +98,7 @@
         { "path": "scripts/install_models.py", "status": "implemented" }
       ],
       "public_interfaces": [
+        { "path": "backend/detection/anomalyclip_backend.py", "status": "implemented" },
         { "path": "backend/detection/annotation.py", "status": "implemented" },
         { "path": "backend/detection/base.py", "status": "implemented" },
         { "path": "backend/detection/dto.py", "status": "implemented" },
@@ -114,12 +115,16 @@
       ],
       "docs": [
         { "path": "backend/detection/README.md", "status": "implemented" },
+        { "path": "backend/detection/third_party/anomalyclip/NOTICE.md", "status": "implemented" },
+        { "path": "backend/detection/third_party/anomalyclip/LICENSE", "status": "implemented" },
+        { "path": "backend/detection/third_party/anomalyclip/OPENAI-CLIP-LICENSE", "status": "implemented" },
         { "path": "backend/models/README.md", "status": "implemented" },
         { "path": "docs/env-model-contract.md", "status": "implemented" }
       ],
       "generated_artifacts": [],
       "owned_configuration": [
-        { "path": "backend/models/model-manifest.json", "status": "implemented" }
+        { "path": "backend/models/model-manifest.json", "status": "implemented" },
+        { "path": "backend/models/config/anomalyclip-general-v1-score-calibration.json", "status": "implemented" }
       ]
     },
     {

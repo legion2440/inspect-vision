@@ -40,6 +40,16 @@ def _load_json(relative_path: str) -> dict[str, Any]:
     return value
 
 
+def _primary_artifact(model: dict[str, Any]) -> dict[str, Any]:
+    artifacts = model.get("artifacts", [])
+    return artifacts[0] if isinstance(artifacts, list) and artifacts else {}
+
+
+def _ultralytics_config(model: dict[str, Any]) -> dict[str, Any]:
+    config = model.get("backendConfig", {})
+    return config if model.get("backend") == "ultralytics" and isinstance(config, dict) else {}
+
+
 def _valid_repository_path(value: object) -> bool:
     if not isinstance(value, str) or not value or "\\" in value or ":" in value:
         return False
@@ -375,7 +385,13 @@ def _check_model_manifest(errors: list[str]) -> None:
 
     models = manifest.get("models", [])
     model_ids = [model.get("id") for model in models if isinstance(model, dict)]
-    filenames = [model.get("filename") for model in models if isinstance(model, dict)]
+    filenames = [
+        artifact.get("filename")
+        for model in models
+        if isinstance(model, dict)
+        for artifact in model.get("artifacts", [])
+        if isinstance(artifact, dict)
+    ]
     for label, values in (("IDs", model_ids), ("filenames", filenames)):
         duplicates = sorted({value for value in values if value and values.count(value) > 1})
         if duplicates:
@@ -388,8 +404,10 @@ def _check_model_manifest(errors: list[str]) -> None:
         if not isinstance(model, dict):
             continue
         model_id = model.get("id")
-        if model.get("preprocessingProfile") not in profiles:
-            errors.append(f"Model references an unknown preprocessing profile: {model_id}")
+        if model.get("backend") == "ultralytics":
+            profile_id = _ultralytics_config(model).get("preprocessingProfile")
+            if profile_id not in profiles:
+                errors.append(f"Model references an unknown preprocessing profile: {model_id}")
         native_classes = set(model.get("nativeClasses", []))
         weight_classes = set(model.get("quality", {}).get("classWeights", {}))
         if not weight_classes.issubset(native_classes):
@@ -428,7 +446,11 @@ def _check_detection_evidence(errors: list[str]) -> None:
             if actual_hash != expected_hash:
                 errors.append(f"Detection evidence is stale for source file: {relative_path}")
 
-    manifest_models = {model["id"]: model for model in manifest.get("models", [])}
+    manifest_models = {
+        model["id"]: model
+        for model in manifest.get("models", [])
+        if model.get("exposed") is True
+    }
     evidence_models = evidence.get("models")
     if not isinstance(evidence_models, list):
         errors.append("Detection evidence must contain a models array")
@@ -446,7 +468,7 @@ def _check_detection_evidence(errors: list[str]) -> None:
         model_spec = manifest_models.get(model_id)
         if model_spec is None:
             continue
-        if model_result.get("sha256") != model_spec["sha256"]:
+        if model_result.get("sha256") != _primary_artifact(model_spec).get("sha256"):
             errors.append(f"Detection evidence hash mismatch for model: {model_id}")
         if model_result.get("classes") != model_spec["nativeClasses"]:
             errors.append(f"Detection evidence class mismatch for model: {model_id}")
@@ -454,9 +476,12 @@ def _check_detection_evidence(errors: list[str]) -> None:
             errors.append(f"Detection evidence task mismatch for model: {model_id}")
         if not isinstance(model_result.get("totalDetections"), int) or model_result["totalDetections"] < 1:
             errors.append(f"Detection evidence has no detections for model: {model_id}")
-        if model_result.get("confidence") != model_spec["confidence"]:
+        backend_config = _ultralytics_config(model_spec)
+        if model_result.get("confidence") != backend_config.get("confidence"):
             errors.append(f"Detection evidence confidence mismatch for model: {model_id}")
-        if model_result.get("preprocessingProfile") != model_spec["preprocessingProfile"]:
+        if model_result.get("preprocessingProfile") != backend_config.get(
+            "preprocessingProfile"
+        ):
             errors.append(f"Detection evidence preprocessing mismatch for model: {model_id}")
         if model_result.get("quality") != model_spec["quality"]:
             errors.append(f"Detection evidence quality config mismatch for model: {model_id}")
@@ -541,7 +566,7 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
         errors.append("Inspection-service evidence uses an unregistered model")
         allowed_types: set[str] = set()
     else:
-        if model.get("sha256") != registered_model.get("sha256"):
+        if model.get("sha256") != _primary_artifact(registered_model).get("sha256"):
             errors.append("Inspection-service evidence model hash does not match the manifest")
         if model.get("classes") != registered_model.get("nativeClasses"):
             errors.append("Inspection-service evidence classes do not match the manifest")
@@ -549,11 +574,12 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
 
     pipeline = evidence.get("pipeline", {})
     if registered_model is not None:
-        if pipeline.get("confidence") != registered_model.get("confidence"):
+        registered_config = _ultralytics_config(registered_model)
+        if pipeline.get("confidence") != registered_config.get("confidence"):
             errors.append("Inspection-service evidence confidence does not match the manifest")
-        if pipeline.get("iou") != registered_model.get("iou"):
+        if pipeline.get("iou") != registered_config.get("iou"):
             errors.append("Inspection-service evidence IoU does not match the manifest")
-        if pipeline.get("preprocessingProfile") != registered_model.get(
+        if pipeline.get("preprocessingProfile") != registered_config.get(
             "preprocessingProfile"
         ):
             errors.append(
@@ -972,9 +998,10 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
     if (
         selected_model is None
         or model.get("modelId") != selected_model_id
-        or model.get("modelSha256") != selected_model.get("sha256")
+        or model.get("modelSha256") != _primary_artifact(selected_model).get("sha256")
         or model.get("nativeClasses") != selected_model.get("nativeClasses")
-        or model.get("confidenceThreshold") != selected_model.get("confidence")
+        or model.get("confidenceThreshold")
+        != _ultralytics_config(selected_model).get("confidence")
         or model.get("groundTruth") is not False
         or model.get("accuracyClaim") is not False
         or model != sample_manifest.get("modelObservationContract")
