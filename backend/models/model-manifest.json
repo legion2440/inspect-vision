@@ -194,9 +194,9 @@
       "displayName": "General Manufacturing (AnomalyCLIP v1)",
       "role": "general",
       "domain": "Cross-domain manufacturing anomaly localization",
-      "description": "Qualified anomaly-map candidate with generic anomaly output; hidden until runtime API verification.",
+      "description": "Broad anomaly localization with generic anomaly output and no subtype classification; specialist models are preferred for known domains.",
       "backend": "anomalyclip",
-      "exposed": false,
+      "exposed": true,
       "artifacts": [
         {
           "id": "clip-backbone",

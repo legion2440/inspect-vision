@@ -5,6 +5,11 @@ URL, and SHA-256 for local model verification. The probe downloads them into a
 temporary directory; this repository does not redistribute the research-use
 dataset files.
 
+`docs/evidence/anomalyclip-public-api/sample-contract.json` separately freezes
+the exact MVTec/MMAD and NEU files used to qualify the public AnomalyCLIP API
+path. It records source URLs, hashes, dimensions, qualification-relative paths,
+and prior observations; the images remain remote and untracked.
+
 The inspection-service evidence stores three annotated derivative outputs under
 `docs/evidence/inspection-service/`. Their exact source URLs, immutable source
 hashes, output hashes, and dimensions are recorded in the adjacent acceptance

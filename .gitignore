@@ -28,6 +28,7 @@ backend/models/weights/
 *.pth
 
 # Local runtime files
+.cache/
 *.log
 .DS_Store
 Thumbs.db

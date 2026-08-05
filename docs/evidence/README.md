@@ -4,6 +4,12 @@ Runtime-verification artifacts will be stored by milestone. Documentation claims
 alone are not evidence. Evidence must be reproducible, sanitized, and tied to a
 source commit and command.
 
+Completed runtime bundles are historical records. Their `sourceFiles` hashes
+must resolve to content present in repository history, but ordinary later source
+changes do not rewrite or invalidate the recorded measurements. Current public
+AnomalyCLIP compatibility is checked separately against its new source-bound
+bundle.
+
 Current model evidence:
 
 - `models/ultralytics-model-probe.json` verifies both registered checkpoints
@@ -46,6 +52,18 @@ API bonus evidence is under `api-bonuses/`:
   the history projection exactly.
 - Storage is cleared after the probe and the evidence records that all six media
   files were removed.
+
+AnomalyCLIP public API evidence is under `anomalyclip-public-api/`:
+
+- `sample-contract.json` freezes exact remote files, hashes, dimensions,
+  provenance, prior qualification observations, one valid zero-detection normal
+  case, and the known non-gating cable limitation before the runtime run.
+- `public-api-acceptance.json` records four-model `/api/models` serialization,
+  verified binary/calibration integrity, five real `/api/inspect` requests with
+  matching history/detail records, and one real JPEG `/api/stream` request that
+  leaves history unchanged.
+- The bundle proves preservation through the production public path. It does not
+  repeat accuracy qualification, change the default, or make an accuracy claim.
 
 Demo-dataset evidence is under `demo-samples/`:
 

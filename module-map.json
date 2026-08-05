@@ -19,7 +19,8 @@
         { "path": "frontend/src/routes/samples.jsx", "status": "implemented" }
       ],
       "tests": [
-        { "path": "frontend/tests/utils.test.js", "status": "implemented" }
+        { "path": "frontend/tests/utils.test.js", "status": "implemented" },
+        { "path": "frontend/tests/models.test.js", "status": "implemented" }
       ],
       "docs": [
         { "path": "frontend/README.md", "status": "implemented" },
@@ -192,6 +193,7 @@
         { "path": "scripts/probe_inspection_service.py", "status": "implemented" },
         { "path": "scripts/probe_api_persistence.py", "status": "implemented" },
         { "path": "scripts/probe_api_bonuses.py", "status": "implemented" },
+        { "path": "scripts/probe_anomalyclip_public_api.py", "status": "implemented" },
         { "path": "scripts/prepare_demo_samples.py", "status": "implemented" },
         { "path": "scripts/probe_demo_samples.py", "status": "implemented" },
         { "path": "scripts/validate_demo_samples.py", "status": "implemented" },
@@ -359,9 +361,25 @@
             "backend/detection/service.py",
             "scripts/validate_demo_samples.py"
           ]
+        },
+        {
+          "path": "docs/evidence/anomalyclip-public-api/public-api-acceptance.json",
+          "status": "generated",
+          "generator": "scripts/probe_anomalyclip_public_api.py",
+          "sources": [
+            "backend/models/model-manifest.json",
+            "backend/models/config/anomalyclip-general-v1-score-calibration.json",
+            "backend/detection/anomalyclip_backend.py",
+            "backend/detection/runtime.py",
+            "backend/routes/detect.py",
+            "backend/routes/models.py",
+            "backend/routes/stream.py",
+            "docs/evidence/anomalyclip-public-api/sample-contract.json"
+          ]
         }
       ],
       "owned_configuration": [
+        { "path": "docs/evidence/anomalyclip-public-api/sample-contract.json", "status": "implemented" },
         { "path": "backend/samples/model-probe-samples.json", "status": "implemented" },
         { "path": "backend/samples/demo-samples.json", "status": "implemented" },
         { "path": "backend/samples/demo", "status": "implemented" },

@@ -92,18 +92,23 @@ def test_runtime_rejects_unknown_and_missing_models(tmp_path: Path) -> None:
         runtime.get_service()
 
 
-def test_hidden_model_is_available_internally_but_rejected_by_public_inspect() -> None:
+def test_anomalyclip_is_available_through_public_inspect_with_backend_geometry() -> None:
     registry = ModelRegistry()
     runtime = DetectionRuntimeManager(
         registry,
         detector_factory=lambda spec: BackendOwnedDetectorStub(spec),
     )
 
-    service = runtime.get_service("anomalyclip-general-v1")
+    result = runtime.inspect(
+        np.zeros((20, 30, 3), dtype=np.uint8),
+        "anomalyclip-general-v1",
+    )
 
-    assert service.detector.model_id == "anomalyclip-general-v1"
-    with pytest.raises(ModelNotFoundError, match="publicly available"):
-        runtime.inspect(
-            np.zeros((20, 30, 3), dtype=np.uint8),
-            "anomalyclip-general-v1",
-        )
+    assert result.model_id == "anomalyclip-general-v1"
+    assert result.image_width == 30
+    assert result.image_height == 20
+    assert runtime.get_service("anomalyclip-general-v1").detector.received.shape == (
+        20,
+        30,
+        3,
+    )

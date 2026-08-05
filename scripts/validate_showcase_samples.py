@@ -283,10 +283,15 @@ def validate_showcase_samples() -> list[str]:
     if not isinstance(samples, list):
         errors.append("Showcase samples must be an array")
         return errors
-    expected_count = quota * len(registered_model_ids)
+    showcase_model_ids = {
+        sample.get("recommendedModelId")
+        for sample in samples
+        if isinstance(sample, dict) and isinstance(sample.get("recommendedModelId"), str)
+    }
+    expected_count = quota * len(showcase_model_ids)
     if len(samples) != expected_count:
         errors.append(
-            f"Showcase must contain exactly {quota} samples for each registered model "
+            f"Showcase must contain exactly {quota} samples for each declared showcase model "
             f"({expected_count} total)"
         )
 
@@ -366,7 +371,7 @@ def validate_showcase_samples() -> list[str]:
         if width != sample.get("width") or height != sample.get("height"):
             errors.append(f"Showcase image dimensions mismatch: {filename}")
 
-    expected_model_counts = {model_id: quota for model_id in registered_model_ids}
+    expected_model_counts = {model_id: quota for model_id in showcase_model_ids}
     if dict(model_counts) != expected_model_counts:
         errors.append(
             f"Showcase model quotas differ: expected={expected_model_counts}, "

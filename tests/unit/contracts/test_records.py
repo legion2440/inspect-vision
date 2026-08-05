@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from backend.models.record import InspectionSummaryRecord
+from backend.models.record import AvailableModelRecord, InspectionSummaryRecord
 
 
 def valid_record() -> dict[str, object]:
@@ -53,3 +53,21 @@ def test_contract_rejects_status_count_mismatch() -> None:
 
     with pytest.raises(ValidationError, match="status must be passed"):
         InspectionSummaryRecord.model_validate(payload)
+
+
+def test_public_model_contract_accepts_anomalyclip_preprocessing_profile() -> None:
+    model = AvailableModelRecord.model_validate(
+        {
+            "id": "anomalyclip-general-v1",
+            "displayName": "General Manufacturing (AnomalyCLIP v1)",
+            "role": "general",
+            "domain": "Cross-domain manufacturing anomaly localization",
+            "description": "Broad anomaly localization.",
+            "classes": ["anomaly"],
+            "preprocessingProfile": "anomalyclip-stretch",
+            "isDefault": False,
+            "installed": True,
+        }
+    )
+
+    assert model.preprocessing_profile == "anomalyclip-stretch"

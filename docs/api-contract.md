@@ -146,6 +146,11 @@ The endpoint does not load a checkpoint. `installed` means the local filename,
 size, and SHA-256 currently match the manifest. Uninstalled entries remain
 visible so the UI can explain how to install them.
 
+The current response contains four models. `anomalyclip-general-v1` uses
+`preprocessingProfile: "anomalyclip-stretch"`, emits only the generic native
+class `anomaly`, and is not the default. The selector consumes this entry through
+the same registry projection as the three Ultralytics models.
+
 ### `GET /api/samples`
 
 Returns the offline showcase manifest as `notice`, `datasets`, and `samples`.

@@ -19,13 +19,15 @@ installed only when filename, byte size, and SHA-256 match the manifest.
 # install all exposed models
 .venv/Scripts/python.exe scripts/install_models.py --all
 
-# explicitly install the hidden AnomalyCLIP candidate and both of its artifacts
+# install AnomalyCLIP and both of its artifacts
 .venv/Scripts/python.exe scripts/install_models.py --model anomalyclip-general-v1
 ```
 
 Downloads use pinned revisions and a temporary file followed by an atomic move.
-An already verified artifact is left untouched. Hidden candidates are excluded
-from `--all` so the nearly 1 GB CLIP backbone is never downloaded implicitly.
+An already verified artifact is left untouched. `--all` means every exposed
+model, so it now intentionally includes both AnomalyCLIP artifacts. A hidden
+fixture remains covered to prevent future candidates entering `--all` before
+exposure.
 
 The registry currently contains:
 
@@ -35,10 +37,10 @@ The registry currently contains:
   steel-enhanced preprocessing, confidence 0.25;
 - `concrete-crack-yolov8`: Concrete & Structural Cracks specialist, native class
   `crack`, standard-color preprocessing, confidence 0.25;
-- `anomalyclip-general-v1`: hidden anomaly-map candidate with two artifacts,
-  fixed 518×518 stretch preprocessing, native class `anomaly`, and calibrated
-  component scores. It is not returned by `/api/models` or accepted by public
-  inspect/stream routes in this milestone.
+- `anomalyclip-general-v1`: public broad anomaly-localization model with two
+  artifacts, fixed 518×518 stretch preprocessing, native class `anomaly`, and
+  calibrated component scores. It provides no subtype classification;
+  specialists remain preferred for known domains.
 
 The current broad checkpoint contains `capsule_defect` even though its model
 card names `cable_defect`; runtime `model.names` is authoritative. Its low

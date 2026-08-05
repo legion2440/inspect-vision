@@ -44,7 +44,11 @@ class AvailableModelRecord(ModelRecord):
     domain: str = Field(min_length=1)
     description: str = Field(min_length=1)
     classes: tuple[str, ...] = Field(min_length=1)
-    preprocessing_profile: Literal["standard-color", "steel-enhanced"]
+    preprocessing_profile: Literal[
+        "standard-color",
+        "steel-enhanced",
+        "anomalyclip-stretch",
+    ]
     is_default: bool
     installed: bool
 

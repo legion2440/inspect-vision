@@ -94,6 +94,11 @@ flowchart LR
 - All three exposed Ultralytics models are runtime-qualified through the same production
   manager/service path on domain-scoped probes. Probe observations make no
   benchmark-accuracy claim.
+- Public AnomalyCLIP qualification uses real loopback `/api/inspect` and
+  `/api/stream` requests over previously qualified, hash-bound inputs. It proves
+  metadata serialization, observation preservation, persistence, original-space
+  geometry, and non-persisted stream behavior without changing the default or
+  making a new accuracy claim.
 - The selected service is also runtime-verified against all twelve tracked VisA
   samples selected by source quotas. Four source-normal samples retain all model
   false positives; source labels never become native model class claims.
@@ -133,7 +138,7 @@ flowchart LR
   confidence `0.25` and explicitly makes no accuracy claim.
 - The showcase validator reconstructs PCB labels from a tracked COCO excerpt,
   crack labels from a tracked HU metadata excerpt, and blade labels from source
-  folders. It also enforces three images per model, pinned license metadata,
+  folders. It also enforces three images per declared showcase model, pinned license metadata,
   hashes, dimensions, declared downscaling, decodeability, the upload-size
   limit, and absence of prediction fields.
 

@@ -43,10 +43,10 @@ Each model records:
 
 The current default is `factory-defect-guard-v6-mc`. Specialists are
 `neu-defect-yolov8` for steel surfaces and `concrete-crack-yolov8` for concrete
-and structural cracks. A hidden `anomalyclip-general-v1` entry exercises the
-anomaly-map backend without changing the public model list or default. Native
-model names are authoritative and are never translated into invented defect
-semantics.
+and structural cracks. Public `anomalyclip-general-v1` provides broad anomaly
+localization with the generic native class `anomaly`; it does not classify
+subtypes and does not replace the default. Native model names are authoritative
+and are never translated into invented defect semantics.
 
 FastAPI lifespan validates the manifest and creates one
 `DetectionRuntimeManager`; it does not load a checkpoint. On first use the
@@ -55,7 +55,7 @@ loads and validates task/classes, creates the matching `DetectionService`, and
 caches successful services. A shared application inference lock serializes both
 upload and live inference across all cached models.
 
-Unknown and hidden IDs return HTTP 404 at public inspect/stream boundaries. A
+Unknown or hidden IDs return HTTP 404 at public inspect/stream boundaries. A
 public registered model with missing or invalid artifacts returns HTTP 409 with
 its `scripts/install_models.py --model <id>` command.
 Actual inference exceptions remain HTTP 500 with exact detail
@@ -71,7 +71,7 @@ Install checkpoints atomically:
 # one registered model
 .venv/Scripts/python.exe scripts/install_models.py --model neu-defect-yolov8
 
-# every exposed model; hidden candidates require explicit --model
+# every exposed model, including AnomalyCLIP and both of its artifacts
 .venv/Scripts/python.exe scripts/install_models.py --all
 ```
 
@@ -103,7 +103,7 @@ already-sized square so there is no second geometric letterbox. API image
 encoding remains outside detection; original bytes stay unchanged and the
 annotation is encoded in the detected source format.
 
-The hidden AnomalyCLIP backend declares backend-owned geometry. It receives the
+The public AnomalyCLIP backend declares backend-owned geometry. It receives the
 original BGR image and owns the frozen 518×518 stretch, CLIP normalization,
 feature layers `6/12/18/24`, DPAM layer `20`, Gaussian sigma `4`, threshold
 `0.10`, ellipse `3×3` open/close, minimum-area ratio `0.0005`, merge distance

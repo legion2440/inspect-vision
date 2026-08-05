@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-08-05",
+  "recorded_at": "2026-08-06",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "hidden-anomaly-map-backend-implemented",
+  "state": "public-anomaly-map-runtime-qualified",
   "verified": [
-    "manifest schema version 3 validates one exposed default, three public Ultralytics detectors, and one hidden multi-artifact anomaly-map candidate",
+    "manifest schema version 3 validates one unchanged default, three public Ultralytics detectors, and one public multi-artifact anomaly-map model",
     "General Manufacturing is the coverage-oriented default; Steel Surface and Concrete & Structural Cracks are selectable specialists",
     "all three local checkpoint hashes match immutable source revisions and all three load with task=detect plus exact checkpoint-native classes",
     "all three models execute through DetectionRuntimeManager and DetectionService on domain-scoped remote probes",
@@ -19,11 +19,12 @@
     "frontend loads the registry, selects the installed API default, disables uninstalled entries, shows exact installer commands, and propagates one selection to upload and live requests",
     "changing the selected upload model aborts and sequence-invalidates the active request before clearing preview and result state",
     "changing the selected live model aborts the current frame and clears stale overlay detections",
-    "registry installer supports default, explicit hidden --model, and exposed-only --all with per-artifact pinned size/SHA checks and atomic replacement",
+    "registry installer supports default, explicit --model, and exposed-only --all with per-artifact pinned size/SHA checks and atomic replacement; AnomalyCLIP now intentionally participates in --all",
     "AnomalyCLIP uses backend-owned 518x518 stretch geometry, frozen postprocessing, original-space bbox restoration, and a hash-bound 131-value clean calibration reference",
     "AnomalyCLIP prompt loading requires weights_only=True, its CLIP backbone uses TorchScript loading without pickle fallback, and its score is documented as anomaly confidence rather than class probability",
-    "public /api/models, inspect, and stream surfaces continue to expose only the established three-model selection while the AnomalyCLIP candidate remains hidden",
-    "frontend mock mode exposes the same three-model selection contract",
+    "public /api/models serializes four models including anomalyclip-stretch while the default remains factory-defect-guard-v6-mc",
+    "AnomalyCLIP preserves prior screw, capsule, tile, normal, cable, and NEU observations through real public inspect/stream requests; history/detail retain its model ID and stream remains non-persistent",
+    "frontend mock mode exposes the same four-model selection through the existing generic selector contract",
     "existing upload, stream, history, persistence, filtering, deletion, CSV, annotation, severity, and demo-sample behavior remains covered",
     "frontend tests and Vite production build pass after the multi-model change",
     "Dashboard Quick Upload, Inspect, live stream, and the Samples page share one explicit global model selection",
@@ -34,9 +35,9 @@
   ],
   "known_limitations": [
     {
-      "id": "anomalyclip-hidden-runtime-candidate",
+      "id": "anomalyclip-partial-qualification",
       "area": "defect-detection",
-      "detail": "The AnomalyCLIP backend and frozen configuration are integrated but hidden. Real installed-artifact API verification is deferred to the next step; the separately stated license of the distributed backbone and prompt checkpoint binaries remains unconfirmed."
+      "detail": "AnomalyCLIP is publicly selectable but remains a generic anomaly localizer with a PARTIAL accuracy qualification, a known fragmented cable result, slow CPU inference, and no separately confirmed license statement for the distributed binary checkpoints. It is not the default and specialists remain preferred for known domains."
     },
     {
       "id": "broad-model-low-probe-confidence",

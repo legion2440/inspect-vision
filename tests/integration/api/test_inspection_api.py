@@ -79,8 +79,12 @@ class FakeDetectionRuntime:
                 raise RuntimeError("private model failure")
             height, width = image.shape[:2]
             box = BoundingBox(x=1.0, y=1.0, width=min(5.0, width - 1), height=min(4.0, height - 1))
+            defect_type = {
+                "concrete-crack-yolov8": "crack",
+                "anomalyclip-general-v1": "anomaly",
+            }.get(spec.model_id, "scratches")
             defect = InspectionDefect(
-                type="crack" if spec.model_id == "concrete-crack-yolov8" else "scratches",
+                type=defect_type,
                 confidence=0.9,
                 bounding_box=box,
             )
@@ -277,17 +281,18 @@ def test_model_lookup_and_installation_errors_are_distinct(api_factory) -> None:
 
 
 @pytest.mark.parametrize(
-    ("endpoint", "field", "filename"),
+    ("endpoint", "field", "filename", "history_count"),
     [
-        ("/api/inspect", "image", "part.jpg"),
-        ("/api/stream", "frame", "frame.jpg"),
+        ("/api/inspect", "image", "part.jpg", 1),
+        ("/api/stream", "frame", "frame.jpg", 0),
     ],
 )
-def test_hidden_model_id_is_not_available_through_public_inference_routes(
+def test_anomalyclip_is_available_through_public_inference_routes(
     api_factory,
     endpoint: str,
     field: str,
     filename: str,
+    history_count: int,
 ) -> None:
     class ExposureAwareRuntime(FakeDetectionRuntime):
         def inspect(
@@ -306,11 +311,16 @@ def test_hidden_model_id_is_not_available_through_public_inference_routes(
         files={field: (filename, encoded_image(".jpg"), "image/jpeg")},
     )
 
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Detection model not found"}
+    assert response.status_code == 200, response.text
+    assert response.json()["model"] == {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)",
+    }
+    assert response.json()["defects"][0]["type"] == "anomaly"
+    assert len(client.get("/api/history").json()) == history_count
 
 
-def test_models_endpoint_exposes_three_registry_entries(api_factory) -> None:
+def test_models_endpoint_exposes_four_registry_entries(api_factory) -> None:
     missing_id = "concrete-crack-yolov8"
     client = api_factory(FakeDetectionRuntime(missing_model_id=missing_id))
 
@@ -322,10 +332,25 @@ def test_models_endpoint_exposes_three_registry_entries(api_factory) -> None:
         "factory-defect-guard-v6-mc",
         "neu-defect-yolov8",
         "concrete-crack-yolov8",
+        "anomalyclip-general-v1",
     ]
     assert sum(model["isDefault"] for model in models) == 1
     assert models[0]["installed"] is True
     assert models[2]["installed"] is False
+    assert models[3] == {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)",
+        "role": "general",
+        "domain": "Cross-domain manufacturing anomaly localization",
+        "description": (
+            "Broad anomaly localization with generic anomaly output and no subtype "
+            "classification; specialist models are preferred for known domains."
+        ),
+        "classes": ["anomaly"],
+        "preprocessingProfile": "anomalyclip-stretch",
+        "isDefault": False,
+        "installed": True,
+    }
 
 
 def test_samples_endpoint_exposes_manifest_metadata_without_image_payloads(api_factory) -> None:
@@ -336,13 +361,18 @@ def test_samples_endpoint_exposes_manifest_metadata_without_image_payloads(api_f
     assert response.status_code == 200
     body = response.json()
     assert body["notice"] == "Source labels describe dataset metadata, not model predictions."
-    assert len(body["datasets"]) == 3
+    assert len(body["datasets"]) >= 3
     assert len(body["samples"]) == 9
     assert "base64" not in response.text.casefold()
     registered_ids = {model["id"] for model in client.get("/api/models").json()}
     recommended_ids = [sample["recommendedModelId"] for sample in body["samples"]]
-    assert set(recommended_ids) == registered_ids
-    assert all(recommended_ids.count(model_id) == 3 for model_id in registered_ids)
+    assert set(recommended_ids).issubset(registered_ids)
+    assert set(recommended_ids) == {
+        "factory-defect-guard-v6-mc",
+        "neu-defect-yolov8",
+        "concrete-crack-yolov8",
+    }
+    assert all(recommended_ids.count(model_id) == 3 for model_id in set(recommended_ids))
     assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
 
 

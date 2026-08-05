@@ -2,8 +2,8 @@
 
 Inspect-Vision is a manufacturing image-inspection application. A React/Vite
 interface sends images plus an optional model selection to a FastAPI backend,
-the resolved Ultralytics detector
-detects surface defects, OpenCV produces an annotated image, and SQLite plus
+the resolved Ultralytics or AnomalyCLIP detector localizes defects, OpenCV
+produces an annotated image, and SQLite plus
 owned media storage provide searchable inspection history.
 
 ## Requirements
@@ -11,11 +11,11 @@ owned media storage provide searchable inspection history.
 - Windows 11 with Git Bash;
 - Python 3.13.5;
 - Node.js and npm;
-- enough disk space for Python packages, the chosen checkpoints (about 51 MB for
-  all three), and
+- enough disk space for Python packages, the chosen checkpoints (about 1 GB for
+  all four exposed models), and
   local inspection media.
 
-The tracked `.pt` files are intentionally excluded from Git.
+Model `.pt` and `.pth` files are intentionally excluded from Git.
 
 ## Fresh-clone setup
 
@@ -35,8 +35,8 @@ cp .env.example .env
 
 Without arguments the installer reads `defaultModelId` from
 `backend/models/model-manifest.json`. Use `--model <id>` for one specialist or
-`--all` for all exposed models. Hidden candidates require an explicit
-`--model <id>`. Every download uses an immutable revision,
+`--all` for all exposed models; this intentionally includes both AnomalyCLIP
+artifacts. Hidden candidates require an explicit `--model <id>`. Every download uses an immutable revision,
 checks byte size and SHA-256, and is atomically installed only after validation.
 
 Install and configure the frontend:
@@ -86,9 +86,11 @@ thresholds, profiles, and quality weights live only in the tracked manifest.
 
 General Manufacturing is the coverage-oriented default when the process or
 material is not yet known. Steel Surface and Concrete & Structural Cracks are
-specialists and should be preferred for their named domains. The registry does
-not claim that the broad model is more accurate; runtime probes record its
-actual observations without turning them into benchmark claims.
+specialists and should be preferred for their named domains. AnomalyCLIP is a
+fourth public option for broad anomaly localization; it emits only `anomaly`,
+does not classify subtypes, and does not replace the default. The registry does
+not claim that either broad model is more accurate; runtime probes record actual
+observations without turning them into benchmark claims.
 
 Trusted Ultralytics detect checkpoints can be added by extending the validated
 manifest with pinned provenance, native classes, a preprocessing profile, and
@@ -98,8 +100,8 @@ manager/service path.
 The production inspection path is:
 
 ```text
-JPEG/PNG bytes -> validated BGR -> one square letterbox
--> standard-color OR steel grayscale + CLAHE -> selected YOLO inference
+JPEG/PNG bytes -> validated BGR -> selected geometry owner
+-> Ultralytics letterbox/profile OR AnomalyCLIP 518x518 stretch/anomaly map
 -> original-coordinate native boxes -> annotation
 -> quality score/status -> SQLite record and original/annotated media
 ```

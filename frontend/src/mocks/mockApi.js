@@ -38,6 +38,17 @@ const MODELS = [
     isDefault: false,
     installed: true,
   },
+  {
+    id: 'anomalyclip-general-v1',
+    displayName: 'General Manufacturing (AnomalyCLIP v1)',
+    role: 'general',
+    domain: 'Cross-domain manufacturing anomaly localization',
+    description: 'Broad anomaly localization with generic anomaly output and no subtype classification; specialist models are preferred for known domains.',
+    classes: ['anomaly'],
+    preprocessingProfile: 'anomalyclip-stretch',
+    isDefault: false,
+    installed: true,
+  },
 ];
 
 const SAMPLE_DATASETS = [

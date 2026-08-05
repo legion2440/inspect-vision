@@ -1,0 +1,646 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-08-05T19:58:35.384408Z",
+  "sourceCommit": "569c562ec7741133c312b5206f51a88473cf0842",
+  "sourceBinding": "sourceFiles are the authoritative SHA-256 values of the executed current public path",
+  "sourceFiles": {
+    "backend/main.py": "fe8c6abb7a070f2a32d1b7cbbcef0febd958fd7acf2c48591d023dacf0eb1205",
+    "backend/models/model-manifest.json": "e8381f2d158013ba00a18d668a9c7280aae83c9cb53a0acc3a74106edc9ec5fa",
+    "backend/models/config/anomalyclip-general-v1-score-calibration.json": "0e7bff5d4316627f9ece3a2203efcf55233fef5f1eae652bcca3028ba81041e4",
+    "backend/models/record.py": "7fbf45f7ea3786de8834e45c5e895894dba2e81b2af96a49f41324550e3bea76",
+    "backend/routes/detect.py": "180d4b3c882107463de672fc0976f6c67a6e85714700d05cd2c5f8970ce57dc5",
+    "backend/routes/history.py": "8bd6f262952382128db432a28343e7704d8dad5d79e42753cd55e75856cbc38b",
+    "backend/routes/models.py": "c209686642a981cad50bc5ae96124b6abe14c260f5e33eb0cac70ed2a05fba34",
+    "backend/routes/serialization.py": "c626be8cf10b9ac85582e6d638192f3a74a699cd9ed9728978cb6dcdb5c914e1",
+    "backend/routes/stream.py": "3cb5bc3f78eed8a7b3bbd878c534ae428bea4e71a37ff163a1b6b250fd86f0ec",
+    "backend/storage/media.py": "49fb29640c3a1e473a06998e11ec675198ab8547cb1421c7be87d23745c490eb",
+    "backend/storage/repository.py": "5a2cce62200e5db42e6b4ba591543f3740ceabe953db4912fb763adee98fcfcc",
+    "backend/storage/service.py": "caab843cd53754c4bb2846b0d4a3cce190a71a4fef34dfceb445904a62c3f84e",
+    "backend/detection/anomalyclip_backend.py": "3c35f8e97aedae2374d32895ed7cc423c61069ecd02f21a8dda8cecc28191868",
+    "backend/detection/runtime.py": "2733998d94f7cfd731b701afcef0b7a93653b342801162fb044d30c1ed373ba0",
+    "backend/detection/service.py": "f0390692f740c43143c196e33235ce23158ad3f799eff137755d9ffc821eecb3",
+    "backend/utils/model_loader.py": "fbabeb959f77eb28d3b72b1a1b29ac88af4204ed5c94e17ea5cb35914eaa9902",
+    "docs/evidence/anomalyclip-public-api/sample-contract.json": "7e098cadf1aef1608f1b083ba6a5c452e2190e462d2e440eeeb5be533234fb81",
+    "requirements-api.txt": "e59a3662be62054d80a270ba5d5c6a8059efbdd5ee40b04340cca61374d39531",
+    "requirements-detection.txt": "2c6bd9e7c07908198cdb900ed854f620466469dc8766172cba1e702c6bc0da8c",
+    "scripts/probe_anomalyclip_public_api.py": "2553df26a88486a0111b079fb0d82478f33d51958a5621b4690a644b3302d27d"
+  },
+  "sampleContract": {
+    "path": "docs/evidence/anomalyclip-public-api/sample-contract.json",
+    "sha256": "7e098cadf1aef1608f1b083ba6a5c452e2190e462d2e440eeeb5be533234fb81",
+    "qualification": {
+      "repository": "inspect-vision-qualification/anomalyclip-general-v1",
+      "decision": "PARTIAL",
+      "interpretation": "Preservation-only: prior observations are replayed through the public API without making a new accuracy claim.",
+      "artifacts": {
+        "artifacts/resolved-calibration-manifest.json": "149aba9bbb79df214145649f3910b73f2cdea8862046b58f8e39c3e4207735fc",
+        "artifacts/resolved-holdout-manifest.json": "293ba25ae7955884bb27cfcc08c0212c848f0b2a932df039db6de6593d370211",
+        "artifacts/frozen-configuration.json": "0ba1329e0b7ade6a4fef375e6f090ad8e8b785f01937b264f10a8d7d39862645",
+        "artifacts/holdout-result.json": "fa4b30de4049ca710cffeb02baa05a1b3501c1d0448c3c309c2db2c5a2078444"
+      }
+    }
+  },
+  "runtime": {
+    "python": "3.13.5",
+    "platform": "Windows",
+    "machine": "AMD64",
+    "device": "cpu",
+    "packages": {
+      "fastapi": "0.141.1",
+      "httpx2": "2.9.1",
+      "opencv-python": "4.13.0.92",
+      "pydantic": "2.13.4",
+      "starlette": "1.3.1",
+      "torch": "2.12.1+cpu",
+      "uvicorn": "0.52.1"
+    },
+    "transport": "Uvicorn loopback HTTP/1.1 with FastAPI lifespan"
+  },
+  "registry": {
+    "defaultModelId": "factory-defect-guard-v6-mc",
+    "publicModels": [
+      {
+        "id": "factory-defect-guard-v6-mc",
+        "displayName": "General Manufacturing",
+        "role": "general",
+        "domain": "General manufacturing",
+        "description": "Coverage-oriented detector for steel, PCB, tile, electronics, fasteners, and capsules.",
+        "classes": [
+          "crazing",
+          "inclusion",
+          "patches",
+          "pitted_surface",
+          "rolled_in_scale",
+          "scratches",
+          "pcb_missing_hole",
+          "pcb_mouse_bite",
+          "pcb_open_circuit",
+          "pcb_short",
+          "pcb_spur",
+          "pcb_spurious_copper",
+          "tile_defect",
+          "transistor_defect",
+          "screw_defect",
+          "metal_nut_defect",
+          "capsule_defect"
+        ],
+        "preprocessingProfile": "standard-color",
+        "isDefault": true,
+        "installed": true
+      },
+      {
+        "id": "neu-defect-yolov8",
+        "displayName": "Steel Surface",
+        "role": "specialist",
+        "domain": "Steel surface",
+        "description": "Specialist detector for six NEU steel surface defect classes.",
+        "classes": [
+          "crazing",
+          "inclusion",
+          "patches",
+          "pitted_surface",
+          "rolled-in_scale",
+          "scratches"
+        ],
+        "preprocessingProfile": "steel-enhanced",
+        "isDefault": false,
+        "installed": true
+      },
+      {
+        "id": "concrete-crack-yolov8",
+        "displayName": "Concrete & Structural Cracks",
+        "role": "specialist",
+        "domain": "Concrete and structural surfaces",
+        "description": "Specialist detector for visible cracks on concrete, masonry, wall, and floor surfaces.",
+        "classes": [
+          "crack"
+        ],
+        "preprocessingProfile": "standard-color",
+        "isDefault": false,
+        "installed": true
+      },
+      {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)",
+        "role": "general",
+        "domain": "Cross-domain manufacturing anomaly localization",
+        "description": "Broad anomaly localization with generic anomaly output and no subtype classification; specialist models are preferred for known domains.",
+        "classes": [
+          "anomaly"
+        ],
+        "preprocessingProfile": "anomalyclip-stretch",
+        "isDefault": false,
+        "installed": true
+      }
+    ],
+    "anomalyclip": {
+      "modelId": "anomalyclip-general-v1",
+      "artifacts": [
+        {
+          "id": "clip-backbone",
+          "filename": "ViT-L-14-336px.pt",
+          "sizeBytes": 934088680,
+          "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+          "verified": true
+        },
+        {
+          "id": "prompt-checkpoint",
+          "filename": "anomalyclip-visa-epoch15.pth",
+          "sizeBytes": 22631975,
+          "sha256": "94ce202da3e6486a864b904fdfed5057de75846c5834e446fd1d2fe7f97acb44",
+          "verified": true
+        }
+      ],
+      "calibration": {
+        "path": "backend/models/config/anomalyclip-general-v1-score-calibration.json",
+        "sizeBytes": 4107,
+        "sha256": "0e7bff5d4316627f9ece3a2203efcf55233fef5f1eae652bcca3028ba81041e4",
+        "verified": true
+      }
+    }
+  },
+  "pipeline": "POST /api/inspect and POST /api/stream -> DetectionRuntimeManager -> DetectionService -> AnomalyCLIP backend",
+  "endpointSequence": [
+    {
+      "method": "GET",
+      "path": "/api/models",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/inspect",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history/{id}",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/stream",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/history",
+      "status": 200
+    }
+  ],
+  "inspect": [
+    {
+      "sampleId": "mvtec-holdout-screw-manipulated-front-012",
+      "domain": "screw",
+      "sourceLabel": "anomaly",
+      "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/screw/test/manipulated_front/012.png",
+      "sourceSha256": "a7cf576939c22e42d90d579e293ad597f8b4c04318dd7052e30fa3509f1850e9",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "model": {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)"
+      },
+      "observation": [
+        {
+          "type": "anomaly",
+          "confidence": 0.8484848484848485,
+          "xyxy": [
+            383.50579833984375,
+            852.0154418945312,
+            474.4401550292969,
+            968.6486206054688
+          ]
+        }
+      ],
+      "totalDefects": 1,
+      "qualityScore": 91,
+      "status": "failed",
+      "latencyMs": 12330.974,
+      "qualificationMatch": true,
+      "original": {
+        "mediaType": "image/png",
+        "sha256": "a7cf576939c22e42d90d579e293ad597f8b4c04318dd7052e30fa3509f1850e9",
+        "byteExactToSource": true
+      },
+      "annotated": {
+        "mediaType": "image/png",
+        "sha256": "16558060178b1227731b1040c9133b90811fa95ba67333d4d92c39d21f407c57",
+        "dimensions": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "historyDetailMatchesPost": true
+    },
+    {
+      "sampleId": "mvtec-holdout-capsule-crack-006",
+      "domain": "capsule",
+      "sourceLabel": "anomaly",
+      "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/crack/006.png",
+      "sourceSha256": "d63295f7073046911ab3d84d5d38ca12adbb0de33951a05d03578da9e0163904",
+      "dimensions": {
+        "width": 1000,
+        "height": 1000
+      },
+      "model": {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)"
+      },
+      "observation": [
+        {
+          "type": "anomaly",
+          "confidence": 0.9924242424242424,
+          "xyxy": [
+            577.2200927734375,
+            555.9845581054688,
+            843.6293334960938,
+            662.1621704101562
+          ]
+        }
+      ],
+      "totalDefects": 1,
+      "qualityScore": 88,
+      "status": "failed",
+      "latencyMs": 3698.914,
+      "qualificationMatch": true,
+      "original": {
+        "mediaType": "image/png",
+        "sha256": "d63295f7073046911ab3d84d5d38ca12adbb0de33951a05d03578da9e0163904",
+        "byteExactToSource": true
+      },
+      "annotated": {
+        "mediaType": "image/png",
+        "sha256": "e8a7447baafeff4c0d25af1f978b13938a217d5e96c1ab5e795baa21b19acd5e",
+        "dimensions": {
+          "width": 1000,
+          "height": 1000
+        }
+      },
+      "historyDetailMatchesPost": true
+    },
+    {
+      "sampleId": "mvtec-tile-crack-009",
+      "domain": "tile",
+      "sourceLabel": "anomaly",
+      "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/tile/test/crack/009.png",
+      "sourceSha256": "99524e3b79276c09172cb06f084690ebb4907b71ba5d9a80e295a8f21b198369",
+      "dimensions": {
+        "width": 840,
+        "height": 840
+      },
+      "model": {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)"
+      },
+      "observation": [
+        {
+          "type": "anomaly",
+          "confidence": 0.9924242424242424,
+          "xyxy": [
+            204.32432556152344,
+            9.729729652404785,
+            528.6486206054688,
+            840.0
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.8939393939393939,
+          "xyxy": [
+            609.729736328125,
+            601.6216430664062,
+            788.1080932617188,
+            792.9729614257812
+          ]
+        }
+      ],
+      "totalDefects": 2,
+      "qualityScore": 43,
+      "status": "failed",
+      "latencyMs": 3721.849,
+      "qualificationMatch": true,
+      "original": {
+        "mediaType": "image/png",
+        "sha256": "99524e3b79276c09172cb06f084690ebb4907b71ba5d9a80e295a8f21b198369",
+        "byteExactToSource": true
+      },
+      "annotated": {
+        "mediaType": "image/png",
+        "sha256": "e3ca0760d380369f60144291d7d78a5323ff08c951c26a4292403dd991ef4149",
+        "dimensions": {
+          "width": 840,
+          "height": 840
+        }
+      },
+      "historyDetailMatchesPost": true
+    },
+    {
+      "sampleId": "mvtec-holdout-capsule-good-000",
+      "domain": "capsule",
+      "sourceLabel": "normal",
+      "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/good/000.png",
+      "sourceSha256": "86366d544a0182b04fdeacb62c9b23af8c72af24d35eaafeb8c210f603174728",
+      "dimensions": {
+        "width": 1000,
+        "height": 1000
+      },
+      "model": {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)"
+      },
+      "observation": [],
+      "totalDefects": 0,
+      "qualityScore": 100,
+      "status": "passed",
+      "latencyMs": 3719.962,
+      "qualificationMatch": true,
+      "original": {
+        "mediaType": "image/png",
+        "sha256": "86366d544a0182b04fdeacb62c9b23af8c72af24d35eaafeb8c210f603174728",
+        "byteExactToSource": true
+      },
+      "annotated": {
+        "mediaType": "image/png",
+        "sha256": "132fa800f4f6d1134643480689a3534f556803d1507ed6a6e4f0ea733e799163",
+        "dimensions": {
+          "width": 1000,
+          "height": 1000
+        }
+      },
+      "historyDetailMatchesPost": true
+    },
+    {
+      "sampleId": "mvtec-holdout-cable-bent-wire-000",
+      "domain": "cable",
+      "sourceLabel": "anomaly",
+      "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/cable/test/bent_wire/000.png",
+      "sourceSha256": "4aa2490bd1227dce17dcccba7dcd21c1297a9a858d295f114cb72c2c0f98aa06",
+      "dimensions": {
+        "width": 1024,
+        "height": 1024
+      },
+      "model": {
+        "id": "anomalyclip-general-v1",
+        "displayName": "General Manufacturing (AnomalyCLIP v1)"
+      },
+      "observation": [
+        {
+          "type": "anomaly",
+          "confidence": 0.9090909090909091,
+          "xyxy": [
+            77.09652709960938,
+            545.606201171875,
+            150.2393798828125,
+            608.8648681640625
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.9772727272727273,
+          "xyxy": [
+            98.8416976928711,
+            624.6795654296875,
+            150.2393798828125,
+            691.8919067382812
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.9696969696969697,
+          "xyxy": [
+            148.26254272460938,
+            81.0501937866211,
+            691.8919067382812,
+            889.5753173828125
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.6893939393939394,
+          "xyxy": [
+            215.4748992919922,
+            247.104248046875,
+            255.01158142089844,
+            282.687255859375
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.7424242424242424,
+          "xyxy": [
+            302.4555969238281,
+            162.1003875732422,
+            338.0386047363281,
+            197.6833953857422
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.32575757575757575,
+          "xyxy": [
+            517.9304809570312,
+            834.2239379882812,
+            549.5598754882812,
+            859.9227905273438
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.49242424242424243,
+          "xyxy": [
+            579.2123413085938,
+            83.02702331542969,
+            610.8416748046875,
+            110.70270538330078
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.8787878787878788,
+          "xyxy": [
+            798.6409301757812,
+            253.0347442626953,
+            865.853271484375,
+            373.6216125488281
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.7424242424242424,
+          "xyxy": [
+            828.29345703125,
+            407.2278137207031,
+            887.5984497070312,
+            472.46331787109375
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.9772727272727273,
+          "xyxy": [
+            844.1080932617188,
+            707.70654296875,
+            897.4826049804688,
+            759.104248046875
+          ]
+        },
+        {
+          "type": "anomaly",
+          "confidence": 0.38636363636363635,
+          "xyxy": [
+            980.5096435546875,
+            361.7606201171875,
+            1024.0,
+            385.4826354980469
+          ]
+        }
+      ],
+      "totalDefects": 11,
+      "qualityScore": 0,
+      "status": "failed",
+      "latencyMs": 3755.648,
+      "qualificationMatch": true,
+      "original": {
+        "mediaType": "image/png",
+        "sha256": "4aa2490bd1227dce17dcccba7dcd21c1297a9a858d295f114cb72c2c0f98aa06",
+        "byteExactToSource": true
+      },
+      "annotated": {
+        "mediaType": "image/png",
+        "sha256": "88efac2e448125e4a0a65f089d6b482ba2060ad91321627dfbe37fb68896dbdd",
+        "dimensions": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "historyDetailMatchesPost": true,
+      "diagnosticLimitation": "Known fragmented and oversized localization; retained as a non-gating preservation observation."
+    }
+  ],
+  "history": {
+    "inspectionCount": 5,
+    "allModelIdsPreserved": true,
+    "allDetailsMatchPost": true
+  },
+  "stream": {
+    "sampleId": "neu-steel-inclusion-1",
+    "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+    "sourceSha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+    "dimensions": {
+      "width": 200,
+      "height": 200
+    },
+    "model": {
+      "id": "anomalyclip-general-v1",
+      "displayName": "General Manufacturing (AnomalyCLIP v1)"
+    },
+    "observation": [
+      {
+        "type": "anomaly",
+        "confidence": 0.9924242424242424,
+        "xyxy": [
+          24.324323654174805,
+          3.0888030529022217,
+          53.28185272216797,
+          68.33976745605469
+        ]
+      },
+      {
+        "type": "anomaly",
+        "confidence": 0.9772727272727273,
+        "xyxy": [
+          78.76448059082031,
+          30.501930236816406,
+          89.1891860961914,
+          42.08494186401367
+        ]
+      },
+      {
+        "type": "anomaly",
+        "confidence": 0.9924242424242424,
+        "xyxy": [
+          102.70270538330078,
+          29.7297306060791,
+          154.44015502929688,
+          200.0
+        ]
+      }
+    ],
+    "totalDefects": 3,
+    "qualityScore": 46,
+    "status": "failed",
+    "latencyMs": 3624.165,
+    "qualificationMatch": true,
+    "historyCountBefore": 5,
+    "historyCountAfter": 5,
+    "historyUnchanged": true
+  },
+  "accuracyClaim": false,
+  "acceptance": {
+    "fourModelsSerialized": true,
+    "defaultModelUnchanged": true,
+    "twoBinaryArtifactsVerified": true,
+    "trackedCalibrationVerified": true,
+    "realPublicInspectPath": true,
+    "qualificationObservationsPreserved": true,
+    "originalCoordinateBoxes": true,
+    "annotatedDimensionsMatchOriginal": true,
+    "historyAndDetailPreserveModel": true,
+    "normalZeroDetectionAccepted": true,
+    "realPublicStreamPath": true,
+    "streamDidNotPersist": true,
+    "cableIsDiagnosticOnly": true
+  }
+}

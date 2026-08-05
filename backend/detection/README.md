@@ -34,9 +34,10 @@ original BGR
 ```
 
 The ownership capability prevents `DetectionService` from applying a second
-letterbox or coordinate restore. The AnomalyCLIP runtime is registered as a
-hidden candidate in this milestone; public API selection still exposes only the
-three established Ultralytics models.
+letterbox or coordinate restore. AnomalyCLIP is publicly selectable without
+changing the coverage-oriented default. Its runtime qualification proves the
+ordinary inspect/stream API integration and preserves the previously recorded
+model observations; it does not upgrade the model's partial accuracy result.
 
 There is no class mapping layer: service defect types are model-native names
 validated against the manifest. AnomalyCLIP emits only `anomaly`, and its

@@ -57,6 +57,60 @@ def _valid_repository_path(value: object) -> bool:
     return not path.is_absolute() and ".." not in path.parts and value == path.as_posix()
 
 
+def _source_hash_exists_in_history(relative_path: str, expected_hash: str) -> bool:
+    path = REPOSITORY_ROOT / relative_path
+    if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == expected_hash:
+        return True
+    revisions = subprocess.run(
+        ["git", "rev-list", "HEAD", "--", relative_path],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    if revisions.returncode != 0:
+        return False
+    for revision in revisions.stdout.splitlines():
+        blob = subprocess.run(
+            ["git", "show", f"{revision}:{relative_path}"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if blob.returncode == 0 and hashlib.sha256(blob.stdout).hexdigest() == expected_hash:
+            return True
+    return False
+
+
+def _check_historical_source_files(
+    label: str,
+    evidence: dict[str, Any],
+    errors: list[str],
+) -> dict[str, str]:
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append(f"{label} evidence must record sourceFiles hashes")
+        return {}
+    valid: dict[str, str] = {}
+    for relative_path, expected_hash in source_files.items():
+        if not _valid_repository_path(relative_path):
+            errors.append(f"{label} evidence has invalid source path: {relative_path!r}")
+            continue
+        if not isinstance(expected_hash, str) or not re.fullmatch(
+            r"[0-9a-f]{64}", expected_hash
+        ):
+            errors.append(f"{label} evidence has invalid source hash: {relative_path}")
+            continue
+        if not _source_hash_exists_in_history(relative_path, expected_hash):
+            errors.append(
+                f"{label} evidence source snapshot is absent from repository history: "
+                f"{relative_path}"
+            )
+            continue
+        valid[relative_path] = expected_hash
+    return valid
+
+
 def _iter_references(module_map: dict[str, Any]):
     for module in module_map.get("modules", []):
         module_id = module.get("id", "<unknown>")
@@ -430,26 +484,12 @@ def _check_detection_evidence(errors: list[str]) -> None:
         if process.returncode != 0:
             errors.append(f"Detection evidence sourceCommit is not an ancestor: {source_commit}")
 
-    source_files = evidence.get("sourceFiles")
-    if not isinstance(source_files, dict) or not source_files:
-        errors.append("Detection evidence must record sourceFiles hashes")
-    else:
-        for relative_path, expected_hash in source_files.items():
-            if not _valid_repository_path(relative_path):
-                errors.append(f"Detection evidence has invalid source path: {relative_path!r}")
-                continue
-            path = REPOSITORY_ROOT / relative_path
-            if not path.is_file():
-                errors.append(f"Detection evidence source file is missing: {relative_path}")
-                continue
-            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
-            if actual_hash != expected_hash:
-                errors.append(f"Detection evidence is stale for source file: {relative_path}")
+    _check_historical_source_files("Detection", evidence, errors)
 
     manifest_models = {
         model["id"]: model
         for model in manifest.get("models", [])
-        if model.get("exposed") is True
+        if model.get("backend") == "ultralytics"
     }
     evidence_models = evidence.get("models")
     if not isinstance(evidence_models, list):
@@ -534,27 +574,7 @@ def _check_inspection_service_evidence(errors: list[str]) -> None:
                 f"Inspection-service evidence sourceCommit is not an ancestor: {source_commit}"
             )
 
-    source_files = evidence.get("sourceFiles")
-    if not isinstance(source_files, dict) or not source_files:
-        errors.append("Inspection-service evidence must record sourceFiles hashes")
-    else:
-        for relative_path, expected_hash in source_files.items():
-            if not _valid_repository_path(relative_path):
-                errors.append(
-                    f"Inspection-service evidence has invalid source path: {relative_path!r}"
-                )
-                continue
-            path = REPOSITORY_ROOT / relative_path
-            if not path.is_file():
-                errors.append(
-                    f"Inspection-service evidence source file is missing: {relative_path}"
-                )
-                continue
-            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
-            if actual_hash != expected_hash:
-                errors.append(
-                    f"Inspection-service evidence is stale for source file: {relative_path}"
-                )
+    _check_historical_source_files("Inspection-service", evidence, errors)
 
     model = evidence.get("model", {})
     evidence_model_id = model.get("modelId")
@@ -692,20 +712,7 @@ def _check_api_persistence_evidence(errors: list[str]) -> None:
         if process.returncode != 0:
             errors.append(f"API persistence evidence sourceCommit is not an ancestor: {source_commit}")
 
-    source_files = evidence.get("sourceFiles")
-    if not isinstance(source_files, dict) or not source_files:
-        errors.append("API persistence evidence must record sourceFiles hashes")
-    else:
-        for relative_path, expected_hash in source_files.items():
-            if not _valid_repository_path(relative_path):
-                errors.append(f"API persistence evidence has invalid source path: {relative_path!r}")
-                continue
-            path = REPOSITORY_ROOT / relative_path
-            if not path.is_file():
-                errors.append(f"API persistence evidence source file is missing: {relative_path}")
-                continue
-            if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
-                errors.append(f"API persistence evidence is stale for source file: {relative_path}")
+    _check_historical_source_files("API persistence", evidence, errors)
 
     output_bodies: dict[str, object] = {}
     outputs = evidence.get("httpOutputs")
@@ -823,20 +830,7 @@ def _check_api_bonus_evidence(errors: list[str]) -> None:
         if process.returncode != 0:
             errors.append(f"API bonus evidence sourceCommit is not an ancestor: {source_commit}")
 
-    source_files = evidence.get("sourceFiles")
-    if not isinstance(source_files, dict) or not source_files:
-        errors.append("API bonus evidence must record sourceFiles hashes")
-    else:
-        for relative_path, expected_hash in source_files.items():
-            if not _valid_repository_path(relative_path):
-                errors.append(f"API bonus evidence has invalid source path: {relative_path!r}")
-                continue
-            path = REPOSITORY_ROOT / relative_path
-            if not path.is_file():
-                errors.append(f"API bonus evidence source file is missing: {relative_path}")
-                continue
-            if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
-                errors.append(f"API bonus evidence is stale for source file: {relative_path}")
+    _check_historical_source_files("API bonus", evidence, errors)
 
     artifact_values: dict[str, object] = {}
     artifacts = evidence.get("artifacts")
@@ -953,20 +947,7 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
         if process.returncode != 0:
             errors.append(f"Demo sample evidence sourceCommit is not an ancestor: {source_commit}")
 
-    source_files = evidence.get("sourceFiles")
-    if not isinstance(source_files, dict) or not source_files:
-        errors.append("Demo sample evidence must record sourceFiles hashes")
-    else:
-        for relative_path, expected_hash in source_files.items():
-            if not _valid_repository_path(relative_path):
-                errors.append(f"Demo sample evidence has invalid source path: {relative_path!r}")
-                continue
-            path = REPOSITORY_ROOT / relative_path
-            if not path.is_file():
-                errors.append(f"Demo sample evidence source file is missing: {relative_path}")
-                continue
-            if hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash:
-                errors.append(f"Demo sample evidence is stale for source file: {relative_path}")
+    source_files = _check_historical_source_files("Demo sample", evidence, errors)
 
     required_bound_paths = {
         "backend/samples/demo-samples.json",
@@ -1106,6 +1087,311 @@ def _check_demo_sample_evidence(errors: list[str]) -> None:
         errors.append("Demo sample acceptance flags are incomplete")
 
 
+def _observations_match(
+    actual: object,
+    expected: object,
+) -> bool:
+    if not isinstance(actual, list) or not isinstance(expected, list):
+        return False
+    if len(actual) != len(expected):
+        return False
+    for actual_item, expected_item in zip(actual, expected, strict=True):
+        if not isinstance(actual_item, dict) or not isinstance(expected_item, dict):
+            return False
+        if actual_item.get("type") != expected_item.get("type"):
+            return False
+        confidence = actual_item.get("confidence")
+        expected_confidence = expected_item.get("confidence")
+        if not all(
+            isinstance(value, (int, float)) and not isinstance(value, bool)
+            for value in (confidence, expected_confidence)
+        ) or not math.isclose(confidence, expected_confidence, abs_tol=1e-6):
+            return False
+        xyxy = actual_item.get("xyxy")
+        expected_xyxy = expected_item.get("xyxy")
+        if (
+            not isinstance(xyxy, list)
+            or not isinstance(expected_xyxy, list)
+            or len(xyxy) != 4
+            or len(expected_xyxy) != 4
+            or any(
+                not isinstance(value, (int, float))
+                or isinstance(value, bool)
+                or not math.isfinite(value)
+                for value in [*xyxy, *expected_xyxy]
+            )
+            or any(
+                not math.isclose(value, expected_value, abs_tol=1e-4)
+                for value, expected_value in zip(xyxy, expected_xyxy, strict=True)
+            )
+        ):
+            return False
+    return True
+
+
+def _check_anomalyclip_public_api_evidence(errors: list[str]) -> None:
+    evidence_path = "docs/evidence/anomalyclip-public-api/public-api-acceptance.json"
+    contract_path = "docs/evidence/anomalyclip-public-api/sample-contract.json"
+    evidence = _load_json(evidence_path)
+    contract = _load_json(contract_path)
+    manifest = _load_json("backend/models/model-manifest.json")
+    if evidence.get("schemaVersion") != 1 or contract.get("schemaVersion") != 1:
+        errors.append("AnomalyCLIP public API bundle must use schemaVersion 1")
+
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("AnomalyCLIP public API evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(
+                "AnomalyCLIP public API evidence sourceCommit is not an ancestor: "
+                f"{source_commit}"
+            )
+
+    source_files = evidence.get("sourceFiles")
+    if not isinstance(source_files, dict) or not source_files:
+        errors.append("AnomalyCLIP public API evidence must bind current source files")
+    else:
+        for relative_path, expected_hash in source_files.items():
+            if not _valid_repository_path(relative_path):
+                errors.append(
+                    "AnomalyCLIP public API evidence has an invalid source path: "
+                    f"{relative_path!r}"
+                )
+                continue
+            path = REPOSITORY_ROOT / relative_path
+            if (
+                not isinstance(expected_hash, str)
+                or not re.fullmatch(r"[0-9a-f]{64}", expected_hash)
+                or not path.is_file()
+                or hashlib.sha256(path.read_bytes()).hexdigest() != expected_hash
+            ):
+                errors.append(
+                    "AnomalyCLIP public API evidence is stale for current source file: "
+                    f"{relative_path}"
+                )
+
+    contract_binding = evidence.get("sampleContract", {})
+    contract_hash = hashlib.sha256(
+        (REPOSITORY_ROOT / contract_path).read_bytes()
+    ).hexdigest()
+    if contract_binding.get("path") != contract_path or contract_binding.get(
+        "sha256"
+    ) != contract_hash:
+        errors.append("AnomalyCLIP public API evidence has a stale sample contract")
+    if contract_binding.get("qualification") != contract.get("qualification"):
+        errors.append("AnomalyCLIP public API qualification provenance changed")
+
+    groups = contract.get("models")
+    if not isinstance(groups, list) or len(groups) != 1:
+        errors.append("AnomalyCLIP sample contract must contain one model group")
+        return
+    group = groups[0]
+    if group.get("modelId") != "anomalyclip-general-v1":
+        errors.append("AnomalyCLIP sample contract has the wrong model ID")
+    samples = group.get("samples")
+    if not isinstance(samples, list):
+        errors.append("AnomalyCLIP sample contract must contain samples")
+        return
+    sample_by_id = {
+        sample.get("id"): sample for sample in samples if isinstance(sample, dict)
+    }
+    inspect_contract = [
+        sample for sample in samples if sample.get("runtimePath") == "inspect"
+    ]
+    stream_contract = [
+        sample for sample in samples if sample.get("runtimePath") == "stream"
+    ]
+    if len(inspect_contract) != 5 or len(stream_contract) != 1:
+        errors.append("AnomalyCLIP bundle must bind five inspect samples and one stream sample")
+    if not any(
+        sample.get("sourceLabel") == "normal" and sample.get("expectedDetections") == []
+        for sample in inspect_contract
+    ):
+        errors.append("AnomalyCLIP bundle must preserve a valid zero-detection normal case")
+    cable = sample_by_id.get("mvtec-holdout-cable-bent-wire-000", {})
+    if not cable.get("diagnosticLimitation"):
+        errors.append("AnomalyCLIP cable observation must remain explicitly diagnostic")
+
+    manifest_models = {
+        model.get("id"): model
+        for model in manifest.get("models", [])
+        if isinstance(model, dict)
+    }
+    anomalyclip = manifest_models.get("anomalyclip-general-v1")
+    if (
+        not isinstance(anomalyclip, dict)
+        or anomalyclip.get("exposed") is not True
+        or manifest.get("defaultModelId") != "factory-defect-guard-v6-mc"
+        or anomalyclip.get("nativeClasses") != ["anomaly"]
+        or anomalyclip.get("backendConfig", {})
+        .get("preprocessing", {})
+        .get("profileId")
+        != "anomalyclip-stretch"
+    ):
+        errors.append("Current manifest does not match the public AnomalyCLIP contract")
+        return
+
+    registry = evidence.get("registry", {})
+    public_models = registry.get("publicModels")
+    exposed_ids = [
+        model.get("id")
+        for model in manifest.get("models", [])
+        if isinstance(model, dict) and model.get("exposed") is True
+    ]
+    if (
+        registry.get("defaultModelId") != manifest.get("defaultModelId")
+        or not isinstance(public_models, list)
+        or [model.get("id") for model in public_models] != exposed_ids
+        or len(public_models) != 4
+    ):
+        errors.append("AnomalyCLIP evidence has an invalid four-model registry projection")
+    else:
+        public_anomalyclip = public_models[-1]
+        if (
+            public_anomalyclip.get("description") != anomalyclip.get("description")
+            or public_anomalyclip.get("preprocessingProfile") != "anomalyclip-stretch"
+            or public_anomalyclip.get("classes") != ["anomaly"]
+            or public_anomalyclip.get("isDefault") is not False
+            or public_anomalyclip.get("installed") is not True
+        ):
+            errors.append("AnomalyCLIP public metadata projection is incomplete")
+
+    integrity = registry.get("anomalyclip", {})
+    artifact_records = {
+        item.get("id"): item
+        for item in integrity.get("artifacts", [])
+        if isinstance(item, dict)
+    }
+    for artifact in anomalyclip.get("artifacts", []):
+        record = artifact_records.get(artifact.get("id"))
+        if (
+            not isinstance(record, dict)
+            or record.get("filename") != artifact.get("filename")
+            or record.get("sizeBytes") != artifact.get("sizeBytes")
+            or record.get("sha256") != artifact.get("sha256")
+            or record.get("verified") is not True
+        ):
+            errors.append(
+                "AnomalyCLIP evidence has invalid binary integrity for: "
+                f"{artifact.get('id')}"
+            )
+    calibration_spec = anomalyclip.get("backendConfig", {}).get("scoreCalibration", {})
+    calibration = integrity.get("calibration", {})
+    calibration_path = calibration_spec.get("path")
+    if (
+        not _valid_repository_path(calibration_path)
+        or calibration.get("path") != calibration_path
+        or calibration.get("sizeBytes") != calibration_spec.get("sizeBytes")
+        or calibration.get("sha256") != calibration_spec.get("sha256")
+        or calibration.get("verified") is not True
+        or hashlib.sha256((REPOSITORY_ROOT / calibration_path).read_bytes()).hexdigest()
+        != calibration_spec.get("sha256")
+    ):
+        errors.append("AnomalyCLIP evidence has invalid tracked calibration integrity")
+
+    inspect = evidence.get("inspect")
+    if not isinstance(inspect, list) or {
+        item.get("sampleId") for item in inspect if isinstance(item, dict)
+    } != {sample.get("id") for sample in inspect_contract}:
+        errors.append("AnomalyCLIP inspect evidence does not cover the fixed sample contract")
+    else:
+        for result in inspect:
+            sample = sample_by_id.get(result.get("sampleId"))
+            if not isinstance(sample, dict):
+                continue
+            dimensions = sample.get("dimensions", {})
+            observation = result.get("observation")
+            if (
+                result.get("sourceSha256") != sample.get("sha256")
+                or result.get("dimensions") != dimensions
+                or result.get("model", {}).get("id") != "anomalyclip-general-v1"
+                or result.get("totalDefects") != len(observation or [])
+                or result.get("status")
+                != ("passed" if not observation else "failed")
+                or not isinstance(result.get("qualityScore"), int)
+                or not 0 <= result.get("qualityScore") <= 100
+                or not isinstance(result.get("latencyMs"), (int, float))
+                or not math.isfinite(result.get("latencyMs"))
+                or result.get("latencyMs") < 0
+                or result.get("qualificationMatch") is not True
+                or result.get("historyDetailMatchesPost") is not True
+                or result.get("original", {}).get("byteExactToSource") is not True
+                or result.get("original", {}).get("sha256") != sample.get("sha256")
+                or result.get("annotated", {}).get("dimensions") != dimensions
+                or not _observations_match(observation, sample.get("expectedDetections"))
+            ):
+                errors.append(
+                    "AnomalyCLIP public inspect preservation mismatch: "
+                    f"{result.get('sampleId')}"
+                )
+                continue
+            for defect in observation:
+                xyxy = defect["xyxy"]
+                if not (
+                    0 <= xyxy[0] < xyxy[2] <= dimensions["width"]
+                    and 0 <= xyxy[1] < xyxy[3] <= dimensions["height"]
+                ):
+                    errors.append(
+                        "AnomalyCLIP public inspect bbox is outside original coordinates: "
+                        f"{result.get('sampleId')}"
+                    )
+
+    stream = evidence.get("stream", {})
+    stream_sample = stream_contract[0] if stream_contract else {}
+    if (
+        stream.get("sampleId") != stream_sample.get("id")
+        or stream.get("sourceSha256") != stream_sample.get("sha256")
+        or stream.get("dimensions") != stream_sample.get("dimensions")
+        or stream.get("model", {}).get("id") != "anomalyclip-general-v1"
+        or stream.get("totalDefects") != len(stream.get("observation", []))
+        or not _observations_match(
+            stream.get("observation"), stream_sample.get("expectedDetections")
+        )
+        or stream.get("qualificationMatch") is not True
+        or stream.get("historyUnchanged") is not True
+        or stream.get("historyCountBefore") != 5
+        or stream.get("historyCountAfter") != 5
+    ):
+        errors.append("AnomalyCLIP public stream preservation evidence is incomplete")
+
+    history = evidence.get("history", {})
+    if history != {
+        "inspectionCount": 5,
+        "allModelIdsPreserved": True,
+        "allDetailsMatchPost": True,
+    }:
+        errors.append("AnomalyCLIP history/detail preservation evidence is incomplete")
+    if evidence.get("accuracyClaim") is not False:
+        errors.append("AnomalyCLIP public API evidence must not make an accuracy claim")
+    acceptance = evidence.get("acceptance", {})
+    if not isinstance(acceptance, dict) or not acceptance or not all(
+        value is True for value in acceptance.values()
+    ):
+        errors.append("AnomalyCLIP public API acceptance flags are incomplete")
+
+    tracked = subprocess.run(
+        ["git", "ls-files"],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    tracked_weights = [
+        path
+        for path in tracked.stdout.splitlines()
+        if Path(path).suffix.casefold() in {".pt", ".pth"}
+    ]
+    if tracked.returncode != 0 or tracked_weights:
+        errors.append(f"Model weights must not be tracked: {tracked_weights}")
+
+
 def _check_frontend_invariants(errors: list[str]) -> None:
     route_tree = (REPOSITORY_ROOT / "frontend/src/routeTree.gen.js").read_text(encoding="utf-8")
     forbidden_types = (" as any", "declare module", "export interface", "_addFileTypes")
@@ -1133,6 +1419,7 @@ def main() -> int:
         _check_api_persistence_evidence(errors)
         _check_api_bonus_evidence(errors)
         _check_demo_sample_evidence(errors)
+        _check_anomalyclip_public_api_evidence(errors)
         _check_status(errors)
         _check_frontend_invariants(errors)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:

@@ -115,22 +115,21 @@ def test_default_model_and_full_contract_are_loaded_from_manifest(tmp_path: Path
     assert spec.class_weights == {"dent": 1.2}
 
 
-def test_production_registry_hides_anomalyclip_without_changing_public_default() -> None:
+def test_production_registry_exposes_anomalyclip_without_changing_public_default() -> None:
     registry = ModelRegistry()
 
-    hidden = registry.get("anomalyclip-general-v1")
+    anomalyclip = registry.get_exposed("anomalyclip-general-v1")
 
     assert registry.default_model_id == "factory-defect-guard-v6-mc"
-    assert hidden.backend == "anomalyclip"
-    assert hidden.native_classes == ("anomaly",)
-    assert hidden.exposed is False
+    assert anomalyclip.backend == "anomalyclip"
+    assert anomalyclip.native_classes == ("anomaly",)
+    assert anomalyclip.exposed is True
     assert [model.model_id for model in registry.exposed_models] == [
         "factory-defect-guard-v6-mc",
         "neu-defect-yolov8",
         "concrete-crack-yolov8",
+        "anomalyclip-general-v1",
     ]
-    with pytest.raises(ModelNotFoundError, match="publicly available"):
-        registry.get_exposed("anomalyclip-general-v1")
 
 
 def test_unknown_model_lookup_is_explicit(tmp_path: Path) -> None:
@@ -193,7 +192,7 @@ def test_weight_hash_mismatch_is_rejected(tmp_path: Path) -> None:
         verify_model_weight(model_path, spec)
 
 
-def test_create_detector_dispatches_hidden_anomalyclip_backend(
+def test_create_detector_dispatches_anomalyclip_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(

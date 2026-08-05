@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.parse
 import urllib.request
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -184,14 +185,24 @@ def main() -> int:
             media_dir=temporary_root / "media",
         )
         application = create_app(settings)
+        sample_filename = Path(
+            sample.get("qualificationFile")
+            or urllib.parse.urlparse(sample["url"]).path
+        ).name
+        sample_media_type = (
+            "image/png" if Path(sample_filename).suffix.casefold() == ".png" else "image/jpeg"
+        )
         with _serve(application) as base_url, httpx2.Client(
             base_url=base_url,
             timeout=120.0,
         ) as client:
+            requested_spec = application.state.detection_runtime.registry.get_exposed(
+                args.model
+            )
             post_response = client.post(
                 "/api/inspect",
                 data={"modelId": args.model},
-                files={"image": ("evidence-inclusion.jpg", original_payload, "image/jpeg")},
+                files={"image": (sample_filename, original_payload, sample_media_type)},
             )
             endpoint_statuses.append({"method": "POST", "path": "/api/inspect", "status": post_response.status_code})
             post_response.raise_for_status()
@@ -201,8 +212,8 @@ def main() -> int:
             if post_body["totalDefects"] < 1:
                 raise RuntimeError("Real API probe returned no registered-model defects")
             if post_body["model"] != {
-                "id": "neu-defect-yolov8",
-                "displayName": "Steel Surface",
+                "id": requested_spec.model_id,
+                "displayName": requested_spec.display_name,
             }:
                 raise RuntimeError("API model projection does not match the requested model")
 

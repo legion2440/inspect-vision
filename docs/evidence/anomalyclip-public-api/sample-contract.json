@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Public API preservation probe using previously qualified inputs; remote source images are verified and never committed.",
+  "qualification": {
+    "repository": "inspect-vision-qualification/anomalyclip-general-v1",
+    "decision": "PARTIAL",
+    "interpretation": "Preservation-only: prior observations are replayed through the public API without making a new accuracy claim.",
+    "artifacts": {
+      "artifacts/resolved-calibration-manifest.json": "149aba9bbb79df214145649f3910b73f2cdea8862046b58f8e39c3e4207735fc",
+      "artifacts/resolved-holdout-manifest.json": "293ba25ae7955884bb27cfcc08c0212c848f0b2a932df039db6de6593d370211",
+      "artifacts/frozen-configuration.json": "0ba1329e0b7ade6a4fef375e6f090ad8e8b785f01937b264f10a8d7d39862645",
+      "artifacts/holdout-result.json": "fa4b30de4049ca710cffeb02baa05a1b3501c1d0448c3c309c2db2c5a2078444"
+    }
+  },
+  "source": {
+    "dataset": "MVTec AD via the pinned MMAD mirror, plus one pinned NEU-DET JPEG",
+    "mvtecUpstream": "https://www.mvtec.com/research-teaching/datasets/mvtec-ad",
+    "mvtecLicense": "CC BY-NC-SA 4.0",
+    "mmadRevision": "e88b7bd615ad582b0a7e8238066a9fb293a072b4",
+    "neuRevision": "351bee21b56bbf97a1e1d18262bceb202eb7ef41",
+    "redistribution": false
+  },
+  "models": [
+    {
+      "modelId": "anomalyclip-general-v1",
+      "qualificationDomain": "Broad anomaly localization preservation through public inspect and stream endpoints",
+      "samples": [
+        {
+          "id": "mvtec-holdout-screw-manipulated-front-012",
+          "runtimePath": "inspect",
+          "domain": "screw",
+          "sourceLabel": "anomaly",
+          "qualificationSplit": "holdout",
+          "qualificationFile": "data/holdout/mvtec-holdout-screw-manipulated-front-012/image.png",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/screw/test/manipulated_front/012.png",
+          "sha256": "a7cf576939c22e42d90d579e293ad597f8b4c04318dd7052e30fa3509f1850e9",
+          "sizeBytes": 402421,
+          "dimensions": { "width": 1024, "height": 1024 },
+          "expectedDetections": [
+            {
+              "type": "anomaly",
+              "confidence": 0.8484848484848485,
+              "xyxy": [383.50579150579154, 852.015444015444, 474.44015444015446, 968.6486486486486]
+            }
+          ]
+        },
+        {
+          "id": "mvtec-holdout-capsule-crack-006",
+          "runtimePath": "inspect",
+          "domain": "capsule",
+          "sourceLabel": "anomaly",
+          "qualificationSplit": "holdout",
+          "qualificationFile": "data/holdout/mvtec-holdout-capsule-crack-006/image.png",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/crack/006.png",
+          "sha256": "d63295f7073046911ab3d84d5d38ca12adbb0de33951a05d03578da9e0163904",
+          "sizeBytes": 1167922,
+          "dimensions": { "width": 1000, "height": 1000 },
+          "expectedDetections": [
+            {
+              "type": "anomaly",
+              "confidence": 0.9924242424242424,
+              "xyxy": [577.2200772200772, 555.984555984556, 843.6293436293436, 662.1621621621622]
+            }
+          ]
+        },
+        {
+          "id": "mvtec-tile-crack-009",
+          "runtimePath": "inspect",
+          "domain": "tile",
+          "sourceLabel": "anomaly",
+          "qualificationSplit": "calibration",
+          "qualificationFile": "data/calibration/mvtec-tile-crack-009/image.png",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/tile/test/crack/009.png",
+          "sha256": "99524e3b79276c09172cb06f084690ebb4907b71ba5d9a80e295a8f21b198369",
+          "sizeBytes": 1029760,
+          "dimensions": { "width": 840, "height": 840 },
+          "expectedDetections": [
+            {
+              "type": "anomaly",
+              "confidence": 0.9924242424242424,
+              "xyxy": [204.32432432432432, 9.72972972972973, 528.6486486486486, 840.0]
+            },
+            {
+              "type": "anomaly",
+              "confidence": 0.8939393939393939,
+              "xyxy": [609.7297297297298, 601.6216216216217, 788.1081081081081, 792.972972972973]
+            }
+          ]
+        },
+        {
+          "id": "mvtec-holdout-capsule-good-000",
+          "runtimePath": "inspect",
+          "domain": "capsule",
+          "sourceLabel": "normal",
+          "qualificationSplit": "holdout",
+          "qualificationFile": "data/holdout/mvtec-holdout-capsule-good-000/image.png",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/good/000.png",
+          "sha256": "86366d544a0182b04fdeacb62c9b23af8c72af24d35eaafeb8c210f603174728",
+          "sizeBytes": 1159076,
+          "dimensions": { "width": 1000, "height": 1000 },
+          "expectedDetections": []
+        },
+        {
+          "id": "mvtec-holdout-cable-bent-wire-000",
+          "runtimePath": "inspect",
+          "domain": "cable",
+          "sourceLabel": "anomaly",
+          "qualificationSplit": "holdout",
+          "qualificationFile": "data/holdout/mvtec-holdout-cable-bent-wire-000/image.png",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/cable/test/bent_wire/000.png",
+          "sha256": "4aa2490bd1227dce17dcccba7dcd21c1297a9a858d295f114cb72c2c0f98aa06",
+          "sizeBytes": 1342041,
+          "dimensions": { "width": 1024, "height": 1024 },
+          "diagnosticLimitation": "Known fragmented and oversized localization; retained as a non-gating preservation observation.",
+          "expectedDetections": [
+            { "type": "anomaly", "confidence": 0.9090909090909091, "xyxy": [77.0965250965251, 545.6061776061777, 150.23938223938225, 608.8648648648649] },
+            { "type": "anomaly", "confidence": 0.9772727272727273, "xyxy": [98.84169884169884, 624.6795366795367, 150.23938223938225, 691.8918918918919] },
+            { "type": "anomaly", "confidence": 0.9696969696969697, "xyxy": [148.26254826254828, 81.05019305019306, 691.8918918918919, 889.5752895752896] },
+            { "type": "anomaly", "confidence": 0.6893939393939394, "xyxy": [215.47490347490347, 247.10424710424712, 255.011583011583, 282.6872586872587] },
+            { "type": "anomaly", "confidence": 0.7424242424242424, "xyxy": [302.4555984555985, 162.10038610038612, 338.03861003861005, 197.6833976833977] },
+            { "type": "anomaly", "confidence": 0.32575757575757575, "xyxy": [517.9305019305019, 834.2239382239383, 549.5598455598456, 859.9227799227799] },
+            { "type": "anomaly", "confidence": 0.49242424242424243, "xyxy": [579.2123552123552, 83.02702702702703, 610.8416988416989, 110.70270270270271] },
+            { "type": "anomaly", "confidence": 0.8787878787878788, "xyxy": [798.6409266409266, 253.03474903474904, 865.8532818532818, 373.6216216216216] },
+            { "type": "anomaly", "confidence": 0.7424242424242424, "xyxy": [828.2934362934363, 407.2277992277992, 887.5984555984556, 472.4633204633205] },
+            { "type": "anomaly", "confidence": 0.9772727272727273, "xyxy": [844.1081081081081, 707.7065637065638, 897.4826254826255, 759.1042471042472] },
+            { "type": "anomaly", "confidence": 0.38636363636363635, "xyxy": [980.5096525096525, 361.7606177606178, 1024.0, 385.4826254826255] }
+          ]
+        },
+        {
+          "id": "neu-steel-inclusion-1",
+          "runtimePath": "stream",
+          "domain": "steel",
+          "sourceLabel": "anomaly",
+          "qualificationSplit": "calibration",
+          "qualificationFile": "data/calibration/neu-steel-inclusion-1/image.jpg",
+          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
+          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
+          "sizeBytes": 8761,
+          "dimensions": { "width": 200, "height": 200 },
+          "expectedDetections": [
+            { "type": "anomaly", "confidence": 0.9924242424242424, "xyxy": [24.324324324324326, 3.088803088803089, 53.28185328185328, 68.33976833976834] },
+            { "type": "anomaly", "confidence": 0.9772727272727273, "xyxy": [78.76447876447877, 30.501930501930502, 89.1891891891892, 42.084942084942085] },
+            { "type": "anomaly", "confidence": 0.9924242424242424, "xyxy": [102.70270270270271, 29.72972972972973, 154.44015444015443, 200.0] }
+          ]
+        }
+      ]
+    }
+  ]
+}
