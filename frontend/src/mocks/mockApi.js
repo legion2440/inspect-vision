@@ -129,6 +129,34 @@ const rec = (id, iso, defects, file, model = MODELS[0]) => ({
 
 const box = (x, y, width, height) => ({ x, y, width, height });
 
+const mockDefectPool = (model, { live = false, jitter = () => 0 } = {}) => {
+  if (model.id === 'anomalyclip-general-v1') {
+    return [{
+      type: 'anomaly',
+      confidence: live ? 0.91 : 0.92,
+      boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90),
+    }];
+  }
+  if (model.id === 'concrete-crack-yolov8') {
+    return [{
+      type: 'crack',
+      confidence: live ? 0.9 : 0.93,
+      boundingBox: box((live ? 300 : 200) + jitter(), (live ? 200 : 150) + jitter(), live ? 240 : 250, 90),
+    }];
+  }
+  if (live) {
+    return [
+      { type: 'scratches', confidence: 0.9, boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90) },
+      { type: 'inclusion', confidence: 0.71, boundingBox: box(700 + jitter(), 380 + jitter(), 150, 140) },
+    ];
+  }
+  return [
+    { type: 'scratches', confidence: 0.93, boundingBox: box(200, 150, 250, 90) },
+    { type: 'inclusion', confidence: 0.84, boundingBox: box(660, 390, 170, 150) },
+    { type: 'crazing', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
+  ];
+};
+
 let store = [
   rec('insp_20260803_004', '2026-08-03T14:38:12Z', [
     { type: 'scratches', confidence: 0.94, boundingBox: box(214, 168, 268, 96) },
@@ -181,14 +209,8 @@ export async function inspectImage(file, { modelId } = {}) {
   await wait(1400);
   const model = modelOf(modelId);
   const id = 'insp_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(store.length + 1).padStart(3, '0');
-  const pool = model.id === 'concrete-crack-yolov8'
-    ? [{ type: 'crack', confidence: 0.93, boundingBox: box(200, 150, 250, 90) }]
-    : [
-      { type: 'scratches', confidence: 0.93, boundingBox: box(200, 150, 250, 90) },
-      { type: 'inclusion', confidence: 0.84, boundingBox: box(660, 390, 170, 150) },
-      { type: 'crazing', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
-    ];
-  const defects = pool.slice(0, 1 + Math.floor(Math.random() * 3));
+  const pool = mockDefectPool(model);
+  const defects = pool.slice(0, 1 + Math.floor(Math.random() * pool.length));
   const imageUrl = await dataUrlOf(file);
   const record = {
     ...rec(id, new Date().toISOString(), defects, file?.name || 'upload.jpg', model),
@@ -203,12 +225,7 @@ export async function inspectFrame({ modelId } = {}) {
   await wait(120);
   const model = modelOf(modelId);
   const jitter = () => Math.round((Math.random() - 0.5) * 60);
-  const defects = model.id === 'concrete-crack-yolov8'
-    ? [{ type: 'crack', confidence: 0.9, boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90) }]
-    : [
-      { type: 'scratches', confidence: 0.9, boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90) },
-      { type: 'inclusion', confidence: 0.71, boundingBox: box(700 + jitter(), 380 + jitter(), 150, 140) },
-    ];
+  const defects = mockDefectPool(model, { live: true, jitter });
   return {
     frameWidth: 1280,
     frameHeight: 720,

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { inspectionReducer, initialInspectionState } from '../src/context/inspectionState.js';
-import { getModels } from '../src/mocks/mockApi.js';
+import { getModels, inspectFrame } from '../src/mocks/mockApi.js';
 
 test('the generic frontend registry fixture exposes AnomalyCLIP as a fourth model', async () => {
   const models = await getModels();
@@ -42,4 +42,12 @@ test('AnomalyCLIP selection and switching back use the existing generic reducer 
   assert.equal(loaded.selectedModelId, 'factory-defect-guard-v6-mc');
   assert.equal(anomalyclip.selectedModelId, 'anomalyclip-general-v1');
   assert.equal(steel.selectedModelId, 'neu-defect-yolov8');
+});
+
+test('AnomalyCLIP mock inference emits only its native anomaly class', async () => {
+  const result = await inspectFrame({ modelId: 'anomalyclip-general-v1' });
+
+  assert.equal(result.model.id, 'anomalyclip-general-v1');
+  assert.ok(result.defects.length > 0);
+  assert.deepEqual(new Set(result.defects.map((defect) => defect.type)), new Set(['anomaly']));
 });
