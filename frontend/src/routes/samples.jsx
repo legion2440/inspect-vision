@@ -10,6 +10,11 @@ import {
   recommendedModelFor,
 } from '../utils/samples.js';
 
+const TRANSFORM_LABELS = {
+  cropped: 'cropped from source',
+  downscaled: 'downscaled from source',
+};
+
 export const Route = createFileRoute('/samples')({ component: Samples });
 
 function Samples() {
@@ -163,8 +168,10 @@ function Samples() {
                     <p className="qc-mono text-muted">
                       {sample.width}×{sample.height} · {dataset?.license?.name}
                     </p>
-                    {sample.assetTransform === 'downscaled' && (
-                      <p className="qc-mono text-muted">Modified: downscaled from source</p>
+                    {TRANSFORM_LABELS[sample.assetTransform] && (
+                      <p className="qc-mono text-muted">
+                        Modified: {TRANSFORM_LABELS[sample.assetTransform]}
+                      </p>
                     )}
                     <div className="qc-sample-actions">
                       <button
@@ -203,7 +210,9 @@ function Samples() {
                 {catalog.samples.some(
                   (sample) => sample.datasetId === dataset.id && sample.assetTransform === 'downscaled',
                 ) && (
-                  <p className="qc-mono text-muted">Modified: downscaled from source</p>
+                  <p className="qc-mono text-muted">
+                    Modified from source; see the sample cards for the declared transform.
+                  </p>
                 )}
                 <div className="qc-sample-links">
                   <a href={dataset.sourceUrl} target="_blank" rel="noreferrer">

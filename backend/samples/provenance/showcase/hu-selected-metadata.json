@@ -9,6 +9,22 @@
     "md5": "ab26c24bcc0af5996937bd32303bfaa2",
     "sha256": "a4578be877e981bd5c42546ae1e6457fe8600504b7c417edaa9d580724991bea"
   },
+  "sourceArchive": {
+    "filename": "HU_InfraCracks_v1.zip",
+    "sizeBytes": 3693834714,
+    "md5": "947768bd13f5b2de5d565dbbbc452e5f"
+  },
+  "selectedImages": [
+    {
+      "crackId": "CR26",
+      "archiveMember": "HU_InfraCracks_v1/CR26.zip::CR26/CR026_Close_30cm_0deg_Sun_026.JPG",
+      "sourceOriginalName": "CR026_Close_30cm_0deg_Sun_026.JPG",
+      "sizeBytes": 12204719,
+      "sha256": "bfae594fc508a95aec75265f9173f248dce444d576fbd30efe5f62cacf4341ee",
+      "width": 6000,
+      "height": 4000
+    }
+  ],
   "cracks": [
     {
       "crack_id": "CR01",
@@ -25,15 +41,15 @@
       "total_images": 10
     },
     {
-      "crack_id": "CR24",
+      "crack_id": "CR26",
       "date": "17/5/2026",
       "location": "Faculty of Engineering",
       "structure": "wall",
       "environment": "outdoor",
       "type": "longitudinal",
-      "severity": "moderate",
+      "severity": "severe",
       "width_mm": 1,
-      "length_mm": 15,
+      "length_mm": 1,
       "surface": "dry",
       "lighting": "sunny",
       "total_images": 10

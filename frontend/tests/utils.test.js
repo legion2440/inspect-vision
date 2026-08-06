@@ -172,6 +172,15 @@ test('showcase manifest produces three cards for each registered model domain', 
     [...new Set(manifest.samples.map((sample) => sample.recommendedModelId))],
     ['factory-defect-guard-v6-mc', 'neu-defect-yolov8', 'concrete-crack-yolov8'],
   );
+  const gkn = manifest.datasets.find((dataset) => dataset.id === 'gkn-blade-v1');
+  assert.ok(gkn.sourceLabelVocabulary.includes('Nick'));
+  assert.equal(manifest.samples.some((sample) => sample.sourceLabels.includes('Nick')), false);
+  assert.deepEqual(
+    manifest.samples
+      .filter((sample) => sample.recommendedModelId === 'neu-defect-yolov8')
+      .flatMap((sample) => sample.sourceLabels),
+    ['Good', 'inclusion', 'Scratch'],
+  );
 });
 
 test('showcase reports an unavailable recommended model without substituting another', () => {
@@ -260,7 +269,8 @@ test('samples route cancels pending loads before changing the global model', () 
   const route = readFileSync(new URL('../src/routes/samples.jsx', import.meta.url), 'utf8');
   assert.match(route, /sampleRequestRef\.current\?\.abort\(\)/);
   assert.match(route, /onChange=\{handleModelChange\}/);
-  assert.match(route, /Modified: downscaled from source/);
+  assert.match(route, /downscaled from source/);
+  assert.match(route, /cropped from source/);
 });
 
 test('dashboard quick upload is wired to the shared selected model', () => {

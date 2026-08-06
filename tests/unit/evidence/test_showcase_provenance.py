@@ -7,6 +7,7 @@ from scripts.validate_showcase_samples import (
     MANIFEST_PATH,
     _defectdet_source_records,
     _hu_source_records,
+    _plos_source_records,
     _validate_source_record,
 )
 
@@ -20,20 +21,30 @@ def test_selected_labels_are_reconstructed_from_source_metadata() -> None:
     errors: list[str] = []
     defectdet_records = _defectdet_source_records(errors)
     hu_records = _hu_source_records(errors)
+    plos_records = _plos_source_records(errors)
 
     assert errors == []
     for sample in _manifest_samples():
-        assert _validate_source_record(sample, defectdet_records, hu_records) is None
+        assert (
+            _validate_source_record(sample, defectdet_records, hu_records, plos_records)
+            is None
+        )
 
 
 def test_manifest_only_label_claim_is_rejected() -> None:
     errors: list[str] = []
     defectdet_records = _defectdet_source_records(errors)
     hu_records = _hu_source_records(errors)
+    plos_records = _plos_source_records(errors)
     sample = copy.deepcopy(_manifest_samples()[0])
     sample["sourceLabels"] = ["missing pad"]
 
-    mismatch = _validate_source_record(sample, defectdet_records, hu_records)
+    mismatch = _validate_source_record(
+        sample,
+        defectdet_records,
+        hu_records,
+        plos_records,
+    )
 
     assert errors == []
     assert mismatch is not None

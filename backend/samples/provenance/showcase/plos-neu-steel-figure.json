@@ -1,0 +1,31 @@
+{
+  "excerptSchemaVersion": 1,
+  "datasetId": "plos-neu-steel-figure-v1",
+  "datasetVersion": "1",
+  "figureDoi": "10.1371/journal.pone.0289179.g003",
+  "sourceApiUrl": "https://api.figshare.com/v2/articles/24767219",
+  "caption": "(a) crazing, (b) inclusion, (c) patches, (d) pitted surface, (e) rolled-in scale, (f) scratches.",
+  "sourceFile": {
+    "id": 43523702,
+    "filename": "pone.0289179.g003.tif",
+    "downloadUrl": "https://ndownloader.figshare.com/files/43523702",
+    "sizeBytes": 1253524,
+    "md5": "f22081936a0bc92880761e1af5f5fd3a",
+    "sha256": "d8873d3717c86da365c5209762647756bb7c7a52f3c2748977c3797904212821",
+    "width": 1562,
+    "height": 1216
+  },
+  "panels": [
+    {
+      "id": "panel-b",
+      "captionMarker": "(b)",
+      "sourceLabel": "inclusion",
+      "crop": {
+        "x": 535,
+        "y": 7,
+        "width": 487,
+        "height": 487
+      }
+    }
+  ]
+}

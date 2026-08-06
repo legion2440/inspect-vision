@@ -20,7 +20,9 @@ SHOWCASE_DIRECTORY = REPOSITORY_ROOT / "backend/samples/showcase"
 PROVENANCE_DIRECTORY = REPOSITORY_ROOT / "backend/samples/provenance/showcase"
 DEFECTDET_EXCERPT_PATH = PROVENANCE_DIRECTORY / "defectdet-selected-coco.json"
 HU_EXCERPT_PATH = PROVENANCE_DIRECTORY / "hu-selected-metadata.json"
+PLOS_EXCERPT_PATH = PROVENANCE_DIRECTORY / "plos-neu-steel-figure.json"
 MAX_SAMPLE_BYTES = 10 * 1024 * 1024
+MAX_SAMPLE_SHORT_SIDE = 1000
 FORBIDDEN_PREDICTION_KEYS = {
     "boundingbox",
     "confidence",
@@ -41,6 +43,9 @@ EXPECTED_SOURCE_METADATA = {
     "defectdet-v1": "backend/samples/provenance/showcase/defectdet-selected-coco.json",
     "gkn-blade-v1": "folder labels in the pinned source archive",
     "hu-infrastructure-cracks-v1": "backend/samples/provenance/showcase/hu-selected-metadata.json",
+    "plos-neu-steel-figure-v1": (
+        "backend/samples/provenance/showcase/plos-neu-steel-figure.json"
+    ),
 }
 
 
@@ -150,13 +155,83 @@ def _hu_source_records(errors: list[str]) -> dict[str, dict[str, Any]]:
     ):
         errors.append("HU source excerpt provenance does not match the pinned release")
 
+    if excerpt.get("sourceArchive") != {
+        "filename": "HU_InfraCracks_v1.zip",
+        "sizeBytes": 3693834714,
+        "md5": "947768bd13f5b2de5d565dbbbc452e5f",
+    }:
+        errors.append("HU source archive provenance does not match the pinned release")
+
+    images: dict[str, dict[str, Any]] = {}
+    for image in excerpt.get("selectedImages", []):
+        if not isinstance(image, dict) or not isinstance(image.get("crackId"), str):
+            errors.append("HU source excerpt contains an invalid selected image record")
+            continue
+        images[image["crackId"]] = {
+            "sourceFile": image.get("archiveMember"),
+            "sourceOriginalName": image.get("sourceOriginalName"),
+            "sourceWidth": image.get("width"),
+            "sourceHeight": image.get("height"),
+        }
+
     records: dict[str, dict[str, Any]] = {}
     for crack in excerpt.get("cracks", []):
         if not isinstance(crack, dict) or not isinstance(crack.get("crack_id"), str):
             errors.append("HU source excerpt contains an invalid crack record")
             continue
-        records[crack["crack_id"]] = {
+        record = {
             "sourceLabels": [crack.get("structure"), crack.get("type"), crack.get("severity")]
+        }
+        record.update(images.get(crack["crack_id"], {}))
+        records[crack["crack_id"]] = record
+    return records
+
+
+def _plos_source_records(errors: list[str]) -> dict[str, dict[str, Any]]:
+    excerpt = _load_json(PLOS_EXCERPT_PATH)
+    if (
+        excerpt.get("excerptSchemaVersion") != 1
+        or excerpt.get("datasetId") != "plos-neu-steel-figure-v1"
+        or excerpt.get("datasetVersion") != "1"
+        or excerpt.get("figureDoi") != "10.1371/journal.pone.0289179.g003"
+        or excerpt.get("sourceApiUrl")
+        != "https://api.figshare.com/v2/articles/24767219"
+        or excerpt.get("caption")
+        != (
+            "(a) crazing, (b) inclusion, (c) patches, (d) pitted surface, "
+            "(e) rolled-in scale, (f) scratches."
+        )
+        or excerpt.get("sourceFile")
+        != {
+            "id": 43523702,
+            "filename": "pone.0289179.g003.tif",
+            "downloadUrl": "https://ndownloader.figshare.com/files/43523702",
+            "sizeBytes": 1253524,
+            "md5": "f22081936a0bc92880761e1af5f5fd3a",
+            "sha256": (
+                "d8873d3717c86da365c5209762647756bb7c7a52f3c2748977c3797904212821"
+            ),
+            "width": 1562,
+            "height": 1216,
+        }
+    ):
+        errors.append("PLOS steel figure provenance does not match the pinned release")
+
+    records: dict[str, dict[str, Any]] = {}
+    source_file = excerpt.get("sourceFile", {})
+    for panel in excerpt.get("panels", []):
+        if not isinstance(panel, dict) or not isinstance(panel.get("id"), str):
+            errors.append("PLOS steel figure excerpt contains an invalid panel record")
+            continue
+        crop = panel.get("crop")
+        records[panel["id"]] = {
+            "sourceFile": f"{source_file.get('filename')}#{panel.get('id')}",
+            "sourceOriginalName": source_file.get("filename"),
+            "sourceWidth": source_file.get("width"),
+            "sourceHeight": source_file.get("height"),
+            "sourceLabels": [panel.get("sourceLabel")],
+            "assetTransform": "cropped",
+            "crop": crop,
         }
     return records
 
@@ -182,6 +257,7 @@ def _validate_source_record(
     sample: dict[str, Any],
     defectdet_records: dict[int, dict[str, Any]],
     hu_records: dict[str, dict[str, Any]],
+    plos_records: dict[str, dict[str, Any]],
 ) -> str | None:
     dataset_id = sample.get("datasetId")
     if dataset_id == "defectdet-v1":
@@ -190,6 +266,8 @@ def _validate_source_record(
         expected = hu_records.get(sample.get("sourceRecordId"))
     elif dataset_id == "gkn-blade-v1":
         expected = _gkn_source_record(sample)
+    elif dataset_id == "plos-neu-steel-figure-v1":
+        expected = plos_records.get(sample.get("sourceRecordId"))
     else:
         return "does not have a supported source-metadata strategy"
     if expected is None:
@@ -206,6 +284,7 @@ def validate_showcase_samples() -> list[str]:
     model_manifest = _load_json(MODEL_MANIFEST_PATH)
     defectdet_records = _defectdet_source_records(errors)
     hu_records = _hu_source_records(errors)
+    plos_records = _plos_source_records(errors)
 
     if manifest.get("schemaVersion") != 1:
         errors.append("Showcase manifest must use schemaVersion 1")
@@ -218,8 +297,8 @@ def validate_showcase_samples() -> list[str]:
     for prediction_path in _prediction_paths(manifest):
         errors.append(f"Showcase manifest contains precomputed prediction data: {prediction_path}")
 
-    registered_model_ids = {
-        model.get("id")
+    registered_models = {
+        model.get("id"): set(model.get("nativeClasses", []))
         for model in model_manifest.get("models", [])
         if (
             isinstance(model, dict)
@@ -227,6 +306,7 @@ def validate_showcase_samples() -> list[str]:
             and model.get("exposed") is True
         )
     }
+    registered_model_ids = set(registered_models)
     datasets = manifest.get("datasets")
     if not isinstance(datasets, list) or not datasets:
         errors.append("Showcase datasets must be a non-empty array")
@@ -235,6 +315,7 @@ def validate_showcase_samples() -> list[str]:
     if len(dataset_ids) != len(datasets) or len(set(dataset_ids)) != len(dataset_ids):
         errors.append("Showcase dataset IDs must be present and unique")
     datasets_by_id: dict[str, dict[str, Any]] = {}
+    coverage_by_dataset: dict[str, dict[str, Any]] = {}
     for dataset in datasets:
         if not isinstance(dataset, dict) or not isinstance(dataset.get("id"), str):
             continue
@@ -261,6 +342,27 @@ def validate_showcase_samples() -> list[str]:
             errors.append(f"Showcase dataset provenance is incomplete: {dataset_id}")
         if dataset.get("sourceMetadataExcerpt") != EXPECTED_SOURCE_METADATA.get(dataset_id):
             errors.append(f"Showcase dataset source-metadata strategy is not pinned: {dataset_id}")
+        coverage = dataset.get("showcaseCoverage")
+        if not isinstance(coverage, dict):
+            errors.append(f"Showcase coverage metadata is missing: {dataset_id}")
+        else:
+            model_id = coverage.get("modelId")
+            mapping = coverage.get("sourceLabelToNativeClass")
+            negative_labels = coverage.get("negativeSourceLabels")
+            native_classes = registered_models.get(model_id, set())
+            if (
+                model_id not in registered_models
+                or not isinstance(mapping, dict)
+                or not isinstance(negative_labels, list)
+                or len(set(negative_labels)) != len(negative_labels)
+                or any(label not in vocabulary for label in mapping)
+                or any(label not in vocabulary for label in negative_labels)
+                or set(mapping).intersection(negative_labels)
+                or any(native_class not in native_classes for native_class in mapping.values())
+            ):
+                errors.append(f"Showcase coverage metadata is invalid: {dataset_id}")
+            else:
+                coverage_by_dataset[dataset_id] = coverage
         if dataset_id == "hu-infrastructure-cracks-v1" and (
             dataset.get("authors")
             != [
@@ -284,9 +386,7 @@ def validate_showcase_samples() -> list[str]:
         errors.append("Showcase samples must be an array")
         return errors
     showcase_model_ids = {
-        sample.get("recommendedModelId")
-        for sample in samples
-        if isinstance(sample, dict) and isinstance(sample.get("recommendedModelId"), str)
+        coverage["modelId"] for coverage in coverage_by_dataset.values()
     }
     expected_count = quota * len(showcase_model_ids)
     if len(samples) != expected_count:
@@ -303,6 +403,10 @@ def validate_showcase_samples() -> list[str]:
         errors.append("Showcase filenames must be present and unique")
 
     model_counts: Counter[str] = Counter()
+    negative_counts: Counter[str] = Counter()
+    covered_native_classes: dict[str, set[str]] = {
+        model_id: set() for model_id in showcase_model_ids
+    }
     tracked_files: set[str] = set()
     for sample in samples:
         if not isinstance(sample, dict):
@@ -325,9 +429,31 @@ def validate_showcase_samples() -> list[str]:
             or any(label not in dataset["sourceLabelVocabulary"] for label in labels)
         ):
             errors.append(f"Showcase source labels are not from the pinned vocabulary: {identifier}")
-        source_record_error = _validate_source_record(sample, defectdet_records, hu_records)
+        source_record_error = _validate_source_record(
+            sample,
+            defectdet_records,
+            hu_records,
+            plos_records,
+        )
         if source_record_error:
             errors.append(f"Showcase source metadata mismatch for {identifier}: {source_record_error}")
+        coverage = coverage_by_dataset.get(sample.get("datasetId"))
+        if coverage is not None and isinstance(labels, list):
+            if model_id != coverage["modelId"]:
+                errors.append(f"Showcase recommendation differs from source coverage: {identifier}")
+            mapping = coverage["sourceLabelToNativeClass"]
+            mapped_classes = {mapping[label] for label in labels if label in mapping}
+            negative_labels = set(coverage["negativeSourceLabels"])
+            if mapped_classes:
+                if negative_labels.intersection(labels):
+                    errors.append(f"Showcase mixes positive and negative source labels: {identifier}")
+                covered_native_classes.setdefault(model_id, set()).update(mapped_classes)
+            elif labels and set(labels).issubset(negative_labels):
+                negative_counts[model_id] += 1
+            else:
+                errors.append(
+                    f"Showcase sample is outside recommended-model source coverage: {identifier}"
+                )
         if (
             not isinstance(filename, str)
             or Path(filename).name != filename
@@ -340,7 +466,7 @@ def validate_showcase_samples() -> list[str]:
             continue
 
         transform = sample.get("assetTransform")
-        if transform is not None and transform != "downscaled":
+        if transform is not None and transform not in {"downscaled", "cropped"}:
             errors.append(f"Showcase sample has an unsupported asset transform: {identifier}")
         if transform == "downscaled" and (
             not isinstance(sample.get("sourceWidth"), int)
@@ -349,6 +475,20 @@ def validate_showcase_samples() -> list[str]:
             or sample["sourceHeight"] <= sample.get("height", 0)
         ):
             errors.append(f"Showcase downscale metadata is invalid: {identifier}")
+        if transform == "cropped":
+            crop = sample.get("crop")
+            if (
+                not isinstance(crop, dict)
+                or set(crop) != {"x", "y", "width", "height"}
+                or any(not isinstance(value, int) for value in crop.values())
+                or crop["x"] < 0
+                or crop["y"] < 0
+                or crop["width"] != sample.get("width")
+                or crop["height"] != sample.get("height")
+                or crop["x"] + crop["width"] > sample.get("sourceWidth", 0)
+                or crop["y"] + crop["height"] > sample.get("sourceHeight", 0)
+            ):
+                errors.append(f"Showcase crop metadata is invalid: {identifier}")
 
         tracked_files.add(filename)
         path = SHOWCASE_DIRECTORY / filename
@@ -370,6 +510,10 @@ def validate_showcase_samples() -> list[str]:
         height, width = image.shape[:2]
         if width != sample.get("width") or height != sample.get("height"):
             errors.append(f"Showcase image dimensions mismatch: {filename}")
+        if min(width, height) > MAX_SAMPLE_SHORT_SIDE:
+            errors.append(
+                f"Showcase image short side exceeds {MAX_SAMPLE_SHORT_SIDE}px: {filename}"
+            )
 
     expected_model_counts = {model_id: quota for model_id in showcase_model_ids}
     if dict(model_counts) != expected_model_counts:
@@ -377,6 +521,18 @@ def validate_showcase_samples() -> list[str]:
             f"Showcase model quotas differ: expected={expected_model_counts}, "
             f"actual={dict(model_counts)}"
         )
+    for model_id, count in negative_counts.items():
+        if count > 1:
+            errors.append(f"Showcase has more than one negative case for {model_id}")
+    for model_id in showcase_model_ids:
+        native_classes = registered_models[model_id]
+        required = min(2, len(native_classes))
+        actual = len(covered_native_classes.get(model_id, set()))
+        if actual < required:
+            errors.append(
+                f"Showcase native-class coverage is too narrow for {model_id}: "
+                f"expected at least {required}, actual={actual}"
+            )
     on_disk = {path.name for path in SHOWCASE_DIRECTORY.iterdir() if path.is_file()}
     if on_disk != tracked_files:
         errors.append(
@@ -393,7 +549,10 @@ def main() -> int:
             print(f"[ERROR] {error}", file=sys.stderr)
         print(f"[FAIL] Showcase validation found {len(errors)} issue(s).", file=sys.stderr)
         return 1
-    print("[OK] Showcase labels match tracked source metadata; provenance, hashes, and images are valid.")
+    print(
+        "[OK] Showcase source labels, model coverage, provenance, transforms, hashes, "
+        "and images are valid."
+    )
     return 0
 
 

@@ -69,6 +69,14 @@ const SAMPLE_DATASETS = [
     attribution: 'GKN Blade Surface Defect Dataset V1 by Qianyu Zhou, licensed CC BY 4.0.',
   },
   {
+    id: 'plos-neu-steel-figure-v1',
+    name: 'Six Types of Metal Surface Defects, Figure 3',
+    version: '1',
+    sourceUrl: 'https://plos.figshare.com/articles/figure/Six_types_of_metal_surface_defects_/24767219',
+    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+    attribution: 'Xu, Y., Jiao, P., & Liu, J. (2023). Six types of metal surface defects, Figure 3. PLOS ONE. CC BY 4.0. Panel (b) cropped from source.',
+  },
+  {
     id: 'hu-infrastructure-cracks-v1',
     name: 'HU Infrastructure Cracks Dataset',
     version: '1',
@@ -79,16 +87,16 @@ const SAMPLE_DATASETS = [
 ];
 
 const MOCK_SAMPLES = [
-  ['mock-pcb-open', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['open circuit']],
-  ['mock-pcb-short', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['short circuit']],
-  ['mock-pcb-copper', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['spurious copper']],
-  ['mock-steel-good', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Good']],
-  ['mock-steel-nick', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Nick']],
-  ['mock-steel-scratch', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Scratch']],
-  ['mock-concrete-transverse', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'transverse']],
-  ['mock-concrete-longitudinal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['wall', 'longitudinal']],
-  ['mock-concrete-diagonal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'diagonal']],
-].map(([id, domain, recommendedModelId, datasetId, sourceLabels]) => ({
+  ['mock-pcb-open', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['open circuit'], 'downscaled'],
+  ['mock-pcb-short', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['short circuit'], 'downscaled'],
+  ['mock-pcb-copper', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['spurious copper'], 'downscaled'],
+  ['mock-steel-good', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Good'], 'downscaled'],
+  ['mock-steel-inclusion', 'Steel Surface', 'neu-defect-yolov8', 'plos-neu-steel-figure-v1', ['inclusion'], 'cropped'],
+  ['mock-steel-scratch', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Scratch'], null],
+  ['mock-concrete-transverse', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'transverse', 'moderate'], 'downscaled'],
+  ['mock-concrete-longitudinal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['wall', 'longitudinal', 'severe'], 'downscaled'],
+  ['mock-concrete-diagonal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'diagonal', 'severe'], 'downscaled'],
+].map(([id, domain, recommendedModelId, datasetId, sourceLabels, assetTransform]) => ({
   id,
   domain,
   recommendedModelId,
@@ -99,7 +107,7 @@ const MOCK_SAMPLES = [
   imageUrl: SAMPLE,
   width: 1600,
   height: 1187,
-  ...(datasetId === 'gkn-blade-v1' ? {} : { assetTransform: 'downscaled' }),
+  ...(assetTransform ? { assetTransform } : {}),
 }));
 
 const modelOf = (modelId) => MODELS.find((model) => model.id === modelId) || MODELS[0];
