@@ -4,10 +4,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 import cv2
 import numpy as np
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+if str(REPOSITORY_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPOSITORY_ROOT))
 
 from backend.detection.bayespfl_backend import (
     BAYESPFL_SOURCE_COMMIT,
@@ -20,7 +26,6 @@ from backend.detection.device import select_device
 from backend.detection.service import DetectionService
 
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BACKBONE = REPOSITORY_ROOT / "backend/models/ViT-L-14-336px.pt"
 DEFAULT_CHECKPOINT = REPOSITORY_ROOT / "backend/models/bayespfl-train-visa.pth"
 DEFAULT_OUTPUT = REPOSITORY_ROOT / ".cache/bayespfl-candidate"
