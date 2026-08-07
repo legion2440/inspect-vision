@@ -76,9 +76,9 @@ recorded command or evidence artifact proves the real path executed.
   `quality-v1` score. Geometry ownership is capability-driven: for
   `GeometryOwnership.SERVICE`, the service owns the manifest-selected preprocessing
   profile and one restore to original coordinates; for `GeometryOwnership.BACKEND`,
-  AnomalyCLIP owns preprocessing, anomaly-map postprocessing, and original-coordinate
-  restoration, and the service must not transform its boxes again. Native class
-  names are never semantically remapped.
+  the detector owns its preprocessing, model-specific postprocessing, and
+  original-coordinate restoration, and the service must not transform its boxes
+  again. Native class names are never semantically remapped.
 - Changing the upload model aborts and invalidates the active request, clears its
   preview/result state, and prevents a late response from restoring stale data.
 - Historical inspections remain readable after their model leaves the current
