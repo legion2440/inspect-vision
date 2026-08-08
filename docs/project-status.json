@@ -6,7 +6,7 @@
   "state": "bayespfl-default-ready-for-local-verification",
   "verified": [
     "manifest schema version 3 registers four exposed models with bayespfl-general-v1 as the default",
-    "Bayes-PFL runtime source is tracked inside backend/detection/third_party/bayespfl and does not require an external repository clone",
+    "Bayes-PFL runtime source files are installer-managed from a pinned upstream revision, verified by exact Git blob IDs, and require no external repository clone",
     "Bayes-PFL artifacts are installer-managed and pinned by filename, byte size, SHA-256, and source metadata",
     "the default Bayes-PFL adapter requires explicit product/category context and preserves the native generic class anomaly",
     "Bayes-PFL owns 518x518 stretch preprocessing, anomaly-map postprocessing, bbox padding, and original-coordinate restoration",
