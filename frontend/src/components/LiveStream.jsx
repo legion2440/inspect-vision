@@ -2,7 +2,7 @@ import Blueprint from './Blueprint.jsx';
 import DefectOverlay from './DefectOverlay.jsx';
 import { useLiveDetection } from '../hooks/useLiveDetection.js';
 
-export default function LiveStream({ modelId, productName }) {
+export default function LiveStream({ modelId, productName, disabled = false }) {
   const { videoRef, running, defects, dimensions, error, start, stop } = useLiveDetection({
     fps: 2,
     modelId,
@@ -40,7 +40,7 @@ export default function LiveStream({ modelId, productName }) {
         {running ? (
           <button type="button" className="btn btn-secondary" onClick={stop}>Stop stream</button>
         ) : (
-          <button type="button" className="btn btn-primary" onClick={start}>Start stream</button>
+          <button type="button" className="btn btn-primary" disabled={disabled} onClick={start}>Start stream</button>
         )}
         <span className="qc-mono text-muted">{running ? defects.length + ' defects in frame' : 'idle'}</span>
       </div>
