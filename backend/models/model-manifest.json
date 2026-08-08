@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
-  "defaultModelId": "factory-defect-guard-v6-mc",
-  "defaultRationale": "Coverage-oriented starting point for an unknown manufacturing domain; specialist models are preferred when the inspected material is known.",
+  "defaultModelId": "bayespfl-general-v1",
+  "defaultRationale": "Category-guided Bayes-PFL is the broad starting point for unknown manufacturing domains; specialist models remain preferable when a supported material is known.",
   "preprocessingProfiles": {
     "standard-color": {
       "mode": "standard-color",
@@ -18,11 +18,91 @@
   },
   "models": [
     {
+      "id": "bayespfl-general-v1",
+      "displayName": "General Manufacturing (Bayes-PFL)",
+      "role": "general",
+      "domain": "Cross-domain manufacturing anomaly localization",
+      "description": "Category-guided anomaly localization for varied manufactured products. Enter the product/category name; output is the native generic class anomaly, so specialists remain preferable for supported known domains.",
+      "backend": "bayespfl",
+      "exposed": true,
+      "artifacts": [
+        {
+          "id": "clip-backbone",
+          "filename": "ViT-L-14-336px.pt",
+          "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+          "sizeBytes": 934088680,
+          "source": {
+            "repositoryUrl": "https://github.com/openai/CLIP",
+            "downloadUrl": "https://openaipublic.azureedge.net/clip/models/3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02/ViT-L-14-336px.pt",
+            "revision": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
+            "sourceFilename": "ViT-L-14-336px.pt",
+            "license": "MIT source code; binary checkpoint license not separately stated",
+            "licenseSourceUrl": "https://github.com/openai/CLIP/blob/main/LICENSE",
+            "licenseScope": "repository-code-only"
+          }
+        },
+        {
+          "id": "bayes-checkpoint",
+          "filename": "train_visa.pth",
+          "sha256": "b3d89b6a6018679e44f413ce4cb0931626bedbd480829d6fba94f2176f270fc3",
+          "sizeBytes": 109523051,
+          "source": {
+            "repositoryUrl": "https://github.com/xiaozhen228/Bayes-PFL",
+            "downloadUrl": "https://drive.usercontent.google.com/download?id=1rNs_rdTmrg4JshmKHotq6AN1gqTpPjvm&export=download&confirm=t",
+            "revision": "1rNs_rdTmrg4JshmKHotq6AN1gqTpPjvm",
+            "sourceFilename": "train_visa.pth",
+            "license": "Upstream repository states MIT; checkpoint license not separately stated",
+            "licenseSourceUrl": "https://github.com/xiaozhen228/Bayes-PFL/blob/8f155a07e734913e021c33c469f16a1f75c60e5d/README.md",
+            "licenseScope": "repository-code-only"
+          }
+        }
+      ],
+      "inputSize": {
+        "width": 518,
+        "height": 518
+      },
+      "nativeClasses": ["anomaly"],
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {}
+      },
+      "backendConfig": {
+        "task": "anomaly-localization",
+        "sourceCommit": "8f155a07e734913e021c33c469f16a1f75c60e5d",
+        "preprocessing": {
+          "profileId": "bayespfl-stretch",
+          "resize": {
+            "mode": "stretch",
+            "width": 518,
+            "height": 518,
+            "interpolation": "bicubic"
+          },
+          "normalization": {
+            "mean": [0.48145466, 0.4578275, 0.40821073],
+            "std": [0.26862954, 0.26130258, 0.27577711]
+          }
+        },
+        "featuresList": [6, 12, 18, 24],
+        "numFlows": 10,
+        "promptContextLen": 5,
+        "promptNum": 3,
+        "promptStateLen": 5,
+        "sampleNum": 10,
+        "seed": 333,
+        "gaussianSigma": 8.0,
+        "postprocessing": {
+          "mapThreshold": 0.72,
+          "minComponentAreaRatio": 0.0005,
+          "bboxPaddingRatio": 0.25
+        }
+      }
+    },
+    {
       "id": "factory-defect-guard-v6-mc",
-      "displayName": "General Manufacturing",
+      "displayName": "General Manufacturing (YOLO)",
       "role": "general",
       "domain": "General manufacturing",
-      "description": "Coverage-oriented detector for steel, PCB, tile, electronics, fasteners, and capsules.",
+      "description": "Legacy multiclass coverage detector for steel, PCB, tile, electronics, fasteners, and capsules.",
       "backend": "ultralytics",
       "exposed": true,
       "artifacts": [
@@ -110,14 +190,7 @@
         "width": 640,
         "height": 640
       },
-      "nativeClasses": [
-        "crazing",
-        "inclusion",
-        "patches",
-        "pitted_surface",
-        "rolled-in_scale",
-        "scratches"
-      ],
+      "nativeClasses": ["crazing", "inclusion", "patches", "pitted_surface", "rolled-in_scale", "scratches"],
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {
@@ -173,9 +246,7 @@
       "nativeClasses": ["crack"],
       "quality": {
         "defaultWeight": 1.0,
-        "classWeights": {
-          "crack": 1.35
-        }
+        "classWeights": { "crack": 1.35 }
       },
       "backendConfig": {
         "task": "detect",
@@ -187,100 +258,6 @@
         "confidence": 0.25,
         "iou": 0.5,
         "preprocessingProfile": "standard-color"
-      }
-    },
-    {
-      "id": "anomalyclip-general-v1",
-      "displayName": "General Manufacturing (AnomalyCLIP v1)",
-      "role": "general",
-      "domain": "Cross-domain manufacturing anomaly localization",
-      "description": "Broad anomaly localization with generic anomaly output and no subtype classification; specialist models are preferred for known domains.",
-      "backend": "anomalyclip",
-      "exposed": true,
-      "artifacts": [
-        {
-          "id": "clip-backbone",
-          "filename": "ViT-L-14-336px.pt",
-          "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
-          "sizeBytes": 934088680,
-          "source": {
-            "repositoryUrl": "https://github.com/openai/CLIP",
-            "downloadUrl": "https://openaipublic.azureedge.net/clip/models/3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02/ViT-L-14-336px.pt",
-            "revision": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02",
-            "sourceFilename": "ViT-L-14-336px.pt",
-            "license": "MIT source code; binary checkpoint license not separately stated",
-            "licenseSourceUrl": "https://github.com/openai/CLIP/blob/main/LICENSE",
-            "licenseScope": "repository-code-only"
-          }
-        },
-        {
-          "id": "prompt-checkpoint",
-          "filename": "anomalyclip-visa-epoch15.pth",
-          "sha256": "94ce202da3e6486a864b904fdfed5057de75846c5834e446fd1d2fe7f97acb44",
-          "sizeBytes": 22631975,
-          "source": {
-            "repositoryUrl": "https://github.com/zqhang/AnomalyCLIP",
-            "downloadUrl": "https://raw.githubusercontent.com/zqhang/AnomalyCLIP/3911738c0867544f545a076ad78f3f11d9ecbfdf/checkpoints/9_12_4_multiscale/epoch_15.pth",
-            "revision": "3911738c0867544f545a076ad78f3f11d9ecbfdf",
-            "sourceFilename": "checkpoints/9_12_4_multiscale/epoch_15.pth",
-            "license": "MIT source code; binary checkpoint license not separately stated",
-            "licenseSourceUrl": "https://github.com/zqhang/AnomalyCLIP/blob/3911738c0867544f545a076ad78f3f11d9ecbfdf/LICENSE",
-            "licenseScope": "repository-code-only"
-          }
-        }
-      ],
-      "inputSize": {
-        "width": 518,
-        "height": 518
-      },
-      "nativeClasses": ["anomaly"],
-      "quality": {
-        "defaultWeight": 1.0,
-        "classWeights": {}
-      },
-      "backendConfig": {
-        "task": "anomaly-localization",
-        "sourceCommit": "3911738c0867544f545a076ad78f3f11d9ecbfdf",
-        "preprocessing": {
-          "profileId": "anomalyclip-stretch",
-          "resize": {
-            "mode": "stretch",
-            "width": 518,
-            "height": 518,
-            "interpolation": "bicubic"
-          },
-          "normalization": {
-            "mean": [0.48145466, 0.4578275, 0.40821073],
-            "std": [0.26862954, 0.26130258, 0.27577711]
-          }
-        },
-        "featuresList": [6, 12, 18, 24],
-        "featureMapLayers": [0, 1, 2, 3],
-        "dpamLayer": 20,
-        "prompt": {
-          "className": "object",
-          "promptLength": 12,
-          "learnableTextEmbeddingDepth": 9,
-          "learnableTextEmbeddingLength": 4
-        },
-        "gaussianSigma": 4,
-        "postprocessing": {
-          "mapThreshold": 0.1,
-          "morphology": {
-            "kernel": "ellipse",
-            "kernelSize": 3,
-            "openIterations": 1,
-            "closeIterations": 1
-          },
-          "minComponentAreaRatio": 0.0005,
-          "mergeDistancePx": 6
-        },
-        "scoreCalibration": {
-          "path": "backend/models/config/anomalyclip-general-v1-score-calibration.json",
-          "sha256": "0e7bff5d4316627f9ece3a2203efcf55233fef5f1eae652bcca3028ba81041e4",
-          "sizeBytes": 4107,
-          "semanticMeaning": "anomaly confidence score relative to clean calibration artifacts; not a class probability"
-        }
       }
     }
   ]
