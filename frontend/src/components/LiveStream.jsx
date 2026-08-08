@@ -2,9 +2,12 @@ import Blueprint from './Blueprint.jsx';
 import DefectOverlay from './DefectOverlay.jsx';
 import { useLiveDetection } from '../hooks/useLiveDetection.js';
 
-/** Bonus: webcam capture with per-frame detections from /api/stream. */
-export default function LiveStream({ modelId }) {
-  const { videoRef, running, defects, dimensions, error, start, stop } = useLiveDetection({ fps: 2, modelId });
+export default function LiveStream({ modelId, productName }) {
+  const { videoRef, running, defects, dimensions, error, start, stop } = useLiveDetection({
+    fps: 2,
+    modelId,
+    productName,
+  });
   const hasDimensions = dimensions.width > 0 && dimensions.height > 0;
 
   return (
