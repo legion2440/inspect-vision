@@ -20,6 +20,8 @@ function Dashboard() {
     modelsError,
     selectedModelId,
     selectModel,
+    productName,
+    setProductName,
   } = useInspection();
   const navigate = useNavigate();
 
@@ -39,9 +41,12 @@ function Dashboard() {
     };
   }, [history]);
 
+  const selectedModel = models.find((model) => model.id === selectedModelId);
+  const productReady = !selectedModel?.requiresProductName || Boolean(productName.trim());
+
   const handleFile = async (file) => {
     navigate({ to: '/inspect' });
-    await runInspection(file, selectedModelId);
+    await runInspection(file, selectedModelId, productName);
   };
 
   return (
@@ -51,7 +56,7 @@ function Dashboard() {
           <h6 className="qc-kicker">Quality control / overview</h6>
           <h1>Inspection dashboard</h1>
           <p className="text-muted qc-lede">
-            Selectable broad and specialist YOLO detectors for manufacturing visual inspection.
+            Category-guided general anomaly localization plus specialist defect detectors.
           </p>
         </div>
         <Link to="/inspect" className="btn btn-primary">
@@ -76,8 +81,14 @@ function Dashboard() {
             onChange={selectModel}
             loading={modelsStatus === 'loading'}
             error={modelsError}
+            productName={productName}
+            onProductNameChange={setProductName}
           />
-          <ImageUploader onFile={handleFile} error={error} />
+          <ImageUploader
+            onFile={handleFile}
+            error={productReady ? error : 'Enter a product / category before inspection.'}
+            disabled={!productReady}
+          />
         </section>
         <section>
           <div className="qc-sectionrow">
