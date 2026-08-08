@@ -204,10 +204,18 @@ SKIPPED_DIRECTORIES = {
     "venv",
     ".vite",
 }
+EXACT_UPSTREAM_DIRECTORIES = (
+    Path("backend/detection/third_party/bayespfl/runtime"),
+)
 
 
 def _is_skipped(path: Path) -> bool:
-    return any(part in SKIPPED_DIRECTORIES for part in path.parts)
+    if any(part in SKIPPED_DIRECTORIES for part in path.parts):
+        return True
+    return any(
+        path == directory or directory in path.parents
+        for directory in EXACT_UPSTREAM_DIRECTORIES
+    )
 
 
 def main() -> int:
