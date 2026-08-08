@@ -1,271 +1,300 @@
 # Inspect-Vision
 
-Inspect-Vision is a manufacturing image-inspection application. A React/Vite
-interface sends images plus an optional model selection to a FastAPI backend,
-the resolved Ultralytics or AnomalyCLIP detector localizes defects, OpenCV
-produces an annotated image, and SQLite plus
-owned media storage provide searchable inspection history.
+Inspect-Vision is a manufacturing image-inspection application with a React/Vite
+frontend, FastAPI backend, OpenCV preprocessing, selectable defect-detection
+models, SQLite history, annotated image output, live-frame inspection, quality
+scoring, and CSV export.
+
+The default detector is category-guided Bayes-PFL. Steel and concrete models are
+available as specialists, and a legacy multiclass YOLO model remains selectable
+for broader class-labelled coverage.
 
 ## Requirements
 
-- Windows 11 with Git Bash;
-- Python 3.13.5;
-- Node.js and npm;
-- enough disk space for Python packages, the chosen checkpoints (about 1 GB for
-  all four exposed models), and
-  local inspection media.
+- Git;
+- Python 3.13;
+- Node.js with npm;
+- enough disk space for the Python environment, model artifacts, and inspection
+  media. Installing every exposed model requires a little over 1 GB of model
+  files.
 
-Model `.pt` and `.pth` files are intentionally excluded from Git.
+CUDA is optional. The tracked Python dependencies use CPU PyTorch by default.
 
 ## Fresh-clone setup
 
-Run these commands from Git Bash:
+Clone the repository:
 
 ```bash
 git clone https://01.tomorrow-school.ai/git/nyestaye/inspect-vision.git
 cd inspect-vision
-
-py -3.13 -m venv .venv
-.venv/Scripts/python.exe -m pip install --upgrade pip
-.venv/Scripts/python.exe -m pip install -r requirements-api.txt
-
-cp .env.example .env
-.venv/Scripts/python.exe scripts/install_models.py
 ```
 
-Without arguments the installer reads `defaultModelId` from
-`backend/models/model-manifest.json`. Use `--model <id>` for one specialist or
-`--all` for all exposed models; this intentionally includes both AnomalyCLIP
-artifacts. Hidden candidates require an explicit `--model <id>`. Every download uses an immutable revision,
-checks byte size and SHA-256, and is atomically installed only after validation.
+Create and activate a virtual environment.
 
-Install and configure the frontend:
+Linux / macOS:
 
 ```bash
-cp frontend/.env.example frontend/.env
+python3.13 -m venv .venv
+source .venv/bin/activate
+```
+
+Windows PowerShell:
+
+```powershell
+py -3.13 -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Windows Git Bash:
+
+```bash
+py -3.13 -m venv .venv
+source .venv/Scripts/activate
+```
+
+Install backend dependencies:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r requirements-api.txt
+```
+
+Create the backend environment file.
+
+Linux / macOS / Git Bash:
+
+```bash
+cp .env.example .env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Install the default model:
+
+```bash
+python scripts/install_models.py
+```
+
+No external model repository clone is required. The installer reads
+`backend/models/model-manifest.json`, downloads the pinned Bayes-PFL checkpoint
+and CLIP backbone, verifies byte size and SHA-256, and only then moves each file
+into `backend/models`.
+
+Other installation options:
+
+```bash
+# one model
+python scripts/install_models.py --model neu-defect-yolov8
+
+# every exposed model
+python scripts/install_models.py --all
+```
+
+Model `.pt` and `.pth` files are intentionally ignored by Git.
+
+Install frontend dependencies:
+
+```bash
 npm --prefix frontend ci
 ```
 
-The default frontend configuration uses the real API through relative `/api`
-requests. Vite proxies them to `http://localhost:8000` during development.
-`VITE_API_BASE_URL` is only needed when a production frontend calls a different
-origin. Set `VITE_USE_MOCK=true` only for explicit standalone UI work.
+The tracked frontend configuration uses the real backend by default. Copy the
+frontend template only when you need a local override:
+
+Linux / macOS / Git Bash:
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+PowerShell:
+
+```powershell
+Copy-Item frontend/.env.example frontend/.env
+```
 
 ## Run
 
-Start the backend from the repository root:
+Start FastAPI from the repository root:
 
 ```bash
-.venv/Scripts/python.exe -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-In a second Git Bash terminal:
+Start the frontend in a second terminal:
 
 ```bash
-cd frontend
-npm run dev
+npm --prefix frontend run dev
 ```
 
 Open `http://localhost:5173`. FastAPI documentation is available at
 `http://localhost:8000/docs`.
 
-CUDA is optional. The supplied dependency profile uses CPU PyTorch; install a
-compatible CUDA PyTorch build separately before setting
-`INSPECT_VISION_MODEL_DEVICE=cuda` or `cuda:N`.
-
-## Configuration
-
-Backend settings use the `INSPECT_VISION_` prefix and are documented in
-`docs/env-model-contract.md`. Environment settings contain the shared model
-directory/device, CORS origins, SQLite/media paths, and upload limit. Per-model
-thresholds, profiles, and quality weights live only in the tracked manifest.
-`INSPECT_VISION_MAX_UPLOAD_BYTES` may be lowered but cannot exceed the hard
-10 MiB maximum (`10485760` bytes).
+The Vite development server proxies relative `/api` requests to
+`http://localhost:8000`. `VITE_API_BASE_URL` is only needed when the frontend
+must call another origin. `VITE_USE_MOCK=true` enables the explicit standalone
+frontend mock mode.
 
 ## Detection models
 
-General Manufacturing is the coverage-oriented default when the process or
-material is not yet known. Steel Surface and Concrete & Structural Cracks are
-specialists and should be preferred for their named domains. AnomalyCLIP is a
-fourth public option for broad anomaly localization; it emits only `anomaly`,
-does not classify subtypes, and does not replace the default. The registry does
-not claim that either broad model is more accurate; runtime probes record actual
-observations without turning them into benchmark claims.
+| Model ID | UI name | Role | Native output |
+| --- | --- | --- | --- |
+| `bayespfl-general-v1` | General Manufacturing (Bayes-PFL) | default general | `anomaly` |
+| `factory-defect-guard-v6-mc` | General Manufacturing (YOLO) | general | 17 checkpoint-native classes |
+| `neu-defect-yolov8` | Steel Surface | specialist | 6 steel defect classes |
+| `concrete-crack-yolov8` | Concrete & Structural Cracks | specialist | `crack` |
 
-Trusted Ultralytics detect checkpoints can be added by extending the validated
-manifest with pinned provenance, native classes, a preprocessing profile, and
-quality configuration, then qualifying the result through the same production
-manager/service path.
+Bayes-PFL requires a product/category name such as `capsule`, `screw`, or
+`metal_nut`. This context is sent as multipart field `productName`. The model is
+an anomaly localizer: it produces the native generic type `anomaly`, not an
+invented semantic defect subtype.
 
-The production inspection path is:
+The production Bayes-PFL adapter uses the pinned upstream inference settings:
+518×518 bicubic stretch, CLIP normalization, feature layers 6/12/18/24,
+10 flows, deterministic seed 333, Gaussian sigma 8, application map threshold
+0.72, minimum component area ratio 0.0005, and 25% bbox padding. The fixed
+threshold and bbox conversion are application settings rather than an upstream
+accuracy claim.
+
+When the material is known and a supported specialist exists, prefer the
+specialist. The steel and concrete models preserve their own native classes and
+preprocessing profiles.
+
+## Inspection flow
 
 ```text
-JPEG/PNG bytes -> validated BGR -> selected geometry owner
--> Ultralytics letterbox/profile OR AnomalyCLIP 518x518 stretch/anomaly map
--> original-coordinate native boxes -> annotation
--> quality score/status -> SQLite record and original/annotated media
+JPEG/PNG bytes
+-> content validation and OpenCV decode
+-> selected model runtime
+-> original-coordinate native detections
+-> annotated image + quality score + verdict
+-> SQLite metadata + original/annotated media
 ```
+
+Ultralytics models use the shared letterbox path. Bayes-PFL owns its 518×518
+stretch, anomaly-map postprocessing, and coordinate restoration, preventing a
+second geometry transform in the shared service.
 
 ## API
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/models` | List registry metadata and installed/default state |
-| `GET` | `/api/samples` | List attributed offline showcase metadata |
-| `GET` | `/api/samples/{id}/image` | Read one original showcase image by manifest ID |
-| `POST` | `/api/inspect` | Inspect and persist `image` with optional `modelId` |
-| `POST` | `/api/stream` | Inspect JPEG `frame` with optional `modelId`, without persistence |
-| `GET` | `/api/history` | List records with `from`, `to`, `type`, and `q` filters |
-| `GET` | `/api/history/{id}` | Read one record with original and annotated data URLs |
-| `DELETE` | `/api/history/{id}` | Delete metadata and owned media |
-| `POST` | `/api/history/clear` | Clear all metadata and owned media |
-| `GET` | `/api/export` | Export the filtered history projection as UTF-8 CSV |
+| `GET` | `/api/models` | List selectable models and installed/default state |
+| `GET` | `/api/samples` | List attributed showcase metadata |
+| `GET` | `/api/samples/{id}/image` | Read one showcase source image |
+| `POST` | `/api/inspect` | Inspect and persist an image |
+| `POST` | `/api/stream` | Inspect one JPEG frame without persistence |
+| `GET` | `/api/history` | List/filter inspections |
+| `GET` | `/api/history/{id}` | Read one inspection with image data URLs |
+| `DELETE` | `/api/history/{id}` | Delete one inspection and owned media |
+| `POST` | `/api/history/clear` | Clear inspection history and owned media |
+| `GET` | `/api/export` | Export filtered history as CSV |
 
-The complete request, response, filtering, image, and error contracts are in
-`docs/api-contract.md`.
+`POST /api/inspect` accepts multipart field `image`, optional `modelId`, and
+`productName` when required by the selected model. `POST /api/stream` uses
+`frame` plus the same model fields. Omitting `modelId` selects the manifest
+default, currently Bayes-PFL, so `productName` is required in that case.
 
-The Samples page contains nine attributed CC BY 4.0 images across PCB, steel,
-and concrete/crack domains. Dataset labels are shown as source metadata only.
-Inspecting a sample uses the currently selected model, performs fresh inference
-through `/api/inspect`, and stores the result in normal history. The selector is
-also available above Quick Upload on the Dashboard.
-
-### Real inspection example
-
-With the backend running, inspect one of the tracked demo images:
+Example:
 
 ```bash
 curl -sS -X POST http://localhost:8000/api/inspect \
-  -F "modelId=neu-defect-yolov8" \
-  -F "image=@backend/samples/demo/visa-chewinggum-normal-000.jpg;type=image/jpeg"
+  -F "modelId=bayespfl-general-v1" \
+  -F "productName=capsule" \
+  -F "image=@path/to/capsule.png;type=image/png"
 ```
 
-This response was recorded from that image with the steel specialist. Only the
-two base64 bodies are shortened here:
+The complete request, response, filtering, image, and error contract is in
+`docs/api-contract.md`.
 
-```json
-{
-  "inspectionId": "insp_20260804T054824288330Z_2df23070",
-  "timestamp": "2026-08-04T05:48:24.288330Z",
-  "fileName": "visa-chewinggum-normal-000.jpg",
-  "imageWidth": 1342,
-  "imageHeight": 1118,
-  "defects": [
-    {
-      "type": "patches",
-      "confidence": 0.46318528056144714,
-      "boundingBox": {
-        "x": 368.910888671875,
-        "y": 283.77960205078125,
-        "width": 573.1429443359375,
-        "height": 172.46771240234375
-      }
-    }
-  ],
-  "totalDefects": 1,
-  "qualityScore": 93,
-  "status": "failed",
-  "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" },
-  "imageUrl": "data:image/jpeg;base64,<base64 omitted>",
-  "originalImageUrl": "data:image/jpeg;base64,<base64 omitted>"
-}
-```
+## Samples
 
-Demo source labels and model observations are intentionally separate; this
-example describes runtime behavior and is not an accuracy claim.
+The Samples page contains nine attributed CC BY 4.0 images across PCB, steel,
+and concrete/crack domains. Dataset labels are displayed as source metadata,
+not model predictions. Selecting a sample performs fresh inference through the
+ordinary `/api/inspect` workflow and stores the result in history.
 
-### Real history example
+Sample recommendations do not silently switch the global model selection.
 
-Query the record using the same server-side type filter used by CSV export:
+## Quality score and bonuses
 
-```bash
-curl -sS "http://localhost:8000/api/history?type=patches"
-```
+The backend returns an integer `qualityScore` from 0 to 100. Higher values mean
+better quality. The score is an application heuristic based on defect class,
+confidence, count, and bbox area; it is not calibrated metrology or a safety
+measurement.
 
-The corresponding response contains the same persisted fields but no image
-payloads:
+The project also implements:
 
-```json
-[
-  {
-    "inspectionId": "insp_20260804T054824288330Z_2df23070",
-    "timestamp": "2026-08-04T05:48:24.288330Z",
-    "fileName": "visa-chewinggum-normal-000.jpg",
-    "imageWidth": 1342,
-    "imageHeight": 1118,
-    "defects": [
-      {
-        "type": "patches",
-        "confidence": 0.46318528056144714,
-        "boundingBox": {
-          "x": 368.910888671875,
-          "y": 283.77960205078125,
-          "width": 573.1429443359375,
-          "height": 172.46771240234375
-        }
-      }
-    ],
-    "totalDefects": 1,
-    "qualityScore": 93,
-    "status": "failed",
-    "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" }
-  }
-]
-```
+- live camera/frame inspection through `POST /api/stream`;
+- backend-authoritative quality scoring;
+- server-side CSV export through `GET /api/export`.
 
-## Folder structure
+## Configuration
+
+Backend environment settings use the `INSPECT_VISION_` prefix and are documented
+in `docs/env-model-contract.md`. Environment configuration owns runtime paths,
+device selection, CORS, and the upload limit. Model thresholds, preprocessing,
+native classes, artifact hashes, and quality weights live in
+`backend/models/model-manifest.json`.
+
+`INSPECT_VISION_MAX_UPLOAD_BYTES` may be lowered but cannot exceed 10 MiB.
+
+## Project structure
 
 ```text
 backend/
-  detection/       preprocessing orchestration, annotation, scoring, detector DTOs
-  models/          tracked model registry; local .pt checkpoints are ignored
-  routes/          FastAPI inspect, stream, history, image, and export boundaries
-  samples/         attributed demo images and source provenance
-  storage/         SQLite repository and consistent media lifecycle
+  detection/       detector adapters, geometry ownership, annotation, scoring
+  models/          model manifest and local ignored model artifacts
+  routes/          FastAPI API boundaries
+  samples/         attributed demo/showcase assets and provenance
+  storage/         SQLite and media lifecycle
 frontend/
-  src/             React routes, components, context, API client, mocks, and styles
-docs/               API/environment contracts, verification status, runtime evidence
-scripts/            model installation, validation, and reproducible runtime probes
-tests/              Python unit and integration coverage
+  src/             React routes, components, context, API client, mocks, styles
+  tests/           frontend utility/model tests
+docs/               contracts, status, verification records
+scripts/            installation, validation, reproducible runtime probes
+tests/              Python unit and integration tests
 ```
 
 ## Validation
 
-The canonical Windows command runs structure, dataset, architecture, dependency,
-Python, frontend, production-build, and dependency-vulnerability checks:
+Run the repository checks from an activated virtual environment:
 
 ```bash
-.venv/Scripts/python.exe scripts/validate.py
+python scripts/validate.py
 ```
+
+The suite checks repository structure, sample manifests, architecture rules,
+dependency graph drift, Python unit/integration tests, frontend tests, the Vite
+production build, and frontend dependency security state.
 
 Useful individual commands:
 
 ```bash
-.venv/Scripts/python.exe scripts/validate_structure.py
-.venv/Scripts/python.exe scripts/validate_architecture.py
-.venv/Scripts/python.exe scripts/generate_dependency_graph.py --check
-.venv/Scripts/python.exe scripts/validate_demo_samples.py
-.venv/Scripts/python.exe scripts/validate_showcase_samples.py
-.venv/Scripts/python.exe -m pytest
+python scripts/validate_structure.py
+python scripts/validate_architecture.py
+python scripts/generate_dependency_graph.py --check
+python scripts/validate_demo_samples.py
+python scripts/validate_showcase_samples.py
+python -m pytest
 npm --prefix frontend test
 npm --prefix frontend run build
-.venv/Scripts/python.exe scripts/check_frontend_dependencies.py
+python scripts/check_frontend_dependencies.py
 ```
 
-Check the fresh backend template without creating a local runtime database:
+To exercise installed models through the production runtime/service pipeline:
 
 ```bash
-.venv/Scripts/python.exe -c "from backend.config import Settings; print(Settings(_env_file='.env.example').max_upload_bytes)"
+python scripts/probe_models.py --device cpu
 ```
 
-Validate the locally installed default or all exposed models without
-downloading verified files again:
+Runtime probes record actual observations; they do not convert those observations
+into benchmark-accuracy claims.
 
-```bash
-.venv/Scripts/python.exe scripts/install_models.py
-.venv/Scripts/python.exe scripts/install_models.py --all
-```
-
-Repository navigation and ownership rules are in `AGENTS.md`; current capability
-status and executable evidence links are in `docs/project-status.json` and
+Repository navigation and ownership rules are in `AGENTS.md`. Current capability
+status is in `docs/project-status.json`, and requirement-to-check mapping is in
 `docs/verification.md`.
