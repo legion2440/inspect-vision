@@ -1,58 +1,53 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-08-06",
+  "recorded_at": "2026-08-08",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "public-anomaly-map-runtime-qualified",
+  "state": "bayespfl-default-ready-for-local-verification",
   "verified": [
-    "manifest schema version 3 validates one unchanged default, three public Ultralytics detectors, and one public multi-artifact anomaly-map model",
-    "General Manufacturing is the coverage-oriented default; Steel Surface and Concrete & Structural Cracks are selectable specialists",
-    "all three local checkpoint hashes match immutable source revisions and all three load with task=detect plus exact checkpoint-native classes",
-    "all three models execute through DetectionRuntimeManager and DetectionService on domain-scoped remote probes",
-    "lazy loading caches successful services by model ID and does not load weights during FastAPI startup or GET /api/models",
-    "standard-color preserves BGR channels while steel-enhanced applies grayscale and CLAHE(2.0, 8x8) over the shared letterbox/restore path",
-    "quality-v1 uses per-model weights and an explicit neutral default weight of 1.0",
-    "POST /api/inspect and POST /api/stream accept optional modelId, share one inference lock, and return the actual model projection",
-    "unknown modelId returns 404; a registered missing or invalid checkpoint returns 409 with an installer command",
-    "history persists model IDs and remains readable after a historical model leaves the registry by falling back to its persisted ID as display name",
-    "GET /api/models exposes domain, description, native classes, default state, preprocessing profile, and verified installed state",
-    "frontend loads the registry, selects the installed API default, disables uninstalled entries, shows exact installer commands, and propagates one selection to upload and live requests",
-    "changing the selected upload model aborts and sequence-invalidates the active request before clearing preview and result state",
-    "changing the selected live model aborts the current frame and clears stale overlay detections",
-    "registry installer supports default, explicit --model, and exposed-only --all with per-artifact pinned size/SHA checks and atomic replacement; AnomalyCLIP now intentionally participates in --all",
-    "AnomalyCLIP uses backend-owned 518x518 stretch geometry, frozen postprocessing, original-space bbox restoration, and a hash-bound 131-value clean calibration reference",
-    "AnomalyCLIP prompt loading requires weights_only=True, its CLIP backbone uses TorchScript loading without pickle fallback, and its score is documented as anomaly confidence rather than class probability",
-    "public /api/models serializes four models including anomalyclip-stretch while the default remains factory-defect-guard-v6-mc",
-    "AnomalyCLIP preserves prior screw, capsule, tile, normal, cable, and NEU observations through real public inspect/stream requests; history/detail retain its model ID and stream remains non-persistent",
-    "frontend mock mode exposes the same four-model selection and preserves each model's native output vocabulary through the generic selector contract",
-    "existing upload, stream, history, persistence, filtering, deletion, CSV, annotation, severity, and demo-sample behavior remains covered",
-    "frontend tests and Vite production build pass after the multi-model change",
-    "Dashboard Quick Upload, Inspect, live stream, and the Samples page share one explicit global model selection",
-    "nine offline CC BY 4.0 showcase images cover PCB, steel, and concrete/crack domains with three samples per declared showcase model",
-    "showcase PCB, HU, and PLOS labels are reconstructed from tracked source-metadata excerpts, blade labels from source folders, and transformed assets disclose downscaling or cropping",
-    "GET /api/samples returns metadata without image payloads and GET /api/samples/{id}/image serves originals only by manifest ID",
-    "Inspect sample performs fresh inference with the current model through POST /api/inspect, aborts pending image loads on model change, and persists the resulting history record"
+    "manifest schema version 3 registers four exposed models with bayespfl-general-v1 as the default",
+    "Bayes-PFL runtime source is tracked inside backend/detection/third_party/bayespfl and does not require an external repository clone",
+    "Bayes-PFL artifacts are installer-managed and pinned by filename, byte size, SHA-256, and source metadata",
+    "the default Bayes-PFL adapter requires explicit product/category context and preserves the native generic class anomaly",
+    "Bayes-PFL owns 518x518 stretch preprocessing, anomaly-map postprocessing, bbox padding, and original-coordinate restoration",
+    "the frozen Bayes-PFL application settings are threshold 0.72, Gaussian sigma 8, minimum component area ratio 0.0005, bbox padding ratio 0.25, feature layers 6/12/18/24, and seed 333",
+    "the legacy multiclass YOLO general model, steel specialist, and concrete/crack specialist remain exposed and selectable",
+    "GET /api/models exposes requiresProductName so the frontend can gate category-guided models before inference",
+    "POST /api/inspect and POST /api/stream accept productName and pass it through the shared runtime manager",
+    "runtime service caching is scoped by model ID and product/category context for guided models",
+    "Dashboard Quick Upload, Inspect, live stream, and Samples share the selected model and guided product context",
+    "the frontend disables image/live submission while a required product/category is empty",
+    "the inspection viewer derives its preprocessing caption from the selected model profile",
+    "the score UI is labelled Quality Score and retains backend qualityScore as authoritative",
+    "nine offline CC BY 4.0 showcase images remain source-labelled examples for PCB, steel, and concrete/crack inspection",
+    "historical AnomalyCLIP runtime records remain immutable historical evidence and are no longer treated as the current public registry state",
+    "the root setup instructions are platform-neutral and the default model installer requires no external model source checkout"
   ],
   "known_limitations": [
     {
-      "id": "anomalyclip-partial-qualification",
+      "id": "bayespfl-generic-native-output",
       "area": "defect-detection",
-      "detail": "AnomalyCLIP is publicly selectable but remains a generic anomaly localizer with a PARTIAL accuracy qualification, a known fragmented cable result, slow CPU inference, and no separately confirmed license statement for the distributed binary checkpoints. It is not the default and specialists remain preferred for known domains."
+      "detail": "Bayes-PFL localizes anomalies but emits the native generic type anomaly rather than a semantic defect subtype. Supported specialists remain preferable when the inspected domain is known."
     },
     {
-      "id": "broad-model-low-probe-confidence",
+      "id": "bayespfl-adapter-threshold",
       "area": "defect-detection",
-      "detail": "The broad default uses confidence 0.05 based on observed runtime behavior. Its mixed-domain probe records predictions, including mismatched source labels, and does not claim accuracy superiority."
+      "detail": "The fixed 0.72 map threshold, component-area filter, and bbox padding are application adapter settings. Upstream evaluation does not provide a fixed deployment bbox threshold, so these settings are not an upstream accuracy claim."
     },
     {
-      "id": "demo-observations-not-an-accuracy-benchmark",
-      "area": "verification-evidence",
-      "detail": "Source-balanced demo and model qualification runs record observations without computing or claiming benchmark accuracy; accurate boxes/types/confidence remains PARTIAL."
+      "id": "bayespfl-binary-license-scope",
+      "area": "defect-detection",
+      "detail": "The upstream Bayes-PFL repository states MIT licensing, but the distributed train_visa.pth checkpoint does not carry a separately stated binary license in the tracked source metadata."
     },
     {
-      "id": "automated-coverage-partial",
+      "id": "current-default-runtime-verification-pending",
       "area": "verification-evidence",
-      "detail": "Python API/detection/storage tests, frontend utilities, validators, and production build exist; full React component and browser end-to-end automation remain planned."
+      "detail": "The current Bayes-PFL default integration is ready for the final local validation and runtime probe. Existing committed runtime records cover earlier milestones and specialists; no new Bayes-PFL production result is claimed until that local run is completed."
+    },
+    {
+      "id": "automated-browser-coverage-partial",
+      "area": "verification-evidence",
+      "detail": "Python API/detection/storage tests, frontend utility tests, validators, and a production build are present; full browser end-to-end automation is not part of the current repository checks."
     }
   ]
 }
