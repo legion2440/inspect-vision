@@ -1,6 +1,15 @@
 import { installModelCommand, modelClassesLabel } from '../utils/models.js';
 
-export default function ModelSelector({ models = [], value, onChange, loading, error, compact = false }) {
+export default function ModelSelector({
+  models = [],
+  value,
+  onChange,
+  loading,
+  error,
+  compact = false,
+  productName = '',
+  onProductNameChange = () => {},
+}) {
   const selected = models.find((model) => model.id === value);
   const uninstalled = models.filter((model) => !model.installed);
   return (
@@ -22,6 +31,23 @@ export default function ModelSelector({ models = [], value, onChange, loading, e
           ))}
         </select>
       </div>
+      {selected?.requiresProductName && (
+        <div className="field">
+          <label htmlFor="inspection-product-name">Product / category</label>
+          <input
+            id="inspection-product-name"
+            className="input"
+            type="text"
+            value={productName}
+            required
+            placeholder="metal_nut, capsule, bottle…"
+            onChange={(event) => onProductNameChange(event.target.value)}
+          />
+          <span className="qc-mono text-muted">
+            Bayes-PFL uses this category as its inference prompt; use a concrete product name.
+          </span>
+        </div>
+      )}
       {selected && (
         <div className="qc-model-copy">
           <strong>{selected.domain}</strong>
