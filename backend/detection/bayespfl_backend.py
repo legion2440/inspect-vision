@@ -5,6 +5,7 @@ from __future__ import annotations
 import gc
 import hashlib
 import importlib
+import os
 import random
 import subprocess
 import sys
@@ -216,8 +217,15 @@ class BayesPflBackend(DetectorBackend):
         source = str(self.source_dir)
         if source not in sys.path:
             sys.path.insert(0, source)
-        vp_module = importlib.import_module("models.VPB")
-        clip_module = importlib.import_module("models.model_CLIP")
+        previous_cwd = Path.cwd()
+        try:
+            # Upstream SimpleTokenizer resolves its BPE vocabulary from ./models.
+            # Import from the pinned checkout root, then restore the caller cwd.
+            os.chdir(self.source_dir)
+            vp_module = importlib.import_module("models.VPB")
+            clip_module = importlib.import_module("models.model_CLIP")
+        finally:
+            os.chdir(previous_cwd)
         for module in (vp_module, clip_module):
             module_path = Path(module.__file__).resolve()
             if self.source_dir not in module_path.parents:
