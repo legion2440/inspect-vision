@@ -1,19 +1,29 @@
-/**
- * Bundled mock of the FastAPI contract so the frontend runs standalone.
- * Set VITE_USE_MOCK=false once the backend is wired up.
- */
+/** Bundled FastAPI-compatible mock for standalone frontend development. */
 const SAMPLE = '/samples/sample-part.jpg';
 
 const MODELS = [
   {
+    id: 'bayespfl-general-v1',
+    displayName: 'General Manufacturing (Bayes-PFL)',
+    role: 'general',
+    domain: 'Cross-domain manufacturing anomaly localization',
+    description: 'Category-guided anomaly localization for varied manufactured products; specialists remain preferable for supported known domains.',
+    classes: ['anomaly'],
+    preprocessingProfile: 'bayespfl-stretch',
+    requiresProductName: true,
+    isDefault: true,
+    installed: true,
+  },
+  {
     id: 'factory-defect-guard-v6-mc',
-    displayName: 'General Manufacturing',
+    displayName: 'General Manufacturing (YOLO)',
     role: 'general',
     domain: 'General manufacturing',
-    description: 'Coverage-oriented detector for several manufacturing domains.',
+    description: 'Legacy multiclass coverage detector for several manufacturing domains.',
     classes: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled_in_scale', 'scratches', 'pcb_missing_hole', 'pcb_mouse_bite', 'pcb_open_circuit', 'pcb_short', 'pcb_spur', 'pcb_spurious_copper', 'tile_defect', 'transistor_defect', 'screw_defect', 'metal_nut_defect', 'capsule_defect'],
     preprocessingProfile: 'standard-color',
-    isDefault: true,
+    requiresProductName: false,
+    isDefault: false,
     installed: true,
   },
   {
@@ -24,6 +34,7 @@ const MODELS = [
     description: 'Specialist detector for six steel surface defect classes.',
     classes: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches'],
     preprocessingProfile: 'steel-enhanced',
+    requiresProductName: false,
     isDefault: false,
     installed: true,
   },
@@ -35,17 +46,7 @@ const MODELS = [
     description: 'Specialist detector for visible cracks on concrete and masonry.',
     classes: ['crack'],
     preprocessingProfile: 'standard-color',
-    isDefault: false,
-    installed: true,
-  },
-  {
-    id: 'anomalyclip-general-v1',
-    displayName: 'General Manufacturing (AnomalyCLIP v1)',
-    role: 'general',
-    domain: 'Cross-domain manufacturing anomaly localization',
-    description: 'Broad anomaly localization with generic anomaly output and no subtype classification; specialist models are preferred for known domains.',
-    classes: ['anomaly'],
-    preprocessingProfile: 'anomalyclip-stretch',
+    requiresProductName: false,
     isDefault: false,
     installed: true,
   },
@@ -74,7 +75,7 @@ const SAMPLE_DATASETS = [
     version: '1',
     sourceUrl: 'https://plos.figshare.com/articles/figure/Six_types_of_metal_surface_defects_/24767219',
     license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'Xu, Y., Jiao, P., & Liu, J. (2023). Six types of metal surface defects, Figure 3. PLOS ONE. CC BY 4.0. Panel (b) cropped from source.',
+    attribution: 'Xu, Y., Jiao, P., & Liu, J. (2023). Figure 3. PLOS ONE. CC BY 4.0.',
   },
   {
     id: 'hu-infrastructure-cracks-v1',
@@ -82,7 +83,7 @@ const SAMPLE_DATASETS = [
     version: '1',
     sourceUrl: 'https://zenodo.org/records/20829348',
     license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'Almashakbeh, Y., Hayarat, I., Momani, D., & Alelaimat, R. (2026). HU Infrastructure Cracks Dataset. The Hashemite University, Jordan. https://hu-infrastructure-cracks.org. CC BY 4.0.',
+    attribution: 'HU Infrastructure Cracks Dataset, CC BY 4.0.',
   },
 ];
 
@@ -111,6 +112,7 @@ const MOCK_SAMPLES = [
 }));
 
 const modelOf = (modelId) => MODELS.find((model) => model.id === modelId) || MODELS[0];
+const box = (x, y, width, height) => ({ x, y, width, height });
 
 const rec = (id, iso, defects, file, model = MODELS[0]) => ({
   inspectionId: id,
@@ -127,13 +129,11 @@ const rec = (id, iso, defects, file, model = MODELS[0]) => ({
   model: { id: model.id, displayName: model.displayName },
 });
 
-const box = (x, y, width, height) => ({ x, y, width, height });
-
 const mockDefectPool = (model, { live = false, jitter = () => 0 } = {}) => {
-  if (model.id === 'anomalyclip-general-v1') {
+  if (model.id === 'bayespfl-general-v1') {
     return [{
       type: 'anomaly',
-      confidence: live ? 0.91 : 0.92,
+      confidence: live ? 0.75 : 0.76,
       boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90),
     }];
   }
@@ -153,37 +153,17 @@ const mockDefectPool = (model, { live = false, jitter = () => 0 } = {}) => {
   return [
     { type: 'scratches', confidence: 0.93, boundingBox: box(200, 150, 250, 90) },
     { type: 'inclusion', confidence: 0.84, boundingBox: box(660, 390, 170, 150) },
-    { type: 'crazing', confidence: 0.66, boundingBox: box(380, 560, 220, 140) },
   ];
 };
 
 let store = [
   rec('insp_20260803_004', '2026-08-03T14:38:12Z', [
     { type: 'scratches', confidence: 0.94, boundingBox: box(214, 168, 268, 96) },
-    { type: 'inclusion', confidence: 0.86, boundingBox: box(690, 402, 152, 138) },
-    { type: 'pitted_surface', confidence: 0.68, boundingBox: box(396, 588, 210, 128) },
-  ], 'housing_04_2b.jpg'),
-  rec('insp_20260803_003', '2026-08-03T14:12:47Z', [], 'housing_04_2a.jpg'),
-  rec('insp_20260803_002', '2026-08-03T13:47:05Z', [
-    { type: 'crazing', confidence: 0.91, boundingBox: box(520, 240, 180, 210) },
-  ], 'bracket_11c.jpg'),
-  rec('insp_20260803_001', '2026-08-03T13:20:31Z', [
-    { type: 'scratches', confidence: 0.79, boundingBox: box(120, 85, 245, 60) },
-    { type: 'rolled-in_scale', confidence: 0.72, boundingBox: box(640, 610, 190, 54) },
-  ], 'panel_07.jpg'),
-  rec('insp_20260802_014', '2026-08-02T17:58:09Z', [], 'panel_06.jpg'),
-  rec('insp_20260802_013', '2026-08-02T17:31:22Z', [
-    { type: 'patches', confidence: 0.83, boundingBox: box(410, 320, 210, 190) },
-  ], 'housing_03_9f.jpg'),
-  rec('insp_20260802_012', '2026-08-02T16:44:50Z', [
-    { type: 'pitted_surface', confidence: 0.64, boundingBox: box(180, 470, 320, 180) },
-    { type: 'inclusion', confidence: 0.88, boundingBox: box(760, 180, 160, 150) },
-  ], 'flange_22.jpg'),
-  rec('insp_20260802_011', '2026-08-02T16:02:18Z', [], 'flange_21.jpg'),
+  ], 'housing_04_2b.jpg', MODELS[2]),
+  rec('insp_20260803_003', '2026-08-03T14:12:47Z', [], 'housing_04_2a.jpg', MODELS[2]),
 ];
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const dataUrlOf = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.addEventListener('load', () => resolve(reader.result), { once: true });
@@ -205,9 +185,12 @@ export async function getSamples() {
   };
 }
 
-export async function inspectImage(file, { modelId } = {}) {
+export async function inspectImage(file, { modelId, productName } = {}) {
   await wait(1400);
   const model = modelOf(modelId);
+  if (model.requiresProductName && !String(productName || '').trim()) {
+    throw new Error('Product name is required for this detection model');
+  }
   const id = 'insp_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(store.length + 1).padStart(3, '0');
   const pool = mockDefectPool(model);
   const defects = pool.slice(0, 1 + Math.floor(Math.random() * pool.length));
@@ -221,9 +204,12 @@ export async function inspectImage(file, { modelId } = {}) {
   return record;
 }
 
-export async function inspectFrame({ modelId } = {}) {
+export async function inspectFrame({ modelId, productName } = {}) {
   await wait(120);
   const model = modelOf(modelId);
+  if (model.requiresProductName && !String(productName || '').trim()) {
+    throw new Error('Product name is required for this detection model');
+  }
   const jitter = () => Math.round((Math.random() - 0.5) * 60);
   const defects = mockDefectPool(model, { live: true, jitter });
   return {
@@ -254,15 +240,20 @@ export async function getHistory(filters = {}) {
 
 export async function getInspection(id) {
   await wait(200);
-  const found = store.find((r) => r.inspectionId === id);
+  const found = store.find((record) => record.inspectionId === id);
   if (!found) throw new Error('Inspection not found');
   return found;
 }
 
 export async function deleteInspection(id) {
   await wait(150);
-  store = store.filter((r) => r.inspectionId !== id);
-  return { deleted: id };
+  store = store.filter((record) => record.inspectionId !== id);
+  return { inspectionId: id, deleted: true };
 }
 
-export async function clearHistory() { await wait(150); store = []; return { cleared: true }; }
+export async function clearHistory() {
+  await wait(150);
+  const cleared = store.length;
+  store = [];
+  return { cleared };
+}
