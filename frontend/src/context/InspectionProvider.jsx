@@ -36,7 +36,11 @@ export function InspectionProvider({ children }) {
     uploadController.current?.abort();
   }, []);
 
-  const runInspection = useCallback(async (file, modelId = state.selectedModelId) => {
+  const runInspection = useCallback(async (
+    file,
+    modelId = state.selectedModelId,
+    productName = state.productName,
+  ) => {
     const invalid = validateImage(file);
     if (invalid) {
       dispatch({ type: 'error', error: invalid });
@@ -53,7 +57,7 @@ export function InspectionProvider({ children }) {
       requestId,
     });
     try {
-      const record = await api.inspectImage(file, { modelId, signal: controller.signal });
+      const record = await api.inspectImage(file, { modelId, productName, signal: controller.signal });
       if (requestId !== uploadRequestSequence.current) return null;
       dispatch({ type: 'result', record, requestId });
       return record;
@@ -68,7 +72,7 @@ export function InspectionProvider({ children }) {
     } finally {
       if (uploadController.current === controller) uploadController.current = null;
     }
-  }, [state.selectedModelId]);
+  }, [state.selectedModelId, state.productName]);
 
   const loadHistory = useCallback(async (filters) => {
     const requestId = ++historyRequestId.current;
@@ -108,10 +112,32 @@ export function InspectionProvider({ children }) {
     cancelUpload();
     dispatch({ type: 'selectModel', modelId });
   }, [cancelUpload]);
+  const setProductName = useCallback((productName) => {
+    cancelUpload();
+    dispatch({ type: 'setProductName', productName });
+  }, [cancelUpload]);
 
   const value = useMemo(
-    () => ({ ...state, runInspection, loadHistory, removeInspection, clearAll, reset, selectModel }),
-    [state, runInspection, loadHistory, removeInspection, clearAll, reset, selectModel],
+    () => ({
+      ...state,
+      runInspection,
+      loadHistory,
+      removeInspection,
+      clearAll,
+      reset,
+      selectModel,
+      setProductName,
+    }),
+    [
+      state,
+      runInspection,
+      loadHistory,
+      removeInspection,
+      clearAll,
+      reset,
+      selectModel,
+      setProductName,
+    ],
   );
 
   return <InspectionContext.Provider value={value}>{children}</InspectionContext.Provider>;
