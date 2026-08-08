@@ -1,4 +1,4 @@
-"""Install registered model artifacts with pinned size and SHA-256 verification."""
+"""Install registered model artifacts and pinned runtime sources."""
 
 from __future__ import annotations
 
@@ -132,6 +132,10 @@ def install_models(
                 opener=opener,
             )
             results.append(InstallResult(model, artifact, path, downloaded))
+        if model.backend == "bayespfl":
+            from backend.detection.bayespfl_runtime import install_bayespfl_runtime
+
+            install_bayespfl_runtime(opener=opener)
     return tuple(results)
 
 
@@ -174,6 +178,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             f"[OK] {result.model.model_id}/{result.artifact.artifact_id} "
             f"{action}: {result.path}"
         )
+    installed_models = {result.model.model_id for result in results}
+    if "bayespfl-general-v1" in installed_models:
+        print("[OK] bayespfl-general-v1/runtime sources verified")
     return 0
 
 
