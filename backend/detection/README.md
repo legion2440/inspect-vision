@@ -1,17 +1,20 @@
 # Defect detection
 
-This module owns the validated model registry projection, lazy detector
-runtimes, preprocessing, native inference, coordinate restoration, annotation,
-and authoritative quality scoring. It has no HTTP, persistence, tracking,
-video, or UI dependency.
+This module owns the validated model registry projection, lazy detector runtimes,
+preprocessing, native inference, coordinate restoration, annotation, and
+authoritative quality scoring. It has no HTTP, persistence, tracking, video, or
+UI dependency.
 
 Input is a non-empty `uint8 H x W x 3` BGR NumPy array. Core detections contain
 only `class_id`, `class_name`, `confidence`, and input-image `xyxy`; boxes are
 clamped and zero-area boxes are dropped.
 
-`DetectionRuntimeManager` resolves an optional model ID, loads registered
-artifacts only on first use, and caches successful `DetectionService` objects.
-Ultralytics detectors retain the established service-owned geometry path:
+`DetectionRuntimeManager` resolves the selected model, loads registered artifacts
+only on first use, and caches successful `DetectionService` objects. For
+category-guided models, the product/category string is part of the runtime cache
+key so concurrent model contexts are never changed by mutation.
+
+Ultralytics detectors use service-owned geometry:
 
 ```text
 original BGR
@@ -20,75 +23,73 @@ original BGR
 -> registered Ultralytics detector
 -> one restore to original coordinates
 -> native class validation
--> per-model quality-v1 and original-size annotation
+-> quality score and original-size annotation
 ```
 
-Anomaly-map detectors declare backend-owned geometry instead:
+Anomaly-map detectors use backend-owned geometry:
 
 ```text
 original BGR
 -> backend-owned model preprocessing
 -> anomaly map + model-specific postprocessing
 -> anomaly components restored to original coordinates by the backend
--> shared native class validation, quality-v1, and annotation
+-> shared native class validation, quality score, and annotation
 ```
 
-The ownership capability prevents `DetectionService` from applying a second
-letterbox or coordinate restore. AnomalyCLIP is publicly selectable without
-changing the coverage-oriented default. Its runtime qualification proves the
-ordinary inspect/stream API integration and preserves the previously recorded
-model observations; it does not upgrade the model's partial accuracy result.
+The geometry capability prevents `DetectionService` from applying a second
+letterbox or coordinate restore.
 
-There is no class mapping layer: service defect types are model-native names
-validated against the manifest. AnomalyCLIP emits only `anomaly`, and its
-confidence value is an empirical score relative to clean calibration
-components—not a class probability. Quality weights are model-owned and fall
-back only to the explicit neutral `1.0` declared by that model.
+## Bayes-PFL general model
 
-## Bayes-PFL candidate runner
+`bayespfl-general-v1` is the default cross-domain anomaly-localization model. It
+uses the CVPR 2025 Bayes-PFL inference path with the `train_visa.pth` checkpoint
+and the pinned OpenAI CLIP `ViT-L-14-336px.pt` backbone.
 
-`backend/detection/bayespfl_backend.py` and
-`scripts/run_bayespfl_candidate.py` provide a service-level qualification path
-for the upstream Bayes-PFL zero-shot anomaly model. The candidate is deliberately
-not registered in `model-manifest.json`, `/api/models`, or the frontend until its
-local checkpoint is measured, hash-pinned, and its behavior is accepted.
-
-The runner verifies an external Bayes-PFL Git checkout at source revision
-`8f155a07e734913e021c33c469f16a1f75c60e5d`, reuses the already pinned OpenAI
-`ViT-L-14-336px.pt` backbone, and loads the local Bayes-PFL checkpoint with
-`weights_only=True`. No upstream source tree or candidate checkpoint is copied
-into this repository.
-
-Bayes-PFL requires an explicit target product/category name at inference time;
-its upstream prompt is built from that name. The candidate runner therefore
-requires each image as `--case PRODUCT=IMAGE` instead of silently substituting a
-generic product name.
+Bayes-PFL requires a concrete product/category name for every inference request.
+The public API accepts it as multipart field `productName`; the frontend exposes
+the same input whenever a selected model declares `requiresProductName=true`.
+The value is used by the native Bayes-PFL prompt path rather than replaced with a
+generic object label.
 
 The preprocessing follows the upstream test path: RGB conversion, bicubic
-`518×518` resize, tensor conversion, and CLIP normalization. Geometry is owned by
-the backend and restored to original coordinates exactly once. The upstream test
-path also applies Gaussian smoothing with sigma `8` to the anomaly map.
+`518×518` stretch resize, tensor conversion, and CLIP normalization. The anomaly
+map is smoothed with Gaussian sigma `8`. Product postprocessing uses a fixed map
+threshold `0.72`, connected components with minimum area ratio `0.0005`, and a
+25% bbox display margin around each retained component. The fixed threshold and
+bbox policy are application settings; the upstream benchmark does not publish a
+single deployment threshold.
 
-Bayes-PFL does not publish a deployment bbox threshold. Its benchmark code
-chooses a pixel threshold from target ground truth. For application-shaped local
-inspection, the runner exposes a fixed `--threshold` (default `0.5`) and a small
-connected-component area filter, then emits generic `anomaly` boxes through the
-ordinary `DetectionService`. These bbox settings are candidate adapter settings,
-not an upstream accuracy claim. The runner also writes the raw heatmap overlay so
-model quality can be judged independently of the threshold.
+The native defect type is `anomaly`. Its confidence is the mean anomaly score of
+the retained component, not a semantic class probability. Manual local checks
+showed useful local anomaly localization across fasteners, capsules, and bottles,
+while structural relationship defects can remain outside this model's strength.
+Use a specialist model when the inspected domain has one.
 
-Example:
+## Runtime sources and installation
+
+Bayes-PFL model artifacts and the minimal inference source set are installed with
+one command:
 
 ```text
-.venv/Scripts/python.exe scripts/run_bayespfl_candidate.py \
-  --source-dir D:/TSchool/Bayes-PFL \
-  --case capsule=D:/samples/capsule-crack.png \
-  --case screw=D:/samples/screw-manipulated.png
+python scripts/install_models.py --model bayespfl-general-v1
 ```
 
-Output goes to `.cache/bayespfl-candidate/`. `result.json` records the local
-checkpoint size and SHA-256 together with the fixed candidate settings and per
-image results.
+No external repository clone is required. Model binaries are verified by pinned
+size and SHA-256. The minimal source files are downloaded from the pinned
+Bayes-PFL source revision and verified against exact Git blob object IDs before
+use. They remain untracked under
+`backend/detection/third_party/bayespfl/runtime/`; provenance is documented in
+`backend/detection/third_party/bayespfl/NOTICE.md`.
+
+The pinned upstream vision transformer contains one hard-coded CUDA allocation.
+The loader keeps the downloaded source exact and applies a one-line in-memory
+compatibility adaptation so that allocation uses the active tensor device. This
+preserves the inference calculation while allowing the project's CPU PyTorch
+build to run it.
+
+There is no class mapping layer: service defect types remain model-native names
+validated against the manifest. Quality weights are model-owned and fall back
+only to the explicit neutral `1.0` declared by that model.
 
 `backend/utils/preprocessing.py` and `backend/utils/model_loader.py` are owned by
 this module even though the required repository layout places them outside the
