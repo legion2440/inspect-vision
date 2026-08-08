@@ -55,19 +55,21 @@ def test_contract_rejects_status_count_mismatch() -> None:
         InspectionSummaryRecord.model_validate(payload)
 
 
-def test_public_model_contract_accepts_anomalyclip_preprocessing_profile() -> None:
+def test_public_model_contract_accepts_guided_bayespfl_profile() -> None:
     model = AvailableModelRecord.model_validate(
         {
-            "id": "anomalyclip-general-v1",
-            "displayName": "General Manufacturing (AnomalyCLIP v1)",
+            "id": "bayespfl-general-v1",
+            "displayName": "General Manufacturing (Bayes-PFL)",
             "role": "general",
             "domain": "Cross-domain manufacturing anomaly localization",
-            "description": "Broad anomaly localization.",
+            "description": "Category-guided anomaly localization.",
             "classes": ["anomaly"],
-            "preprocessingProfile": "anomalyclip-stretch",
-            "isDefault": False,
+            "preprocessingProfile": "bayespfl-stretch",
+            "requiresProductName": True,
+            "isDefault": True,
             "installed": True,
         }
     )
 
-    assert model.preprocessing_profile == "anomalyclip-stretch"
+    assert model.preprocessing_profile == "bayespfl-stretch"
+    assert model.requires_product_name is True
