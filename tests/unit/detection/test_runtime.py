@@ -5,10 +5,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from backend.detection.dto import InferenceResult
 from backend.detection.base import GeometryOwnership
+from backend.detection.dto import InferenceResult
 from backend.detection.runtime import DetectionRuntimeManager
-from backend.utils.model_loader import ModelNotFoundError, ModelNotInstalledError, ModelRegistry
+from backend.utils.model_loader import (
+    ModelNotFoundError,
+    ModelNotInstalledError,
+    ModelRegistry,
+    ProductNameRequiredError,
+)
 
 
 class DetectorStub:
@@ -38,26 +43,54 @@ class BackendOwnedDetectorStub(DetectorStub):
     geometry_ownership = GeometryOwnership.BACKEND
 
 
-def test_runtime_uses_manifest_default_and_lazy_cache() -> None:
+def test_runtime_uses_guided_manifest_default_and_lazy_cache() -> None:
     registry = ModelRegistry()
     created: list[DetectorStub] = []
 
     def factory(spec: object) -> DetectorStub:
-        detector = DetectorStub(spec)
+        detector = BackendOwnedDetectorStub(spec)
         created.append(detector)
         return detector
 
     runtime = DetectionRuntimeManager(registry, detector_factory=factory)
 
     assert runtime.cached_model_ids == ()
-    first = runtime.get_service()
-    second = runtime.get_service("factory-defect-guard-v6-mc")
+    first = runtime.get_service(product_name="capsule")
+    second = runtime.get_service("bayespfl-general-v1", product_name="capsule")
 
     assert first is second
-    assert registry.default_model_id == "factory-defect-guard-v6-mc"
-    assert runtime.cached_model_ids == ("factory-defect-guard-v6-mc",)
+    assert registry.default_model_id == "bayespfl-general-v1"
+    assert runtime.cached_model_ids == ("bayespfl-general-v1",)
     assert len(created) == 1
     assert created[0].load_calls == 1
+
+
+def test_guided_model_requires_product_name_before_loading() -> None:
+    runtime = DetectionRuntimeManager(
+        ModelRegistry(),
+        detector_factory=lambda spec: BackendOwnedDetectorStub(spec),
+    )
+
+    with pytest.raises(ProductNameRequiredError, match="Product name"):
+        runtime.get_service("bayespfl-general-v1")
+
+
+def test_guided_cache_is_scoped_by_product_name() -> None:
+    registry = ModelRegistry()
+    created: list[DetectorStub] = []
+
+    def factory(spec: object) -> DetectorStub:
+        detector = BackendOwnedDetectorStub(spec)
+        created.append(detector)
+        return detector
+
+    runtime = DetectionRuntimeManager(registry, detector_factory=factory)
+    capsule = runtime.get_service("bayespfl-general-v1", product_name="capsule")
+    screw = runtime.get_service("bayespfl-general-v1", product_name="screw")
+
+    assert capsule is not screw
+    assert len(created) == 2
+    assert runtime.cached_model_ids == ("bayespfl-general-v1",)
 
 
 def test_runtime_applies_per_model_preprocessing_profiles() -> None:
@@ -89,10 +122,10 @@ def test_runtime_rejects_unknown_and_missing_models(tmp_path: Path) -> None:
     with pytest.raises(ModelNotFoundError):
         runtime.get_service("unknown")
     with pytest.raises(ModelNotInstalledError, match="install_models.py --model"):
-        runtime.get_service()
+        runtime.get_service(product_name="capsule")
 
 
-def test_anomalyclip_is_available_through_public_inspect_with_backend_geometry() -> None:
+def test_bayespfl_is_available_through_public_inspect_with_backend_geometry() -> None:
     registry = ModelRegistry()
     runtime = DetectionRuntimeManager(
         registry,
@@ -101,14 +134,14 @@ def test_anomalyclip_is_available_through_public_inspect_with_backend_geometry()
 
     result = runtime.inspect(
         np.zeros((20, 30, 3), dtype=np.uint8),
-        "anomalyclip-general-v1",
+        "bayespfl-general-v1",
+        product_name="capsule",
     )
 
-    assert result.model_id == "anomalyclip-general-v1"
+    assert result.model_id == "bayespfl-general-v1"
     assert result.image_width == 30
     assert result.image_height == 20
-    assert runtime.get_service("anomalyclip-general-v1").detector.received.shape == (
-        20,
-        30,
-        3,
-    )
+    assert runtime.get_service(
+        "bayespfl-general-v1",
+        product_name="capsule",
+    ).detector.received.shape == (20, 30, 3)
