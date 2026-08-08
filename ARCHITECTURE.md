@@ -2,13 +2,12 @@
 
 ## Status
 
-The frontend application, reusable multiclass core, multi-model inspection
-service, SQLite/media persistence, main FastAPI inspection/history API, and
-model-aware sample showcase are implemented. Twelve redistributed VisA samples
-retain source/model-observation separation. A separate nine-image showcase
-provides attributed PCB, steel, and concrete examples for fresh inspection with
-the operator's selected model. See `docs/project-status.json` for the precise
-baseline and limitations.
+The React operator UI, FastAPI service, multi-model detection runtime,
+SQLite/media persistence, history/export/live endpoints, and model-aware sample
+showcase are implemented. The default detector is the category-guided Bayes-PFL
+general anomaly localizer; steel and concrete specialists remain available for
+known domains. See `docs/project-status.json` for the current baseline and
+limitations.
 
 ## System context
 
@@ -16,7 +15,7 @@ baseline and limitations.
 flowchart LR
     Operator["Operator"] --> Frontend["React inspection UI"]
     Frontend -->|"HTTP multipart and JSON"| API["FastAPI"]
-    API --> Detection["OpenCV and defect model"]
+    API --> Detection["OpenCV and defect models"]
     API --> History["Inspection history"]
     API --> Samples["Offline sample showcase"]
     Detection --> Media["Original and annotated images"]
@@ -29,127 +28,111 @@ flowchart LR
 
 - Root: `frontend`.
 - Owns routing, upload interaction, Canvas overlays, history UI, real/mock API
-  selection, live frame capture, CSV download, and client-side severity fallback.
-- Uses relative `/api` URLs by default so development traffic crosses the Vite
-  proxy; a cross-origin production base remains an explicit environment option.
-- Owns uploaded preview URL cleanup and displays inspection pixels without CSS
-  color transforms while Canvas remains a separate overlay.
-- Presents image-file and live-stream inspection as a labelled mode selector;
-  file selection is a separate, explicit button inside the image mode.
-- Upload model changes abort and sequence-invalidate in-flight requests before
-  clearing preview, result, metadata, error, and status state.
-- The same global model selector drives Dashboard Quick Upload, the Inspect
-  page, and the Samples page. Sample recommendations never auto-switch it.
-- Sample cards fetch original bytes and call the ordinary persisted inspection
-  workflow; model changes abort pending sample loads before inference, and there
-  is no sample-specific prediction endpoint.
-- Calls only interfaces defined in `docs/api-contract.md`.
-- Implemented and build-verified.
+  selection, live frame capture, CSV download, and client-side quality fallback.
+- Uses relative `/api` URLs by default through the Vite development proxy.
+- Uses one global model selector on Dashboard, Inspect, and Samples.
+- When the API marks a model `requiresProductName`, the selector also requests a
+  concrete product/category string and sends it with upload and stream calls.
+- Model or product-context changes abort in-flight requests before clearing the
+  current upload result.
+- Displays original pixels without CSS color transforms; Canvas is a separate
+  overlay.
+- Sample recommendations never silently change the selected model.
 
 ### Backend API
 
-- Root: `backend/routes` with application entrypoint `backend/main.py`.
+- Root: `backend/routes`, application entrypoint `backend/main.py`.
 - Owns environment validation, lifespan composition, CORS, multipart/content
   validation, response serialization, inference locking, and error mapping.
-- Accepts a configurable positive upload limit with a hard 10 MiB ceiling; the
-  tracked environment template is directly loadable by Pydantic Settings.
-- Lifespan validates one model registry and creates one lazy runtime manager,
-  one storage service, and one shared inference lock. Checkpoints are loaded only
-  on first use and successful services remain cached by model ID.
 - Implements `POST /api/inspect`, `POST /api/stream`, `GET /api/export`,
-  list/detail/delete history, history clear, and manifest-based sample list/image
-  endpoints.
-- Stream inference reuses the application service and lock without persistence;
-  export reuses the canonical history filters and newest-first query path.
-- Keeps model inference and persistence implementation behind their public
-  service boundaries.
-- Serializes a retired historical model with its persisted ID as the display
-  fallback instead of requiring the model to remain in the current registry.
-- Serves showcase images only through manifest IDs; list responses contain
-  metadata and URLs without binary or precomputed detection payloads.
+  list/detail/delete history, history clear, and sample list/image endpoints.
+- `modelId` selects the registered detector. `productName` is required only for
+  category-guided models and is rejected with a validation response when absent.
+- One lazy runtime manager and one inference lock are shared by the application.
+  Successful services are cached by `(model ID, product context)` so guided
+  prompts do not mutate another cached request context.
+- Stream inference does not persist records; upload inference persists metadata,
+  original bytes, and annotated media through the storage service.
 
 ### Defect detection
 
 - Root: `backend/detection`.
-- Also owns the required `backend/utils/preprocessing.py` and
-  `backend/utils/model_loader.py` paths declared explicitly in `module-map.json`.
-- Implements model integrity checks, `auto | cpu | cuda | cuda:N` selection,
-  Ultralytics and anomaly-map backends, bbox clamping, and normalized core DTOs
-  independent of framework result objects.
-- Provides a multi-artifact registry installer for the default, one named model,
-  or all exposed models; every pinned download is size/SHA verified and
-  atomically installed.
-- Implements `standard-color` and `steel-enhanced` manifest profiles over one
-  shared letterbox/restore pipeline. The latter adds grayscale and CLAHE.
-- `DetectionRuntimeManager` lazy-loads and caches registered models.
-  `DetectionService` preserves checkpoint-native class names, applies per-model
-  quality weights with an explicit neutral default, annotates original pixels,
-  and returns passed/failed without Ultralytics objects.
-- Geometry ownership is an explicit backend capability. Ultralytics uses the
-  shared letterbox/restore path; AnomalyCLIP owns stretch preprocessing,
-  anomaly-map postprocessing, and original-coordinate restoration so the
-  service cannot transform its boxes twice.
-- Does not own HTTP routes, inspection history, video processing, tracking,
-  scheduling, media encoding, or persistence.
-- All three exposed Ultralytics models are runtime-qualified through the same production
-  manager/service path on domain-scoped probes. Probe observations make no
-  benchmark-accuracy claim.
-- Public AnomalyCLIP qualification uses real loopback `/api/inspect` and
-  `/api/stream` requests over previously qualified, hash-bound inputs. It proves
-  metadata serialization, observation preservation, persistence, original-space
-  geometry, and non-persisted stream behavior without changing the default or
-  making a new accuracy claim.
-- The selected service is also runtime-verified against all twelve tracked VisA
-  samples selected by source quotas. Four source-normal samples retain all model
-  false positives; source labels never become native model class claims.
+- Also owns `backend/utils/preprocessing.py`, `backend/utils/model_loader.py`, and
+  `scripts/install_models.py` as declared repository boundaries.
+- Validates the model manifest and artifact integrity before model construction.
+- Supports `auto | cpu | cuda | cuda:N` device selection.
+- Keeps model-native class names; there is no semantic class remapping layer.
+- `DetectionService` owns common native-class validation, quality scoring,
+  annotation, and DTO construction.
+
+Ultralytics detectors use service-owned geometry:
+
+```text
+original BGR
+-> square letterbox
+-> registered preprocessing profile
+-> Ultralytics detector
+-> restore once to original coordinates
+-> shared DTO/quality/annotation
+```
+
+Anomaly-map detectors use backend-owned geometry:
+
+```text
+original BGR
+-> model-specific stretch and normalization
+-> anomaly map and model-specific postprocessing
+-> backend restores boxes to original coordinates once
+-> shared DTO/quality/annotation
+```
+
+`bayespfl-general-v1` is the default. It uses Bayes-PFL with the VisA-trained
+checkpoint, explicit product/category prompting, `518×518` CLIP preprocessing,
+Gaussian sigma `8`, fixed application threshold `0.72`, minimum component area
+ratio `0.0005`, and a 25% bbox display margin. Its native type is `anomaly`; the
+confidence is an anomaly-component score rather than a semantic class
+probability. Structural relationship defects are not presented as a guaranteed
+strength of this model, so domain specialists remain preferable when available.
+
+Bayes-PFL model binaries are size/SHA-256 verified. The minimal inference source
+set is installed from a pinned upstream revision and checked against exact Git
+blob IDs, so users do not need a separate source checkout. The downloaded
+runtime remains untracked. A single upstream CUDA-only allocation is adapted in
+memory to the active tensor device while the pinned source file on disk remains
+unchanged.
 
 ### Inspection history
 
 - Root: `backend/storage`.
-- Owns SQLite metadata, stable relative media paths, combined SQL filtering,
-  transactional creation, deletion, clearing, and restart reconciliation.
-- Writes new media through staging; delete/clear use quarantine until SQLite
-  commits; compensating cleanup prevents ordinary write/commit failures from
-  leaving inconsistent metadata or final media.
-- Restores referenced quarantined files and removes interrupted staging plus
-  unreferenced media at startup.
-- List responses omit image bodies; detail responses hydrate both image fields.
-- The HTTP layer persists original bytes unchanged and encodes the annotated copy
-  in the detected source format; POST/detail expose both as data URLs.
-- Main history endpoints and CSV projection are implemented through the same
-  `HistoryFilters` value and repository query.
+- Owns SQLite metadata, stable relative media paths, filtering, transactional
+  creation, deletion, clearing, and startup reconciliation.
+- List responses omit image bodies; detail responses hydrate original and
+  annotated data URLs.
+- CSV export reuses the same history filters and newest-first query path.
 
 ### Shared contracts
 
-- Root: `shared`.
-- Owns stable cross-module schemas and documented DTO semantics only.
-- It must not depend on application, model, or persistence implementation.
+- Root: `shared` plus the declared `backend/models/record.py` contract path.
+- Owns stable response schemas and documented DTO semantics only.
 
 ### Verification evidence
 
 - Root: `docs/evidence`.
-- Owns reproducible command output and runtime artifacts mapped by
+- Owns reproducible command outputs and sanitized runtime artifacts mapped by
   `docs/verification.md`.
-- Evidence is immutable per verified milestone and may not contain secrets, host
-  paths, large model weights, or personal data.
-- The demo manifest and CC BY 4.0 attribution bind twelve unmodified images to
-  archive paths, hashes, dimensions, and four tracked `image_anno.csv` files.
-- `sourceGroundTruth` is annotation-backed; `modelObservation` is reproduced at
-  confidence `0.25` and explicitly makes no accuracy claim.
-- The showcase validator reconstructs PCB labels from a tracked COCO excerpt,
-  crack labels from a tracked HU metadata excerpt, and blade labels from source
-  folders. It also enforces three images per declared showcase model, pinned license metadata,
-  hashes, dimensions, declared downscaling, decodeability, the upload-size
-  limit, and absence of prediction fields.
+- Existing recorded artifacts remain historical records of the source they
+  actually executed. New final runtime results are recorded only after the
+  integrated source is executed; manual exploratory runs are not rewritten as
+  production evidence.
 
 ## Boundary rules
 
 - Frontend never imports backend Python or reads backend storage directly.
-- API routes call detection and history through their public services.
+- API routes call detection and history through public services.
 - Detection never writes inspection records.
 - History never loads or runs a model.
 - Shared contracts depend on no higher-level module.
-- Verification tooling may inspect public outputs but must not become a runtime dependency.
+- Verification tooling may inspect public outputs but is not a runtime dependency.
 
 ## Inspection sequence
 
@@ -159,9 +142,9 @@ sequenceDiagram
     participant API as FastAPI
     participant CV as Detection
     participant DB as History
-    UI->>API: POST /api/inspect image + optional modelId
-    API->>CV: validated BGR + resolved model ID
-    CV-->>API: service DTO with defects, score, verdict, annotated BGR
+    UI->>API: POST /api/inspect image + modelId + optional productName
+    API->>CV: validated BGR + resolved model context
+    CV-->>API: defects + quality score + verdict + annotated BGR
     API->>DB: persist metadata and media
     DB-->>API: inspection ID and timestamp
     API-->>UI: inspection detail contract
@@ -170,6 +153,5 @@ sequenceDiagram
 
 ## Deferred decisions
 
-The primary runtime model is registered in `backend/models/model-manifest.json`.
-Production confidence calibration and a ground-truth accuracy benchmark remain
-outside the current product scope.
+Production threshold calibration against a larger labeled deployment set and a
+formal cross-domain accuracy benchmark remain outside the current product scope.
