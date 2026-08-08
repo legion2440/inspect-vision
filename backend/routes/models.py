@@ -26,6 +26,7 @@ def list_models(
             description=registered.spec.description,
             classes=registered.spec.native_classes,
             preprocessing_profile=registered.spec.preprocessing.profile_id,
+            requires_product_name=registered.spec.requires_product_name,
             is_default=registered.is_default,
             installed=registered.installed,
         )
