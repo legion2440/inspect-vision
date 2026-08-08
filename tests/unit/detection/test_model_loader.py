@@ -6,8 +6,9 @@ from pathlib import Path
 
 import pytest
 
+import backend.detection.bayespfl_runtime as bayespfl_runtime_module
 import backend.utils.model_loader as model_loader_module
-from backend.detection.anomalyclip_backend import AnomalyClipBackend
+from backend.detection.bayespfl_backend import BayesPflBackend
 from backend.utils.model_loader import (
     ModelNotFoundError,
     ModelRegistry,
@@ -115,20 +116,20 @@ def test_default_model_and_full_contract_are_loaded_from_manifest(tmp_path: Path
     assert spec.class_weights == {"dent": 1.2}
 
 
-def test_production_registry_exposes_anomalyclip_without_changing_public_default() -> None:
+def test_production_registry_exposes_bayespfl_as_public_default() -> None:
     registry = ModelRegistry()
 
-    anomalyclip = registry.get_exposed("anomalyclip-general-v1")
+    bayespfl = registry.get_exposed("bayespfl-general-v1")
 
-    assert registry.default_model_id == "factory-defect-guard-v6-mc"
-    assert anomalyclip.backend == "anomalyclip"
-    assert anomalyclip.native_classes == ("anomaly",)
-    assert anomalyclip.exposed is True
+    assert registry.default_model_id == "bayespfl-general-v1"
+    assert bayespfl.backend == "bayespfl"
+    assert bayespfl.native_classes == ("anomaly",)
+    assert bayespfl.exposed is True
     assert [model.model_id for model in registry.exposed_models] == [
+        "bayespfl-general-v1",
         "factory-defect-guard-v6-mc",
         "neu-defect-yolov8",
         "concrete-crack-yolov8",
-        "anomalyclip-general-v1",
     ]
 
 
@@ -192,7 +193,7 @@ def test_weight_hash_mismatch_is_rejected(tmp_path: Path) -> None:
         verify_model_weight(model_path, spec)
 
 
-def test_create_detector_dispatches_anomalyclip_backend(
+def test_create_detector_dispatches_bayespfl_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -200,17 +201,24 @@ def test_create_detector_dispatches_anomalyclip_backend(
         "verify_model_artifact",
         lambda _path, _artifact: None,
     )
-
-    detector = create_detector(
-        "anomalyclip-general-v1",
-        artifact_paths={
-            "clip-backbone": Path("backbone.pt"),
-            "prompt-checkpoint": Path("prompt.pth"),
-        },
-        device="cpu",
-        torch_module=TorchStub(),
-        anomalyclip_runtime_loader=lambda _backend: object(),
+    monkeypatch.setattr(
+        bayespfl_runtime_module,
+        "verify_bayespfl_runtime",
+        lambda _source_dir=None: None,
     )
 
-    assert isinstance(detector, AnomalyClipBackend)
+    detector = create_detector(
+        "bayespfl-general-v1",
+        artifact_paths={
+            "clip-backbone": Path("backbone.pt"),
+            "bayes-checkpoint": Path("checkpoint.pth"),
+        },
+        product_name="capsule",
+        device="cpu",
+        torch_module=TorchStub(),
+        bayespfl_source_dir=Path("bayespfl-runtime"),
+    )
+
+    assert isinstance(detector, BayesPflBackend)
     assert detector.class_names == ("anomaly",)
+    assert detector.product_name == "capsule"
