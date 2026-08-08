@@ -23,6 +23,7 @@ backend/storage/*.sqlite3
 backend/storage/*.json
 backend/storage/media/
 backend/models/weights/
+backend/detection/third_party/bayespfl/runtime/
 *.onnx
 *.pt
 *.pth
