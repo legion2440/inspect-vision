@@ -29,6 +29,10 @@ class ModelNotInstalledError(RuntimeError):
     """Raised when a registered checkpoint is missing or fails integrity checks."""
 
 
+class ProductNameRequiredError(ValueError):
+    """Raised when a category-guided model is called without a product name."""
+
+
 @dataclass(frozen=True, slots=True)
 class PreprocessingProfileSpec:
     profile_id: str
@@ -99,7 +103,27 @@ class AnomalyClipConfigSpec:
     score_calibration: TrackedFileSpec
 
 
-BackendConfigSpec = UltralyticsConfigSpec | AnomalyClipConfigSpec
+@dataclass(frozen=True, slots=True)
+class BayesPflConfigSpec:
+    task: str
+    source_commit: str
+    profile_id: str
+    normalization_mean: tuple[float, float, float]
+    normalization_std: tuple[float, float, float]
+    features_list: tuple[int, ...]
+    num_flows: int
+    prompt_context_len: int
+    prompt_num: int
+    prompt_state_len: int
+    sample_num: int
+    seed: int
+    gaussian_sigma: float
+    map_threshold: float
+    min_component_area_ratio: float
+    bbox_padding_ratio: float
+
+
+BackendConfigSpec = UltralyticsConfigSpec | AnomalyClipConfigSpec | BayesPflConfigSpec
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,6 +176,10 @@ class ModelSpec:
             return self.backend_config.iou
         return 0.0
 
+    @property
+    def requires_product_name(self) -> bool:
+        return isinstance(self.backend_config, BayesPflConfigSpec)
+
     def artifact(self, artifact_id: str) -> ModelArtifactSpec:
         try:
             return next(item for item in self.artifacts if item.artifact_id == artifact_id)
@@ -164,8 +192,6 @@ class ModelSpec:
     def primary_artifact(self) -> ModelArtifactSpec:
         return self.artifacts[0]
 
-    # Compatibility properties keep existing evidence/probe code focused on the
-    # primary checkpoint while manifest v3 owns the complete artifact list.
     @property
     def filename(self) -> str:
         return self.primary_artifact.filename
@@ -224,9 +250,7 @@ def validate_model_manifest(
         raise ValueError("defaultModelId must reference an exposed model")
 
     artifact_filenames = [
-        artifact["filename"]
-        for model in models
-        for artifact in model["artifacts"]
+        artifact["filename"] for model in models for artifact in model["artifacts"]
     ]
     if len(artifact_filenames) != len(set(artifact_filenames)):
         raise ValueError("Model artifact filenames must be globally unique")
@@ -257,8 +281,10 @@ def validate_model_manifest(
                 raise ValueError(
                     f"Download URL for {model_id}/{artifact['id']} must contain its pinned revision"
                 )
+
+        backend = model["backend"]
         backend_config = model["backendConfig"]
-        if model["backend"] == "ultralytics":
+        if backend == "ultralytics":
             profile_id = backend_config["preprocessingProfile"]
             if profile_id not in profiles:
                 raise ValueError(f"Unknown preprocessing profile for {model_id}: {profile_id}")
@@ -266,7 +292,7 @@ def validate_model_manifest(
                 raise ValueError(
                     f"Ultralytics model {model_id} must have exactly one checkpoint artifact"
                 )
-        else:
+        elif backend == "anomalyclip":
             if tuple(model["nativeClasses"]) != ("anomaly",):
                 raise ValueError("AnomalyCLIP models must expose exactly the native class 'anomaly'")
             if set(artifact_ids) != {"clip-backbone", "prompt-checkpoint"}:
@@ -274,13 +300,24 @@ def validate_model_manifest(
                     f"AnomalyCLIP model {model_id} requires backbone and prompt artifacts"
                 )
             resize = backend_config["preprocessing"]["resize"]
-            if (
-                resize["width"] != input_size["width"]
-                or resize["height"] != input_size["height"]
-            ):
+            if resize["width"] != input_size["width"] or resize["height"] != input_size["height"]:
                 raise ValueError(
                     f"AnomalyCLIP model {model_id} inputSize must match its stretch resize"
                 )
+        elif backend == "bayespfl":
+            if tuple(model["nativeClasses"]) != ("anomaly",):
+                raise ValueError("Bayes-PFL models must expose exactly the native class 'anomaly'")
+            if set(artifact_ids) != {"clip-backbone", "bayes-checkpoint"}:
+                raise ValueError(
+                    f"Bayes-PFL model {model_id} requires backbone and Bayes checkpoint artifacts"
+                )
+            resize = backend_config["preprocessing"]["resize"]
+            if resize["width"] != input_size["width"] or resize["height"] != input_size["height"]:
+                raise ValueError(
+                    f"Bayes-PFL model {model_id} inputSize must match its stretch resize"
+                )
+        else:
+            raise ValueError(f"Unsupported model backend: {backend}")
 
 
 def load_model_manifest(
@@ -331,7 +368,8 @@ def _backend_config(
     repository_root: Path,
 ) -> BackendConfigSpec:
     raw = model["backendConfig"]
-    if model["backend"] == "ultralytics":
+    backend = model["backend"]
+    if backend == "ultralytics":
         profile_id = raw["preprocessingProfile"]
         framework = raw["framework"]
         return UltralyticsConfigSpec(
@@ -342,36 +380,58 @@ def _backend_config(
             iou=float(raw["iou"]),
             preprocessing=_profile_spec(profile_id, profiles[profile_id]),
         )
+    if backend == "anomalyclip":
+        preprocessing = raw["preprocessing"]
+        prompt = raw["prompt"]
+        postprocessing = raw["postprocessing"]
+        morphology = postprocessing["morphology"]
+        calibration = raw["scoreCalibration"]
+        return AnomalyClipConfigSpec(
+            task=raw["task"],
+            source_commit=raw["sourceCommit"],
+            profile_id=preprocessing["profileId"],
+            normalization_mean=tuple(float(value) for value in preprocessing["normalization"]["mean"]),
+            normalization_std=tuple(float(value) for value in preprocessing["normalization"]["std"]),
+            features_list=tuple(int(value) for value in raw["featuresList"]),
+            feature_map_layers=tuple(int(value) for value in raw["featureMapLayers"]),
+            dpam_layer=int(raw["dpamLayer"]),
+            prompt_length=int(prompt["promptLength"]),
+            prompt_depth=int(prompt["learnableTextEmbeddingDepth"]),
+            prompt_embedding_length=int(prompt["learnableTextEmbeddingLength"]),
+            gaussian_sigma=float(raw["gaussianSigma"]),
+            map_threshold=float(postprocessing["mapThreshold"]),
+            morphology_kernel=morphology["kernel"],
+            morphology_kernel_size=int(morphology["kernelSize"]),
+            open_iterations=int(morphology["openIterations"]),
+            close_iterations=int(morphology["closeIterations"]),
+            min_component_area_ratio=float(postprocessing["minComponentAreaRatio"]),
+            merge_distance_px=int(postprocessing["mergeDistancePx"]),
+            score_calibration=TrackedFileSpec(
+                path=(repository_root / calibration["path"]).resolve(),
+                sha256=calibration["sha256"],
+                size_bytes=int(calibration["sizeBytes"]),
+            ),
+        )
+
     preprocessing = raw["preprocessing"]
-    prompt = raw["prompt"]
     postprocessing = raw["postprocessing"]
-    morphology = postprocessing["morphology"]
-    calibration = raw["scoreCalibration"]
-    return AnomalyClipConfigSpec(
+    return BayesPflConfigSpec(
         task=raw["task"],
         source_commit=raw["sourceCommit"],
         profile_id=preprocessing["profileId"],
         normalization_mean=tuple(float(value) for value in preprocessing["normalization"]["mean"]),
         normalization_std=tuple(float(value) for value in preprocessing["normalization"]["std"]),
         features_list=tuple(int(value) for value in raw["featuresList"]),
-        feature_map_layers=tuple(int(value) for value in raw["featureMapLayers"]),
-        dpam_layer=int(raw["dpamLayer"]),
-        prompt_length=int(prompt["promptLength"]),
-        prompt_depth=int(prompt["learnableTextEmbeddingDepth"]),
-        prompt_embedding_length=int(prompt["learnableTextEmbeddingLength"]),
+        num_flows=int(raw["numFlows"]),
+        prompt_context_len=int(raw["promptContextLen"]),
+        prompt_num=int(raw["promptNum"]),
+        prompt_state_len=int(raw["promptStateLen"]),
+        sample_num=int(raw["sampleNum"]),
+        seed=int(raw["seed"]),
         gaussian_sigma=float(raw["gaussianSigma"]),
         map_threshold=float(postprocessing["mapThreshold"]),
-        morphology_kernel=morphology["kernel"],
-        morphology_kernel_size=int(morphology["kernelSize"]),
-        open_iterations=int(morphology["openIterations"]),
-        close_iterations=int(morphology["closeIterations"]),
         min_component_area_ratio=float(postprocessing["minComponentAreaRatio"]),
-        merge_distance_px=int(postprocessing["mergeDistancePx"]),
-        score_calibration=TrackedFileSpec(
-            path=(repository_root / calibration["path"]).resolve(),
-            sha256=calibration["sha256"],
-            size_bytes=int(calibration["sizeBytes"]),
-        ),
+        bbox_padding_ratio=float(postprocessing["bboxPaddingRatio"]),
     )
 
 
@@ -474,8 +534,6 @@ def verify_model_artifact(path: Path, artifact: ModelArtifactSpec) -> None:
 
 
 def verify_model_weight(path: Path, spec: ModelSpec) -> None:
-    """Compatibility wrapper for a model's primary checkpoint."""
-
     verify_model_artifact(path, spec.primary_artifact)
 
 
@@ -503,6 +561,10 @@ def model_is_installed(models_directory: Path, spec: ModelSpec) -> bool:
             verify_model_artifact(paths[artifact.artifact_id], artifact)
         if isinstance(spec.backend_config, AnomalyClipConfigSpec):
             _verify_tracked_file(spec.backend_config.score_calibration, "Score calibration")
+        elif isinstance(spec.backend_config, BayesPflConfigSpec):
+            from backend.detection.bayespfl_runtime import verify_bayespfl_runtime
+
+            verify_bayespfl_runtime()
     except (FileNotFoundError, ValueError):
         return False
     return True
@@ -516,12 +578,14 @@ def create_detector(
     device: str = "auto",
     confidence: float | None = None,
     iou: float | None = None,
+    product_name: str | None = None,
     manifest_path: Path = DEFAULT_MANIFEST_PATH,
     models_directory: Path = DEFAULT_MODELS_DIRECTORY,
     registry: ModelRegistry | None = None,
     torch_module: Any | None = None,
     model_factory: ModelFactory | None = None,
     anomalyclip_runtime_loader: Any | None = None,
+    bayespfl_source_dir: Path | None = None,
 ) -> DetectorBackend:
     active_registry = registry or ModelRegistry(manifest_path)
     spec = active_registry.get(model_id)
@@ -535,9 +599,7 @@ def create_detector(
         try:
             path = resolved_paths[artifact.artifact_id]
         except KeyError as error:
-            raise ValueError(
-                f"Missing path for model artifact: {artifact.artifact_id}"
-            ) from error
+            raise ValueError(f"Missing path for model artifact: {artifact.artifact_id}") from error
         verify_model_artifact(path, artifact)
     device_info: DeviceInfo = select_device(device, torch_module=torch_module)
 
@@ -554,46 +616,83 @@ def create_detector(
             model_factory=model_factory,
         )
 
-    from backend.detection.anomalyclip_backend import (
-        AnomalyClipBackend,
-        AnomalyClipBackendConfig,
-        FileIntegrity,
-    )
+    if isinstance(spec.backend_config, AnomalyClipConfigSpec):
+        from backend.detection.anomalyclip_backend import (
+            AnomalyClipBackend,
+            AnomalyClipBackendConfig,
+            FileIntegrity,
+        )
+
+        config = spec.backend_config
+        calibration = config.score_calibration
+        _verify_tracked_file(calibration, "AnomalyCLIP score calibration")
+        backbone = spec.artifact("clip-backbone")
+        prompt = spec.artifact("prompt-checkpoint")
+        return AnomalyClipBackend(
+            model_id=spec.model_id,
+            backbone_path=resolved_paths[backbone.artifact_id],
+            prompt_path=resolved_paths[prompt.artifact_id],
+            calibration_path=calibration.path,
+            backbone_integrity=FileIntegrity(backbone.size_bytes, backbone.sha256),
+            prompt_integrity=FileIntegrity(prompt.size_bytes, prompt.sha256),
+            calibration_integrity=FileIntegrity(calibration.size_bytes, calibration.sha256),
+            config=AnomalyClipBackendConfig(
+                resize_width=spec.image_size,
+                resize_height=spec.image_size,
+                normalization_mean=config.normalization_mean,
+                normalization_std=config.normalization_std,
+                features_list=config.features_list,
+                feature_map_layers=config.feature_map_layers,
+                dpam_layer=config.dpam_layer,
+                prompt_length=config.prompt_length,
+                prompt_depth=config.prompt_depth,
+                prompt_embedding_length=config.prompt_embedding_length,
+                gaussian_sigma=config.gaussian_sigma,
+                map_threshold=config.map_threshold,
+                morphology_kernel=config.morphology_kernel,
+                morphology_kernel_size=config.morphology_kernel_size,
+                open_iterations=config.open_iterations,
+                close_iterations=config.close_iterations,
+                min_component_area_ratio=config.min_component_area_ratio,
+                merge_distance_px=config.merge_distance_px,
+            ),
+            device=device_info,
+            expected_class_names=spec.native_classes,
+            runtime_loader=anomalyclip_runtime_loader,
+        )
 
     config = spec.backend_config
-    calibration = config.score_calibration
-    _verify_tracked_file(calibration, "AnomalyCLIP score calibration")
+    assert isinstance(config, BayesPflConfigSpec)
+    normalized_product = (product_name or "").strip()
+    if not normalized_product:
+        raise ProductNameRequiredError("Product name is required for this detection model")
+
+    from backend.detection.bayespfl_backend import BayesPflBackend, BayesPflConfig
+    from backend.detection.bayespfl_runtime import BAYESPFL_RUNTIME_DIR, verify_bayespfl_runtime
+
+    source_dir = (bayespfl_source_dir or BAYESPFL_RUNTIME_DIR).resolve()
+    verify_bayespfl_runtime(source_dir)
     backbone = spec.artifact("clip-backbone")
-    prompt = spec.artifact("prompt-checkpoint")
-    return AnomalyClipBackend(
+    checkpoint = spec.artifact("bayes-checkpoint")
+    return BayesPflBackend(
         model_id=spec.model_id,
+        source_dir=source_dir,
         backbone_path=resolved_paths[backbone.artifact_id],
-        prompt_path=resolved_paths[prompt.artifact_id],
-        calibration_path=calibration.path,
-        backbone_integrity=FileIntegrity(backbone.size_bytes, backbone.sha256),
-        prompt_integrity=FileIntegrity(prompt.size_bytes, prompt.sha256),
-        calibration_integrity=FileIntegrity(calibration.size_bytes, calibration.sha256),
-        config=AnomalyClipBackendConfig(
-            resize_width=spec.image_size,
-            resize_height=spec.image_size,
-            normalization_mean=config.normalization_mean,
-            normalization_std=config.normalization_std,
-            features_list=config.features_list,
-            feature_map_layers=config.feature_map_layers,
-            dpam_layer=config.dpam_layer,
-            prompt_length=config.prompt_length,
-            prompt_depth=config.prompt_depth,
-            prompt_embedding_length=config.prompt_embedding_length,
-            gaussian_sigma=config.gaussian_sigma,
-            map_threshold=config.map_threshold,
-            morphology_kernel=config.morphology_kernel,
-            morphology_kernel_size=config.morphology_kernel_size,
-            open_iterations=config.open_iterations,
-            close_iterations=config.close_iterations,
-            min_component_area_ratio=config.min_component_area_ratio,
-            merge_distance_px=config.merge_distance_px,
-        ),
+        checkpoint_path=resolved_paths[checkpoint.artifact_id],
+        product_name=normalized_product,
         device=device_info,
-        expected_class_names=spec.native_classes,
-        runtime_loader=anomalyclip_runtime_loader,
+        config=BayesPflConfig(
+            image_size=spec.image_size,
+            features_list=config.features_list,
+            num_flows=config.num_flows,
+            prompt_context_len=config.prompt_context_len,
+            prompt_num=config.prompt_num,
+            prompt_state_len=config.prompt_state_len,
+            sample_num=config.sample_num,
+            seed=config.seed,
+            gaussian_sigma=config.gaussian_sigma,
+            map_threshold=(config.map_threshold if confidence is None else confidence),
+            min_component_area_ratio=config.min_component_area_ratio,
+            bbox_padding_ratio=config.bbox_padding_ratio,
+        ),
     )
