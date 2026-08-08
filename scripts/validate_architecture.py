@@ -5,10 +5,17 @@ from __future__ import annotations
 import hashlib
 import subprocess
 
-import validation_core as core
+if __package__:
+    from . import validation_core as core
+else:
+    import validation_core as core
 
 
 REPOSITORY_ROOT = core.REPOSITORY_ROOT
+_check_javascript_imports = core._check_javascript_imports
+_check_python_imports = core._check_python_imports
+_observations_match = core._observations_match
+_source_hash_exists_in_history = core._source_hash_exists_in_history
 
 
 def _check_detection_snapshot(errors: list[str]) -> None:
