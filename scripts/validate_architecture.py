@@ -18,13 +18,146 @@ _observations_match = core._observations_match
 _source_hash_exists_in_history = core._source_hash_exists_in_history
 
 
+def _expected_artifacts(model: dict) -> list[dict]:
+    return [
+        {
+            "id": artifact.get("id"),
+            "filename": artifact.get("filename"),
+            "sizeBytes": artifact.get("sizeBytes"),
+            "sha256": artifact.get("sha256"),
+        }
+        for artifact in model.get("artifacts", [])
+    ]
+
+
+def _expected_runtime_fields(model: dict) -> tuple[str | None, float | None, float, str | None]:
+    backend = model.get("backend")
+    config = model.get("backendConfig", {})
+    task = config.get("task")
+    if backend == "ultralytics":
+        return (
+            task,
+            config.get("confidence"),
+            config.get("iou", 0.0),
+            config.get("preprocessingProfile"),
+        )
+    if backend == "bayespfl":
+        return (
+            task,
+            config.get("postprocessing", {}).get("mapThreshold"),
+            0.0,
+            config.get("preprocessing", {}).get("profileId"),
+        )
+    return task, None, 0.0, None
+
+
+def _check_current_detection_evidence(
+    evidence: dict,
+    manifest: dict,
+    errors: list[str],
+) -> None:
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not core.COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append("Detection evidence has an invalid sourceCommit")
+    else:
+        process = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+            cwd=REPOSITORY_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        if process.returncode != 0:
+            errors.append(f"Detection evidence sourceCommit is not an ancestor: {source_commit}")
+
+    core._check_historical_source_files("Detection", evidence, errors)
+
+    manifest_models = {
+        model["id"]: model
+        for model in manifest.get("models", [])
+        if model.get("exposed") is True
+    }
+    evidence_models = evidence.get("models")
+    if not isinstance(evidence_models, list):
+        errors.append("Detection evidence must contain a models array")
+        return
+    if evidence.get("defaultModelId") != manifest.get("defaultModelId"):
+        errors.append("Detection evidence default model does not match the manifest")
+    if evidence.get("pipeline") != "DetectionRuntimeManager -> DetectionService":
+        errors.append("Detection evidence does not use the production runtime/service pipeline")
+    if evidence.get("accuracyClaim") is not False:
+        errors.append("Detection evidence must not make an accuracy claim")
+    if {model.get("modelId") for model in evidence_models} != set(manifest_models):
+        errors.append("Detection evidence model IDs do not match exposed manifest models")
+
+    for model_result in evidence_models:
+        model_id = model_result.get("modelId")
+        model_spec = manifest_models.get(model_id)
+        if model_spec is None:
+            continue
+        if model_result.get("artifacts") != _expected_artifacts(model_spec):
+            errors.append(f"Detection evidence artifact metadata mismatch for model: {model_id}")
+        if model_result.get("classes") != model_spec.get("nativeClasses"):
+            errors.append(f"Detection evidence class mismatch for model: {model_id}")
+
+        expected_task, expected_confidence, expected_iou, expected_preprocessing = (
+            _expected_runtime_fields(model_spec)
+        )
+        if model_result.get("task") != expected_task:
+            errors.append(f"Detection evidence task mismatch for model: {model_id}")
+        if model_result.get("confidence") != expected_confidence:
+            errors.append(f"Detection evidence confidence mismatch for model: {model_id}")
+        if model_result.get("iou") != expected_iou:
+            errors.append(f"Detection evidence IoU mismatch for model: {model_id}")
+        if model_result.get("preprocessingProfile") != expected_preprocessing:
+            errors.append(f"Detection evidence preprocessing mismatch for model: {model_id}")
+        if model_result.get("requiresProductName") is not (model_spec.get("backend") == "bayespfl"):
+            errors.append(f"Detection evidence product-context mismatch for model: {model_id}")
+        if model_result.get("quality") != model_spec.get("quality"):
+            errors.append(f"Detection evidence quality config mismatch for model: {model_id}")
+        if not isinstance(model_result.get("totalDetections"), int) or model_result["totalDetections"] < 1:
+            errors.append(f"Detection evidence has no detections for model: {model_id}")
+
+        samples = model_result.get("samples", [])
+        if not isinstance(samples, list) or len(samples) < 3:
+            errors.append(f"Detection evidence has too few samples for model: {model_id}")
+            continue
+        classes = model_spec.get("nativeClasses", [])
+        for sample in samples:
+            dimensions = sample.get("dimensions", {})
+            width = dimensions.get("width")
+            height = dimensions.get("height")
+            for detection in sample.get("detections", []):
+                class_id = detection.get("classId")
+                if not isinstance(class_id, int) or not 0 <= class_id < len(classes):
+                    errors.append(f"Detection evidence has invalid class ID for model: {model_id}")
+                    continue
+                if detection.get("className") != classes[class_id]:
+                    errors.append(f"Detection evidence has invalid class name for model: {model_id}")
+                xyxy = detection.get("xyxy", [])
+                if (
+                    not isinstance(width, int)
+                    or not isinstance(height, int)
+                    or not isinstance(xyxy, list)
+                    or len(xyxy) != 4
+                    or not (0 <= xyxy[0] < xyxy[2] <= width)
+                    or not (0 <= xyxy[1] < xyxy[3] <= height)
+                ):
+                    errors.append(f"Detection evidence has invalid bbox for model: {model_id}")
+            if sample.get("annotationDimensionsMatchOriginal") is not True:
+                errors.append(f"Detection evidence annotation dimensions mismatch: {model_id}")
+
+
 def _check_detection_snapshot(errors: list[str]) -> None:
-    """Validate detector evidence against its recorded historical default."""
+    """Validate detector evidence against either the current or historical registry state."""
 
     expected_historical_default = "factory-defect-guard-v6-mc"
     expected_current_default = "bayespfl-general-v1"
     evidence = core._load_json("docs/evidence/models/model-registry-acceptance.json")
     manifest = core._load_json("backend/models/model-manifest.json")
+
+    if evidence.get("defaultModelId") == expected_current_default:
+        _check_current_detection_evidence(evidence, manifest, errors)
+        return
 
     start = len(errors)
     core._check_detection_evidence_original(errors)
