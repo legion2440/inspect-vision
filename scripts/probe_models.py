@@ -1,4 +1,4 @@
-"""Qualify every registered model through the production DetectionService path."""
+"""Qualify every exposed model through the production DetectionService path."""
 
 from __future__ import annotations
 
@@ -86,15 +86,19 @@ def _download_samples(group: dict[str, Any], directory: Path) -> list[dict[str, 
     return prepared
 
 
-def _probe_group(
-    runtime: Any,
-    group: dict[str, Any],
-) -> dict[str, Any]:
+def _probe_group(runtime: Any, group: dict[str, Any]) -> dict[str, Any]:
     spec = runtime.registry.get(group["modelId"])
     with tempfile.TemporaryDirectory(prefix=f"inspect-vision-{spec.model_id}-") as directory:
         samples = _download_samples(group, Path(directory))
         started = time.perf_counter()
-        results = [runtime.inspect(sample["image"], spec.model_id) for sample in samples]
+        results = [
+            runtime.inspect(
+                sample["image"],
+                spec.model_id,
+                product_name=sample.get("productName"),
+            )
+            for sample in samples
+        ]
         elapsed_ms = (time.perf_counter() - started) * 1000.0
 
     total_detections = sum(result.total_defects for result in results)
@@ -120,23 +124,24 @@ def _probe_group(
                     ],
                 }
             )
-        sample_results.append(
-            {
-                "sampleId": sample["id"],
-                "sourceUrl": sample["url"],
-                "sourceLabel": sample["sourceLabel"],
-                "sha256": sample["sha256"],
-                "dimensions": {
-                    "width": result.image_width,
-                    "height": result.image_height,
-                },
-                "detections": defects,
-                "qualityScore": result.quality_score,
-                "status": result.status,
-                "annotationDimensionsMatchOriginal": result.annotated_image.shape[:2]
-                == (result.image_height, result.image_width),
-            }
-        )
+        sample_result = {
+            "sampleId": sample["id"],
+            "sourceUrl": sample["url"],
+            "sourceLabel": sample["sourceLabel"],
+            "sha256": sample["sha256"],
+            "dimensions": {
+                "width": result.image_width,
+                "height": result.image_height,
+            },
+            "detections": defects,
+            "qualityScore": result.quality_score,
+            "status": result.status,
+            "annotationDimensionsMatchOriginal": result.annotated_image.shape[:2]
+            == (result.image_height, result.image_width),
+        }
+        if sample.get("productName"):
+            sample_result["productName"] = sample["productName"]
+        sample_results.append(sample_result)
 
     return {
         "modelId": spec.model_id,
@@ -144,13 +149,21 @@ def _probe_group(
         "role": spec.role,
         "domain": spec.domain,
         "qualificationDomain": group["qualificationDomain"],
-        "filename": spec.filename,
-        "sha256": spec.sha256,
+        "artifacts": [
+            {
+                "id": artifact.artifact_id,
+                "filename": artifact.filename,
+                "sizeBytes": artifact.size_bytes,
+                "sha256": artifact.sha256,
+            }
+            for artifact in spec.artifacts
+        ],
         "task": spec.task,
         "classes": list(spec.native_classes),
         "confidence": spec.confidence,
         "iou": spec.iou,
         "preprocessingProfile": spec.preprocessing.profile_id,
+        "requiresProductName": spec.requires_product_name,
         "quality": {
             "defaultWeight": spec.quality_default_weight,
             "classWeights": spec.class_weights,
@@ -197,7 +210,7 @@ def main() -> int:
     if {group.get("modelId") for group in groups} != {
         spec.model_id for spec in registry.exposed_models
     }:
-        raise ValueError("Probe sample groups must match registered model IDs")
+        raise ValueError("Probe sample groups must match exposed model IDs")
 
     runtime = DetectionRuntimeManager(
         registry,
@@ -227,7 +240,7 @@ def main() -> int:
         encoding="utf-8",
         newline="\n",
     )
-    print(f"[OK] Qualified {len(models)} registered models through production service: {args.output}")
+    print(f"[OK] Qualified {len(models)} exposed models through production service: {args.output}")
     return 0
 
 
