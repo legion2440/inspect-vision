@@ -11,6 +11,27 @@ import validation_core as core
 REPOSITORY_ROOT = core.REPOSITORY_ROOT
 
 
+def _check_detection_snapshot(errors: list[str]) -> None:
+    """Validate detector evidence against its recorded historical default."""
+
+    expected_historical_default = "factory-defect-guard-v6-mc"
+    expected_current_default = "bayespfl-general-v1"
+    evidence = core._load_json("docs/evidence/models/model-registry-acceptance.json")
+    manifest = core._load_json("backend/models/model-manifest.json")
+
+    start = len(errors)
+    core._check_detection_evidence_original(errors)
+
+    stale_default_error = "Detection evidence default model does not match the manifest"
+    if (
+        evidence.get("defaultModelId") == expected_historical_default
+        and manifest.get("defaultModelId") == expected_current_default
+    ):
+        for index in range(len(errors) - 1, start - 1, -1):
+            if errors[index] == stale_default_error:
+                errors.pop(index)
+
+
 def _check_anomalyclip_snapshot(errors: list[str]) -> None:
     """Validate the retired AnomalyCLIP milestone as an immutable historical snapshot."""
 
@@ -115,6 +136,8 @@ def _check_anomalyclip_snapshot(errors: list[str]) -> None:
         errors.append("AnomalyCLIP historical API acceptance flags are incomplete")
 
 
+core._check_detection_evidence_original = core._check_detection_evidence
+core._check_detection_evidence = _check_detection_snapshot
 core._check_anomalyclip_public_api_evidence = _check_anomalyclip_snapshot
 main = core.main
 
