@@ -13,7 +13,11 @@ from backend.models.record import (
     ModelRecord,
     StreamInspectionRecord,
 )
-from backend.utils.model_loader import ModelNotFoundError, ModelNotInstalledError
+from backend.utils.model_loader import (
+    ModelNotFoundError,
+    ModelNotInstalledError,
+    ProductNameRequiredError,
+)
 
 from .dependencies import get_detection_runtime, get_inference_lock
 from .images import decode_upload
@@ -27,6 +31,7 @@ def inspect_stream_frame(
     request: Request,
     frame: UploadFile,
     model_id: str | None = Form(default=None, alias="modelId"),
+    product_name: str | None = Form(default=None, alias="productName"),
     detection_runtime: DetectionRuntimeManager = Depends(get_detection_runtime),
     inference_lock: threading.Lock = Depends(get_inference_lock),
 ) -> StreamInspectionRecord:
@@ -37,7 +42,13 @@ def inspect_stream_frame(
     )
     try:
         with inference_lock:
-            result = detection_runtime.inspect(decoded.image, model_id)
+            result = detection_runtime.inspect(
+                decoded.image,
+                model_id,
+                product_name=product_name,
+            )
+    except ProductNameRequiredError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from None
     except ModelNotFoundError:
         raise HTTPException(status_code=404, detail="Detection model not found") from None
     except ModelNotInstalledError as error:
