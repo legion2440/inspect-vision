@@ -1,16 +1,16 @@
 # Detection models
 
 `model-manifest.json` v3 is the tracked source of truth for detector backends.
-It records product metadata, one or more immutable artifacts, literal license
-scope, byte size, SHA-256, native classes, input size, backend-specific runtime
-configuration, and quality weights. `defaultModelId` identifies the
-coverage-oriented starting model; `exposed` controls public API selection.
+It records product metadata, immutable artifacts, explicit license scope, byte
+size, SHA-256, native classes, input size, backend-specific runtime settings,
+and quality weights. `defaultModelId` identifies the initial operator model;
+`exposed` controls public API selection.
 
-The `.pt` and `.pth` files remain local and are ignored by Git. An artifact is
-installed only when filename, byte size, and SHA-256 match the manifest.
+Model binaries remain local and are ignored by Git. An artifact is installed
+only when filename, byte size, and SHA-256 match the manifest.
 
 ```bash
-# install default General Manufacturing model
+# install the default Bayes-PFL general model
 .venv/Scripts/python.exe scripts/install_models.py
 
 # install one specialist
@@ -18,36 +18,35 @@ installed only when filename, byte size, and SHA-256 match the manifest.
 
 # install all exposed models
 .venv/Scripts/python.exe scripts/install_models.py --all
-
-# install AnomalyCLIP and both of its artifacts
-.venv/Scripts/python.exe scripts/install_models.py --model anomalyclip-general-v1
 ```
 
-Downloads use pinned revisions and a temporary file followed by an atomic move.
-An already verified artifact is left untouched. `--all` means every exposed
-model, so it now intentionally includes both AnomalyCLIP artifacts. A hidden
-fixture remains covered to prevent future candidates entering `--all` before
-exposure.
+The default install verifies the OpenAI CLIP backbone, `train_visa.pth`, and the
+minimal pinned Bayes-PFL inference source set. The source files are fetched from
+the upstream revision recorded in the manifest/backend and verified against exact
+Git blob IDs. No separate source checkout is required.
 
-The registry currently contains:
+The exposed registry contains:
 
-- `factory-defect-guard-v6-mc`: General Manufacturing default, 17 native classes,
-  standard-color preprocessing, confidence 0.05;
+- `bayespfl-general-v1`: default category-guided general anomaly localizer,
+  native type `anomaly`, 518×518 CLIP preprocessing, application threshold
+  `0.72`, Gaussian sigma `8`, minimum component ratio `0.0005`, and 25% bbox
+  display padding. Requests require `productName`;
+- `factory-defect-guard-v6-mc`: legacy multiclass General Manufacturing YOLO
+  coverage model, 17 native classes and standard-color preprocessing;
 - `neu-defect-yolov8`: Steel Surface specialist, six native classes,
-  steel-enhanced preprocessing, confidence 0.25;
+  steel-enhanced preprocessing and confidence `0.25`;
 - `concrete-crack-yolov8`: Concrete & Structural Cracks specialist, native class
-  `crack`, standard-color preprocessing, confidence 0.25;
-- `anomalyclip-general-v1`: public broad anomaly-localization model with two
-  artifacts, fixed 518×518 stretch preprocessing, native class `anomaly`, and
-  calibrated component scores. It provides no subtype classification;
-  specialists remain preferred for known domains.
+  `crack`, standard-color preprocessing and confidence `0.25`.
 
-The current broad checkpoint contains `capsule_defect` even though its model
-card names `cable_defect`; runtime `model.names` is authoritative. Its low
-threshold and probe observations are recorded without claiming accuracy
-superiority.
+Bayes-PFL is broad in product-category coverage but does not classify semantic
+defect subtypes. Its component score is not a class probability. Specialist
+models remain preferred when the inspected material/domain is known. Structural
+relationship defects are not presented as a guaranteed Bayes-PFL strength.
 
-Qualify installed public models through the production manager/service pipeline:
+The legacy broad YOLO checkpoint contains `capsule_defect` even though its model
+card names `cable_defect`; runtime `model.names` remains authoritative.
+
+Installed models can be exercised through the production manager/service path:
 
 ```bash
 .venv/Scripts/python.exe scripts/probe_models.py --device cpu
