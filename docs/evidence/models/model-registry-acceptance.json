@@ -1,22 +1,25 @@
 {
   "schemaVersion": 2,
-  "recordedAt": "2026-08-04T07:17:34.913821Z",
-  "sourceCommit": "7f733935d0c785bf5a9122b030a08df683c50ed6",
+  "recordedAt": "2026-08-08T17:47:51.884690Z",
+  "sourceCommit": "addbadef509b9f26bb2881c301c86e99098ae497",
   "sourceFiles": {
-    "backend/models/model-manifest.json": "c1b267003dffc204d28a3f156fd5e818f4f81ceb6f0e2ded5c14b4d63b937914",
-    "backend/samples/model-probe-samples.json": "8872f3c040da4fcf017d3c49960d093cad9c6471df3e6723c3f64c7aa51d617f",
+    "backend/models/model-manifest.json": "cd0e752fd2a6f57095ee573c229b4df82cb81903437877b90297b3d2a972b734",
+    "backend/samples/model-probe-samples.json": "7928f18e713b075d01f8c8218600d42fb0b988e577c35abb71e39e97e8131579",
     "backend/detection/__init__.py": "f08851f956b5571e09f714c702d948f5107e85f709ff5937cf75c8a801558c73",
     "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
-    "backend/detection/base.py": "a4c4d13fe3f2258502665e78f695be8108639c3e69529493a3389e04f839dd13",
+    "backend/detection/anomalyclip_backend.py": "3c35f8e97aedae2374d32895ed7cc423c61069ecd02f21a8dda8cecc28191868",
+    "backend/detection/base.py": "1268325bbf791d6193ccee3a5a51dd56ea7f6915c81946fc97c4aa12909ec2e6",
+    "backend/detection/bayespfl_backend.py": "24cbae547b96ff052bc000067317a714744ca2a7370d5e817624f2355567019a",
+    "backend/detection/bayespfl_runtime.py": "4169aa75fc06bb32bad8f1f40f745f19a3a0f882027b614b295ba70d85d92284",
     "backend/detection/device.py": "1c44fe186de0a5bbd1e6578c8c334142ef3c978e501a88a4662199b89e5156d1",
     "backend/detection/dto.py": "55e5ca348afd4839b9a9e5b3572d77ffa347939dc47f95e2899ae0343cd0f234",
     "backend/detection/quality.py": "eff11e577b286c522661bb9b53573771215bbc142d86c8df6b16bd28b5261a10",
-    "backend/detection/runtime.py": "6cd4c834fafc86cc4b9e0e084291939b1fca80b7fd62336700e1342730559cfa",
-    "backend/detection/service.py": "a94a9acdf13b2fa0519195c592f58c6e3f9e72ee589e757f93416f1ce9379bb4",
+    "backend/detection/runtime.py": "5b7c518fb0e03d14f7441d2f2083531cf2fa17e23244e3adbe1fa0f151dd4411",
+    "backend/detection/service.py": "f0390692f740c43143c196e33235ce23158ad3f799eff137755d9ffc821eecb3",
     "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
-    "backend/utils/model_loader.py": "0e12b549a5a1486c15cd5054d81c31337be55c43f97ad9d85b97165aefc245e8",
+    "backend/utils/model_loader.py": "f9dc5f6a5c2e681e2c8f0bcbb63b4844841215f766868ec912a3fb776540a172",
     "backend/utils/preprocessing.py": "795f50f559bfab51c7946fb73a0ced346576cc40947ed2b114ea2c25734cec39",
-    "scripts/probe_models.py": "27b9ee7d2d94742859c84de6985f63dc3bb66081e6aed982ba7638faddd788e1"
+    "scripts/probe_models.py": "daf1495e1da339ec505a073d1bab343a4bd07c1b82178a67182203e0702b2b8a"
   },
   "runtime": {
     "python": "3.13.5",
@@ -24,18 +27,164 @@
     "opencv": "4.13.0",
     "device": "cpu"
   },
-  "defaultModelId": "factory-defect-guard-v6-mc",
+  "defaultModelId": "bayespfl-general-v1",
   "accuracyClaim": false,
   "pipeline": "DetectionRuntimeManager -> DetectionService",
   "models": [
     {
+      "modelId": "bayespfl-general-v1",
+      "displayName": "General Manufacturing (Bayes-PFL)",
+      "role": "general",
+      "domain": "Cross-domain manufacturing anomaly localization",
+      "qualificationDomain": "Category-guided local manufacturing anomalies across unseen MVTec product categories",
+      "artifacts": [
+        {
+          "id": "clip-backbone",
+          "filename": "ViT-L-14-336px.pt",
+          "sizeBytes": 934088680,
+          "sha256": "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
+        },
+        {
+          "id": "bayes-checkpoint",
+          "filename": "train_visa.pth",
+          "sizeBytes": 109523051,
+          "sha256": "b3d89b6a6018679e44f413ce4cb0931626bedbd480829d6fba94f2176f270fc3"
+        }
+      ],
+      "task": "anomaly-localization",
+      "classes": [
+        "anomaly"
+      ],
+      "confidence": 0.72,
+      "iou": 0.0,
+      "preprocessingProfile": "bayespfl-stretch",
+      "requiresProductName": true,
+      "quality": {
+        "defaultWeight": 1.0,
+        "classWeights": {}
+      },
+      "inferenceMs": 49044.067,
+      "totalDetections": 5,
+      "samples": [
+        {
+          "sampleId": "bayes-capsule-crack",
+          "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/crack/006.png",
+          "sourceLabel": "crack",
+          "sha256": "d63295f7073046911ab3d84d5d38ca12adbb0de33951a05d03578da9e0163904",
+          "dimensions": {
+            "width": 1000,
+            "height": 1000
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "anomaly",
+              "confidence": 0.73982,
+              "xyxy": [
+                592.1815,
+                577.2201,
+                803.5714,
+                646.7181
+              ]
+            }
+          ],
+          "qualityScore": 92,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true,
+          "productName": "capsule"
+        },
+        {
+          "sampleId": "bayes-screw-manipulated-front",
+          "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/screw/test/manipulated_front/012.png",
+          "sourceLabel": "manipulated_front",
+          "sha256": "a7cf576939c22e42d90d579e293ad597f8b4c04318dd7052e30fa3509f1850e9",
+          "dimensions": {
+            "width": 1024,
+            "height": 1024
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "anomaly",
+              "confidence": 0.727846,
+              "xyxy": [
+                414.6409,
+                898.4711,
+                465.0502,
+                951.8456
+              ]
+            }
+          ],
+          "qualityScore": 93,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true,
+          "productName": "screw"
+        },
+        {
+          "sampleId": "bayes-bottle-broken-large",
+          "sourceUrl": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/bottle/test/broken_large/000.png",
+          "sourceLabel": "broken_large",
+          "sha256": "11a691a06a33dd78c5fcab6a822caa48c0d72f27f660e19f5abd9b5aa392b0eb",
+          "dimensions": {
+            "width": 900,
+            "height": 900
+          },
+          "detections": [
+            {
+              "classId": 0,
+              "className": "anomaly",
+              "confidence": 0.758226,
+              "xyxy": [
+                621.139,
+                269.7394,
+                772.2973,
+                527.751
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "anomaly",
+              "confidence": 0.736373,
+              "xyxy": [
+                380.9363,
+                624.1796,
+                638.9479,
+                809.2181
+              ]
+            },
+            {
+              "classId": 0,
+              "className": "anomaly",
+              "confidence": 0.722581,
+              "xyxy": [
+                359.2181,
+                658.0599,
+                413.9479,
+                712.7896
+              ]
+            }
+          ],
+          "qualityScore": 70,
+          "status": "failed",
+          "annotationDimensionsMatchOriginal": true,
+          "productName": "bottle"
+        }
+      ]
+    },
+    {
       "modelId": "factory-defect-guard-v6-mc",
-      "displayName": "General Manufacturing",
+      "displayName": "General Manufacturing (YOLO)",
       "role": "general",
       "domain": "General manufacturing",
       "qualificationDomain": "Broad manufacturing coverage across PCB and steel source cases",
-      "filename": "factory_defect_guard_v6_mc.pt",
-      "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253",
+      "artifacts": [
+        {
+          "id": "checkpoint",
+          "filename": "factory_defect_guard_v6_mc.pt",
+          "sizeBytes": 22525290,
+          "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253"
+        }
+      ],
       "task": "detect",
       "classes": [
         "crazing",
@@ -59,11 +208,12 @@
       "confidence": 0.05,
       "iou": 0.5,
       "preprocessingProfile": "standard-color",
+      "requiresProductName": false,
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {}
       },
-      "inferenceMs": 3613.347,
+      "inferenceMs": 1845.604,
       "totalDetections": 7,
       "samples": [
         {
@@ -210,8 +360,14 @@
       "role": "specialist",
       "domain": "Steel surface",
       "qualificationDomain": "NEU steel surface defects",
-      "filename": "defect_neu_yolov8.pt",
-      "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b",
+      "artifacts": [
+        {
+          "id": "checkpoint",
+          "filename": "defect_neu_yolov8.pt",
+          "sizeBytes": 6257194,
+          "sha256": "635402c435786756c000694654271f1e6aee3eb039aa5e975bb8ec8e9ec0e34b"
+        }
+      ],
       "task": "detect",
       "classes": [
         "crazing",
@@ -224,6 +380,7 @@
       "confidence": 0.25,
       "iou": 0.5,
       "preprocessingProfile": "steel-enhanced",
+      "requiresProductName": false,
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {
@@ -235,7 +392,7 @@
           "scratches": 0.85
         }
       },
-      "inferenceMs": 212.033,
+      "inferenceMs": 300.49,
       "totalDetections": 7,
       "samples": [
         {
@@ -368,8 +525,14 @@
       "role": "specialist",
       "domain": "Concrete and structural surfaces",
       "qualificationDomain": "Concrete, masonry, wall, and floor cracks",
-      "filename": "crack_detection.pt",
-      "sha256": "386155cae09bee6af1ce99608fc42a32cafd40a25362b80037b4fa54f6999719",
+      "artifacts": [
+        {
+          "id": "checkpoint",
+          "filename": "crack_detection.pt",
+          "sizeBytes": 22522595,
+          "sha256": "386155cae09bee6af1ce99608fc42a32cafd40a25362b80037b4fa54f6999719"
+        }
+      ],
       "task": "detect",
       "classes": [
         "crack"
@@ -377,13 +540,14 @@
       "confidence": 0.25,
       "iou": 0.5,
       "preprocessingProfile": "standard-color",
+      "requiresProductName": false,
       "quality": {
         "defaultWeight": 1.0,
         "classWeights": {
           "crack": 1.35
         }
       },
-      "inferenceMs": 367.862,
+      "inferenceMs": 694.851,
       "totalDetections": 9,
       "samples": [
         {
