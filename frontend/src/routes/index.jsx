@@ -46,7 +46,7 @@ function Dashboard() {
 
   const handleFile = async (file) => {
     navigate({ to: '/inspect' });
-    await runInspection(file, selectedModelId);
+    await runInspection(file, selectedModelId, productName);
   };
 
   return (
