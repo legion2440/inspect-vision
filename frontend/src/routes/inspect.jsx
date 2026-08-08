@@ -9,6 +9,7 @@ import LiveStream from '../components/LiveStream.jsx';
 import ModelSelector from '../components/ModelSelector.jsx';
 import { useInspection } from '../hooks/useInspection.js';
 import { annotatedImageFilename } from '../utils/media.js';
+import { preprocessingLabel } from '../utils/models.js';
 import { scoreOf } from '../utils/severity.js';
 
 export const Route = createFileRoute('/inspect')({ component: Inspect });
@@ -27,6 +28,8 @@ function Inspect() {
     modelsError,
     selectedModelId,
     selectModel,
+    productName,
+    setProductName,
   } = useInspection();
   const [selected, setSelected] = useState(null);
   const [mode, setMode] = useState('image');
@@ -37,6 +40,8 @@ function Inspect() {
   const viewerSrc = current?.originalImageUrl || current?.imageUrl || preview;
   const overlayDefects = current && !current.originalImageUrl ? [] : defects;
   const imageMode = mode === 'image';
+  const selectedModel = models.find((model) => model.id === selectedModelId);
+  const productReady = !selectedModel?.requiresProductName || Boolean(productName.trim());
   const heading = !imageMode
     ? 'Live camera inspection'
     : current
@@ -98,20 +103,27 @@ function Inspect() {
         }}
         loading={modelsStatus === 'loading'}
         error={modelsError}
+        productName={productName}
+        onProductNameChange={setProductName}
       />
 
       {!imageMode ? (
         <div className="qc-row qc-row-inspect">
-          <LiveStream modelId={selectedModelId} />
+          <LiveStream modelId={selectedModelId} productName={productName} />
           <aside className="qc-aside">
             <p className="text-muted">
               Frames are grabbed from the camera at 2 fps and posted to <code>/api/stream</code>; the
               overlay redraws from each response.
             </p>
+            {!productReady && <p className="qc-error">Enter a product / category before starting inference.</p>}
           </aside>
         </div>
       ) : !preview ? (
-        <ImageUploader onFile={(file) => runInspection(file, selectedModelId)} error={error} />
+        <ImageUploader
+          onFile={(file) => runInspection(file, selectedModelId, productName)}
+          error={productReady ? error : 'Enter a product / category before inspection.'}
+          disabled={!productReady}
+        />
       ) : (
         <div className="qc-row qc-row-inspect">
           <section>
@@ -121,6 +133,7 @@ function Inspect() {
               busy={busy}
               meta={fileMeta}
               selectedIndex={selected}
+              caption={preprocessingLabel(selectedModel)}
             />
             <p className="text-muted qc-note">
               Boxes are drawn on a &lt;canvas&gt; over the original image. The annotated backend image
