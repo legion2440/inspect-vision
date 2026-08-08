@@ -13,6 +13,7 @@ export const initialInspectionState = {
   modelsStatus: 'idle',
   modelsError: null,
   selectedModelId: '',
+  productName: '',
 };
 
 function withoutUploadResult(state) {
@@ -65,6 +66,7 @@ export function inspectionReducer(state, action) {
         modelsStatus: state.modelsStatus,
         modelsError: state.modelsError,
         selectedModelId: state.selectedModelId,
+        productName: state.productName,
       };
     case 'history':
       return { ...state, history: action.records, historyStatus: 'done' };
@@ -94,6 +96,11 @@ export function inspectionReducer(state, action) {
       return {
         ...withoutUploadResult(state),
         selectedModelId: action.modelId,
+      };
+    case 'setProductName':
+      return {
+        ...withoutUploadResult(state),
+        productName: action.productName,
       };
     default:
       return state;
