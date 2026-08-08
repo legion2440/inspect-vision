@@ -98,7 +98,7 @@
       "properties": {
         "repositoryUrl": { "type": "string", "format": "uri" },
         "downloadUrl": { "type": "string", "format": "uri" },
-        "revision": { "type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$" },
+        "revision": { "type": "string", "pattern": "^[A-Za-z0-9._-]{8,128}$" },
         "sourceFilename": { "type": "string", "minLength": 1 },
         "license": { "type": "string", "minLength": 1 },
         "licenseSourceUrl": { "type": "string", "format": "uri" },
@@ -138,6 +138,34 @@
         }
       }
     },
+    "stretchPreprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileId", "resize", "normalization"],
+      "properties": {
+        "profileId": { "type": "string", "minLength": 1 },
+        "resize": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mode", "width", "height", "interpolation"],
+          "properties": {
+            "mode": { "const": "stretch" },
+            "width": { "const": 518 },
+            "height": { "const": 518 },
+            "interpolation": { "const": "bicubic" }
+          }
+        },
+        "normalization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mean", "std"],
+          "properties": {
+            "mean": { "$ref": "#/$defs/triplet" },
+            "std": { "$ref": "#/$defs/triplet" }
+          }
+        }
+      }
+    },
     "ultralyticsConfig": {
       "type": "object",
       "additionalProperties": false,
@@ -163,70 +191,31 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "task",
-        "sourceCommit",
-        "preprocessing",
-        "featuresList",
-        "featureMapLayers",
-        "dpamLayer",
-        "prompt",
-        "gaussianSigma",
-        "postprocessing",
-        "scoreCalibration"
+        "task", "sourceCommit", "preprocessing", "featuresList", "featureMapLayers",
+        "dpamLayer", "prompt", "gaussianSigma", "postprocessing", "scoreCalibration"
       ],
       "properties": {
         "task": { "const": "anomaly-localization" },
         "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
         "preprocessing": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["profileId", "resize", "normalization"],
-          "properties": {
-            "profileId": { "const": "anomalyclip-stretch" },
-            "resize": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["mode", "width", "height", "interpolation"],
-              "properties": {
-                "mode": { "const": "stretch" },
-                "width": { "const": 518 },
-                "height": { "const": 518 },
-                "interpolation": { "const": "bicubic" }
-              }
-            },
-            "normalization": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["mean", "std"],
-              "properties": {
-                "mean": { "$ref": "#/$defs/triplet" },
-                "std": { "$ref": "#/$defs/triplet" }
-              }
-            }
-          }
+          "allOf": [
+            { "$ref": "#/$defs/stretchPreprocessing" },
+            { "properties": { "profileId": { "const": "anomalyclip-stretch" } } }
+          ]
         },
         "featuresList": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
+          "type": "array", "minItems": 1, "uniqueItems": true,
           "items": { "type": "integer", "minimum": 0 }
         },
         "featureMapLayers": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
+          "type": "array", "minItems": 1, "uniqueItems": true,
           "items": { "type": "integer", "minimum": 0 }
         },
         "dpamLayer": { "type": "integer", "minimum": 0 },
         "prompt": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "className",
-            "promptLength",
-            "learnableTextEmbeddingDepth",
-            "learnableTextEmbeddingLength"
-          ],
+          "required": ["className", "promptLength", "learnableTextEmbeddingDepth", "learnableTextEmbeddingLength"],
           "properties": {
             "className": { "const": "object" },
             "promptLength": { "type": "integer", "minimum": 1 },
@@ -261,15 +250,50 @@
           "additionalProperties": false,
           "required": ["path", "sha256", "sizeBytes", "semanticMeaning"],
           "properties": {
-            "path": {
-              "type": "string",
-              "pattern": "^backend/models/config/[A-Za-z0-9._-]+\\.json$"
-            },
+            "path": { "type": "string", "pattern": "^backend/models/config/[A-Za-z0-9._-]+\\.json$" },
             "sha256": { "$ref": "#/$defs/sha256" },
             "sizeBytes": { "type": "integer", "minimum": 1 },
-            "semanticMeaning": {
-              "const": "anomaly confidence score relative to clean calibration artifacts; not a class probability"
-            }
+            "semanticMeaning": { "const": "anomaly confidence score relative to clean calibration artifacts; not a class probability" }
+          }
+        }
+      }
+    },
+    "bayespflConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task", "sourceCommit", "preprocessing", "featuresList", "numFlows",
+        "promptContextLen", "promptNum", "promptStateLen", "sampleNum", "seed",
+        "gaussianSigma", "postprocessing"
+      ],
+      "properties": {
+        "task": { "const": "anomaly-localization" },
+        "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "preprocessing": {
+          "allOf": [
+            { "$ref": "#/$defs/stretchPreprocessing" },
+            { "properties": { "profileId": { "const": "bayespfl-stretch" } } }
+          ]
+        },
+        "featuresList": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "numFlows": { "type": "integer", "minimum": 1 },
+        "promptContextLen": { "type": "integer", "minimum": 1 },
+        "promptNum": { "type": "integer", "minimum": 1 },
+        "promptStateLen": { "type": "integer", "minimum": 1 },
+        "sampleNum": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer", "minimum": 0 },
+        "gaussianSigma": { "type": "number", "minimum": 0 },
+        "postprocessing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mapThreshold", "minComponentAreaRatio", "bboxPaddingRatio"],
+          "properties": {
+            "mapThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+            "minComponentAreaRatio": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "bboxPaddingRatio": { "type": "number", "minimum": 0, "maximum": 1 }
           }
         }
       }
@@ -278,18 +302,8 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "id",
-        "displayName",
-        "role",
-        "domain",
-        "description",
-        "backend",
-        "exposed",
-        "artifacts",
-        "inputSize",
-        "nativeClasses",
-        "quality",
-        "backendConfig"
+        "id", "displayName", "role", "domain", "description", "backend", "exposed",
+        "artifacts", "inputSize", "nativeClasses", "quality", "backendConfig"
       ],
       "properties": {
         "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
@@ -297,18 +311,15 @@
         "role": { "enum": ["general", "specialist"] },
         "domain": { "type": "string", "minLength": 1 },
         "description": { "type": "string", "minLength": 1 },
-        "backend": { "enum": ["ultralytics", "anomalyclip"] },
+        "backend": { "enum": ["ultralytics", "anomalyclip", "bayespfl"] },
         "exposed": { "type": "boolean" },
         "artifacts": {
-          "type": "array",
-          "minItems": 1,
+          "type": "array", "minItems": 1,
           "items": { "$ref": "#/$defs/artifact" }
         },
         "inputSize": { "$ref": "#/$defs/inputSize" },
         "nativeClasses": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
+          "type": "array", "minItems": 1, "uniqueItems": true,
           "items": { "type": "string", "minLength": 1 }
         },
         "quality": { "$ref": "#/$defs/quality" },
@@ -322,6 +333,10 @@
         {
           "if": { "properties": { "backend": { "const": "anomalyclip" } } },
           "then": { "properties": { "backendConfig": { "$ref": "#/$defs/anomalyclipConfig" } } }
+        },
+        {
+          "if": { "properties": { "backend": { "const": "bayespfl" } } },
+          "then": { "properties": { "backendConfig": { "$ref": "#/$defs/bayespflConfig" } } }
         }
       ]
     }
