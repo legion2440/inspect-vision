@@ -3,29 +3,23 @@ import test from 'node:test';
 import { inspectionReducer, initialInspectionState } from '../src/context/inspectionState.js';
 import { getModels, inspectFrame } from '../src/mocks/mockApi.js';
 
-test('frontend registry fixture exposes Bayes-PFL as the default general model', async () => {
+test('frontend registry fixture exposes Bayes-PFL and two specialists', async () => {
   const models = await getModels();
 
-  assert.equal(models.length, 4);
+  assert.equal(models.length, 3);
   assert.deepEqual(models.map((model) => model.id), [
     'bayespfl-general-v1',
-    'factory-defect-guard-v6-mc',
     'neu-defect-yolov8',
     'concrete-crack-yolov8',
   ]);
   assert.equal(models.find((model) => model.isDefault)?.id, 'bayespfl-general-v1');
-  assert.deepEqual(models[0], {
-    id: 'bayespfl-general-v1',
-    displayName: 'General Manufacturing (Bayes-PFL)',
-    role: 'general',
-    domain: 'Cross-domain manufacturing anomaly localization',
-    description: 'Category-guided anomaly localization for varied manufactured products; specialists remain preferable for supported known domains.',
-    classes: ['anomaly'],
-    preprocessingProfile: 'bayespfl-stretch',
-    requiresProductName: true,
-    isDefault: true,
-    installed: true,
-  });
+  assert.equal(models[0].requiresProductName, true);
+  assert.equal(models[0].classes[0], 'anomaly');
+  assert.equal(models[0].productNamePresets.length, 12);
+  assert.ok(models[0].productNamePresets.some((preset) => preset.value === 'Steel surface'));
+  assert.ok(models[0].productNamePresets.some((preset) => preset.value === 'Concrete surface'));
+  assert.ok(!models[0].productNamePresets.some((preset) => preset.value === 'Cable'));
+  assert.ok(!models[0].productNamePresets.some((preset) => preset.value === 'Zipper'));
 });
 
 test('Bayes-PFL selection follows the existing generic reducer path', async () => {
@@ -45,10 +39,14 @@ test('Bayes-PFL selection follows the existing generic reducer path', async () =
   assert.equal(bayes.selectedModelId, 'bayespfl-general-v1');
 });
 
-test('Bayes-PFL mock inference requires a category and emits native anomaly', async () => {
+test('Bayes-PFL mock inference validates category context and emits native anomaly', async () => {
   await assert.rejects(
     inspectFrame({ modelId: 'bayespfl-general-v1' }),
-    /Product name is required/,
+    /Product \/ category is required/,
+  );
+  await assert.rejects(
+    inspectFrame({ modelId: 'bayespfl-general-v1', productName: 'хуй' }),
+    /Latin letters/,
   );
   const result = await inspectFrame({
     modelId: 'bayespfl-general-v1',

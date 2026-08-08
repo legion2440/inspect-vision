@@ -21,6 +21,7 @@ def main() -> int:
     npm = "npm.cmd" if os.name == "nt" else "npm"
     commands = (
         [sys.executable, "scripts/validate_structure.py"],
+        [sys.executable, "scripts/validate_model_selection.py"],
         [sys.executable, "scripts/validate_demo_samples.py"],
         [sys.executable, "scripts/validate_showcase_samples.py"],
         [sys.executable, "scripts/validate_architecture.py"],

@@ -23,6 +23,7 @@ function throwIfAborted(signal) {
 export async function inspectShowcaseSample({
   sample,
   selectedModelId,
+  productName,
   loadSample,
   runInspection,
   navigate,
@@ -36,7 +37,7 @@ export async function inspectShowcaseSample({
     sample.filename || `${sample.id}.jpg`,
     { type: sample.mediaType || blob.type || 'application/octet-stream' },
   );
-  const record = await runInspection(file, selectedModelId);
+  const record = await runInspection(file, selectedModelId, productName);
   throwIfAborted(signal);
   if (record) navigate({ to: '/inspect' });
   return record;

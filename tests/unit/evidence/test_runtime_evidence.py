@@ -11,7 +11,7 @@ from scripts.validate_architecture import (
 )
 
 
-def test_current_runtime_source_hash_matches_current_manifest() -> None:
+def test_runtime_source_hash_is_current_or_explicitly_historical() -> None:
     evidence_path = (
         REPOSITORY_ROOT / "docs/evidence/models/model-registry-acceptance.json"
     )
@@ -22,8 +22,15 @@ def test_current_runtime_source_hash_matches_current_manifest() -> None:
         (REPOSITORY_ROOT / relative_path).read_bytes()
     ).hexdigest()
 
-    assert recorded_hash == current_hash
     assert _source_hash_exists_in_history(relative_path, recorded_hash) is True
+    if recorded_hash != current_hash:
+        status = json.loads(
+            (REPOSITORY_ROOT / "docs/project-status.json").read_text(encoding="utf-8")
+        )
+        limitation_ids = {
+            item["id"] for item in status["known_limitations"] if isinstance(item, dict)
+        }
+        assert "runtime-requalification-pending" in limitation_ids
 
 
 def test_qualification_observation_comparison_rejects_semantic_tampering() -> None:

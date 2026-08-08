@@ -1,6 +1,21 @@
 /** Bundled FastAPI-compatible mock for standalone frontend development. */
 const SAMPLE = '/samples/sample-part.jpg';
 
+const PRODUCT_PRESETS = [
+  ['Bottle', 'local'],
+  ['Capsule', 'local'],
+  ['Screw', 'local'],
+  ['Metal nut', 'local'],
+  ['Hazelnut', 'upstream'],
+  ['Pill', 'upstream'],
+  ['Toothbrush', 'upstream'],
+  ['Tile', 'upstream'],
+  ['Wood', 'upstream'],
+  ['Carpet', 'upstream'],
+  ['Steel surface', 'comparison'],
+  ['Concrete surface', 'comparison'],
+].map(([value, evidence]) => ({ value, evidence }));
+
 const MODELS = [
   {
     id: 'bayespfl-general-v1',
@@ -11,19 +26,8 @@ const MODELS = [
     classes: ['anomaly'],
     preprocessingProfile: 'bayespfl-stretch',
     requiresProductName: true,
+    productNamePresets: PRODUCT_PRESETS,
     isDefault: true,
-    installed: true,
-  },
-  {
-    id: 'factory-defect-guard-v6-mc',
-    displayName: 'General Manufacturing (YOLO)',
-    role: 'general',
-    domain: 'General manufacturing',
-    description: 'Legacy multiclass coverage detector for several manufacturing domains.',
-    classes: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled_in_scale', 'scratches', 'pcb_missing_hole', 'pcb_mouse_bite', 'pcb_open_circuit', 'pcb_short', 'pcb_spur', 'pcb_spurious_copper', 'tile_defect', 'transistor_defect', 'screw_defect', 'metal_nut_defect', 'capsule_defect'],
-    preprocessingProfile: 'standard-color',
-    requiresProductName: false,
-    isDefault: false,
     installed: true,
   },
   {
@@ -35,6 +39,7 @@ const MODELS = [
     classes: ['crazing', 'inclusion', 'patches', 'pitted_surface', 'rolled-in_scale', 'scratches'],
     preprocessingProfile: 'steel-enhanced',
     requiresProductName: false,
+    productNamePresets: [],
     isDefault: false,
     installed: true,
   },
@@ -47,72 +52,57 @@ const MODELS = [
     classes: ['crack'],
     preprocessingProfile: 'standard-color',
     requiresProductName: false,
+    productNamePresets: [],
     isDefault: false,
     installed: true,
   },
 ];
 
-const SAMPLE_DATASETS = [
-  {
-    id: 'defectdet-v1',
-    name: 'DefectDet PCB Dataset',
-    version: '1',
-    sourceUrl: 'https://data.mendeley.com/datasets/t9d9zs3bmb/1',
-    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'DefectDet V1 contributors, licensed CC BY 4.0.',
-  },
-  {
-    id: 'gkn-blade-v1',
-    name: 'GKN Blade Surface Defect Dataset',
-    version: '1',
-    sourceUrl: 'https://data.mendeley.com/datasets/3bh998k78g/1',
-    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'GKN Blade Surface Defect Dataset V1 by Qianyu Zhou, licensed CC BY 4.0.',
-  },
-  {
-    id: 'plos-neu-steel-figure-v1',
-    name: 'Six Types of Metal Surface Defects, Figure 3',
-    version: '1',
-    sourceUrl: 'https://plos.figshare.com/articles/figure/Six_types_of_metal_surface_defects_/24767219',
-    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'Xu, Y., Jiao, P., & Liu, J. (2023). Figure 3. PLOS ONE. CC BY 4.0.',
-  },
-  {
-    id: 'hu-infrastructure-cracks-v1',
-    name: 'HU Infrastructure Cracks Dataset',
-    version: '1',
-    sourceUrl: 'https://zenodo.org/records/20829348',
-    license: { name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
-    attribution: 'HU Infrastructure Cracks Dataset, CC BY 4.0.',
-  },
-];
+const SAMPLE_DATASETS = [{
+  id: 'mvtec-ad',
+  name: 'MVTec Anomaly Detection Dataset',
+  version: 'MVTec AD',
+  sourceUrl: 'https://www.mvtec.com/company/research/datasets/mvtec-ad',
+  mirrorUrl: 'https://huggingface.co/datasets/jiang-cc/MMAD',
+  sourceRevision: 'e88b7bd615ad582b0a7e8238066a9fb293a072b4',
+  license: { name: 'CC BY-NC-SA 4.0', url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
+  attribution: 'MVTec Anomaly Detection Dataset (MVTec AD), pinned mirror source.',
+}];
 
 const MOCK_SAMPLES = [
-  ['mock-pcb-open', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['open circuit'], 'downscaled'],
-  ['mock-pcb-short', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['short circuit'], 'downscaled'],
-  ['mock-pcb-copper', 'General Manufacturing / PCB', 'factory-defect-guard-v6-mc', 'defectdet-v1', ['spurious copper'], 'downscaled'],
-  ['mock-steel-good', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Good'], 'downscaled'],
-  ['mock-steel-inclusion', 'Steel Surface', 'neu-defect-yolov8', 'plos-neu-steel-figure-v1', ['inclusion'], 'cropped'],
-  ['mock-steel-scratch', 'Steel Surface', 'neu-defect-yolov8', 'gkn-blade-v1', ['Scratch'], null],
-  ['mock-concrete-transverse', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'transverse', 'moderate'], 'downscaled'],
-  ['mock-concrete-longitudinal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['wall', 'longitudinal', 'severe'], 'downscaled'],
-  ['mock-concrete-diagonal', 'Concrete & Structural Cracks', 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1', ['pavement', 'diagonal', 'severe'], 'downscaled'],
-].map(([id, domain, recommendedModelId, datasetId, sourceLabels, assetTransform]) => ({
+  ['mock-bottle-good', 'Bottle', 'Bottle', 'good', ['good']],
+  ['mock-bottle-bad', 'Bottle', 'Bottle', 'bad', ['broken large']],
+  ['mock-capsule-good', 'Capsule', 'Capsule', 'good', ['good']],
+  ['mock-capsule-bad', 'Capsule', 'Capsule', 'bad', ['crack']],
+  ['mock-screw-good', 'Screw', 'Screw', 'good', ['good']],
+  ['mock-screw-bad', 'Screw', 'Screw', 'bad', ['manipulated front']],
+  ['mock-metal-nut-good', 'Metal nut', 'Metal nut', 'good', ['good']],
+  ['mock-metal-nut-bad', 'Metal nut', 'Metal nut', 'bad', ['bent']],
+].map(([id, domain, productName, condition, sourceLabels]) => ({
   id,
   domain,
-  recommendedModelId,
-  datasetId,
+  productName,
+  condition,
+  recommendedModelId: 'bayespfl-general-v1',
+  datasetId: 'mvtec-ad',
   sourceLabels,
+  sourcePath: `MVTec-AD/${domain.toLowerCase().replaceAll(' ', '_')}/test/${condition}/000.png`,
   filename: 'sample-part.jpg',
   mediaType: 'image/jpeg',
   imageUrl: SAMPLE,
-  width: 1600,
-  height: 1187,
-  ...(assetTransform ? { assetTransform } : {}),
 }));
 
 const modelOf = (modelId) => MODELS.find((model) => model.id === modelId) || MODELS[0];
 const box = (x, y, width, height) => ({ x, y, width, height });
+
+function normalizeProductName(value) {
+  const normalized = String(value || '').trim().replaceAll('_', ' ').replace(/\s+/g, ' ').toLowerCase();
+  if (!normalized) throw new Error('Product / category is required for Bayes-PFL');
+  if (normalized.length < 2 || normalized.length > 40) throw new Error('Product / category must be between 2 and 40 characters');
+  if (normalized.split(' ').length > 3) throw new Error('Product / category must contain at most 3 words');
+  if (!/^[a-z]+(?:[ -][a-z]+)*$/.test(normalized)) throw new Error('Product / category may contain only Latin letters, spaces, hyphens, or underscores');
+  return normalized;
+}
 
 const rec = (id, iso, defects, file, model = MODELS[0]) => ({
   inspectionId: id,
@@ -131,18 +121,10 @@ const rec = (id, iso, defects, file, model = MODELS[0]) => ({
 
 const mockDefectPool = (model, { live = false, jitter = () => 0 } = {}) => {
   if (model.id === 'bayespfl-general-v1') {
-    return [{
-      type: 'anomaly',
-      confidence: live ? 0.75 : 0.76,
-      boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90),
-    }];
+    return [{ type: 'anomaly', confidence: live ? 0.75 : 0.76, boundingBox: box(300 + jitter(), 200 + jitter(), 240, 90) }];
   }
   if (model.id === 'concrete-crack-yolov8') {
-    return [{
-      type: 'crack',
-      confidence: live ? 0.9 : 0.93,
-      boundingBox: box((live ? 300 : 200) + jitter(), (live ? 200 : 150) + jitter(), live ? 240 : 250, 90),
-    }];
+    return [{ type: 'crack', confidence: live ? 0.9 : 0.93, boundingBox: box((live ? 300 : 200) + jitter(), (live ? 200 : 150) + jitter(), live ? 240 : 250, 90) }];
   }
   if (live) {
     return [
@@ -159,8 +141,8 @@ const mockDefectPool = (model, { live = false, jitter = () => 0 } = {}) => {
 let store = [
   rec('insp_20260803_004', '2026-08-03T14:38:12Z', [
     { type: 'scratches', confidence: 0.94, boundingBox: box(214, 168, 268, 96) },
-  ], 'housing_04_2b.jpg', MODELS[2]),
-  rec('insp_20260803_003', '2026-08-03T14:12:47Z', [], 'housing_04_2a.jpg', MODELS[2]),
+  ], 'housing_04_2b.jpg', MODELS[1]),
+  rec('insp_20260803_003', '2026-08-03T14:12:47Z', [], 'housing_04_2a.jpg', MODELS[1]),
 ];
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -179,7 +161,7 @@ export async function getModels() {
 export async function getSamples() {
   await wait(80);
   return {
-    notice: 'Source labels describe dataset metadata, not model predictions.',
+    notice: 'Source labels describe MVTec AD dataset metadata, not model predictions.',
     datasets: SAMPLE_DATASETS,
     samples: MOCK_SAMPLES,
   };
@@ -188,9 +170,7 @@ export async function getSamples() {
 export async function inspectImage(file, { modelId, productName } = {}) {
   await wait(1400);
   const model = modelOf(modelId);
-  if (model.requiresProductName && !String(productName || '').trim()) {
-    throw new Error('Product name is required for this detection model');
-  }
+  if (model.requiresProductName) normalizeProductName(productName);
   const id = 'insp_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(store.length + 1).padStart(3, '0');
   const pool = mockDefectPool(model);
   const defects = pool.slice(0, 1 + Math.floor(Math.random() * pool.length));
@@ -207,9 +187,7 @@ export async function inspectImage(file, { modelId, productName } = {}) {
 export async function inspectFrame({ modelId, productName } = {}) {
   await wait(120);
   const model = modelOf(modelId);
-  if (model.requiresProductName && !String(productName || '').trim()) {
-    throw new Error('Product name is required for this detection model');
-  }
+  if (model.requiresProductName) normalizeProductName(productName);
   const jitter = () => Math.round((Math.random() - 0.5) * 60);
   const defects = mockDefectPool(model, { live: true, jitter });
   return {

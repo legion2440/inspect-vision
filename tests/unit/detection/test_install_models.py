@@ -24,7 +24,6 @@ def test_production_all_matches_current_exposed_registry() -> None:
 
     assert [model.model_id for model in selected] == [
         "bayespfl-general-v1",
-        "factory-defect-guard-v6-mc",
         "neu-defect-yolov8",
         "concrete-crack-yolov8",
     ]

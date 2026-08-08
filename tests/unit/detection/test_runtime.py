@@ -7,12 +7,12 @@ import pytest
 
 from backend.detection.base import GeometryOwnership
 from backend.detection.dto import InferenceResult
+from backend.detection.product_context import ProductNameValidationError
 from backend.detection.runtime import DetectionRuntimeManager
 from backend.utils.model_loader import (
     ModelNotFoundError,
     ModelNotInstalledError,
     ModelRegistry,
-    ProductNameRequiredError,
 )
 
 
@@ -55,7 +55,7 @@ def test_runtime_uses_guided_manifest_default_and_lazy_cache() -> None:
     runtime = DetectionRuntimeManager(registry, detector_factory=factory)
 
     assert runtime.cached_model_ids == ()
-    first = runtime.get_service(product_name="capsule")
+    first = runtime.get_service(product_name="Capsule")
     second = runtime.get_service("bayespfl-general-v1", product_name="capsule")
 
     assert first is second
@@ -65,17 +65,21 @@ def test_runtime_uses_guided_manifest_default_and_lazy_cache() -> None:
     assert created[0].load_calls == 1
 
 
-def test_guided_model_requires_product_name_before_loading() -> None:
+def test_guided_model_requires_valid_product_name_before_loading() -> None:
     runtime = DetectionRuntimeManager(
         ModelRegistry(),
         detector_factory=lambda spec: BackendOwnedDetectorStub(spec),
     )
 
-    with pytest.raises(ProductNameRequiredError, match="Product name"):
+    with pytest.raises(ProductNameValidationError, match="required"):
         runtime.get_service("bayespfl-general-v1")
+    with pytest.raises(ProductNameValidationError, match="Latin letters"):
+        runtime.get_service("bayespfl-general-v1", product_name="хуй")
+    with pytest.raises(ProductNameValidationError, match="at most 3 words"):
+        runtime.get_service("bayespfl-general-v1", product_name="one two three four")
 
 
-def test_guided_cache_is_scoped_by_product_name() -> None:
+def test_guided_cache_normalizes_case_whitespace_and_underscores() -> None:
     registry = ModelRegistry()
     created: list[DetectorStub] = []
 
@@ -85,10 +89,12 @@ def test_guided_cache_is_scoped_by_product_name() -> None:
         return detector
 
     runtime = DetectionRuntimeManager(registry, detector_factory=factory)
-    capsule = runtime.get_service("bayespfl-general-v1", product_name="capsule")
-    screw = runtime.get_service("bayespfl-general-v1", product_name="screw")
+    first = runtime.get_service("bayespfl-general-v1", product_name=" Metal_Nut ")
+    second = runtime.get_service("bayespfl-general-v1", product_name="metal nut")
+    screw = runtime.get_service("bayespfl-general-v1", product_name="Screw")
 
-    assert capsule is not screw
+    assert first is second
+    assert first is not screw
     assert len(created) == 2
     assert runtime.cached_model_ids == ("bayespfl-general-v1",)
 
@@ -106,13 +112,13 @@ def test_runtime_applies_per_model_preprocessing_profiles() -> None:
     image = np.zeros((20, 40, 3), dtype=np.uint8)
     image[:, :] = [10, 80, 220]
 
-    runtime.inspect(image, "factory-defect-guard-v6-mc")
+    runtime.inspect(image, "concrete-crack-yolov8")
     runtime.inspect(image, "neu-defect-yolov8")
 
-    broad_input = detectors["factory-defect-guard-v6-mc"].received
+    color_input = detectors["concrete-crack-yolov8"].received
     steel_input = detectors["neu-defect-yolov8"].received
-    assert broad_input is not None and steel_input is not None
-    assert not np.array_equal(broad_input[:, :, 0], broad_input[:, :, 2])
+    assert color_input is not None and steel_input is not None
+    assert not np.array_equal(color_input[:, :, 0], color_input[:, :, 2])
     np.testing.assert_array_equal(steel_input[:, :, 0], steel_input[:, :, 2])
 
 
@@ -135,7 +141,7 @@ def test_bayespfl_is_available_through_public_inspect_with_backend_geometry() ->
     result = runtime.inspect(
         np.zeros((20, 30, 3), dtype=np.uint8),
         "bayespfl-general-v1",
-        product_name="capsule",
+        product_name="Capsule",
     )
 
     assert result.model_id == "bayespfl-general-v1"

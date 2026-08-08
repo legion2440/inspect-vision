@@ -1,34 +1,37 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-08-08",
+  "recorded_at": "2026-08-09",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "bayespfl-default-verified",
+  "state": "model-selection-correction-pending-runtime-qualification",
   "verified": [
-    "manifest schema version 3 registers four exposed models with bayespfl-general-v1 as the default",
-    "Bayes-PFL runtime source files are installer-managed from a pinned upstream revision, verified by exact Git blob IDs, and require no external repository clone",
-    "Bayes-PFL artifacts are installer-managed and pinned by filename, byte size, SHA-256, and source metadata",
-    "the default Bayes-PFL adapter requires explicit product/category context and preserves the native generic class anomaly",
-    "Bayes-PFL owns 518x518 stretch preprocessing, anomaly-map postprocessing, bbox padding, and original-coordinate restoration",
-    "the frozen Bayes-PFL application settings are threshold 0.72, Gaussian sigma 8, minimum component area ratio 0.0005, bbox padding ratio 0.25, feature layers 6/12/18/24, and seed 333",
-    "the legacy multiclass YOLO general model, steel specialist, and concrete/crack specialist remain exposed and selectable",
-    "GET /api/models exposes requiresProductName so the frontend can gate category-guided models before inference",
-    "POST /api/inspect and POST /api/stream accept productName and pass it through the shared runtime manager",
-    "runtime service caching is scoped by model ID and product/category context for guided models",
-    "Dashboard Quick Upload, Inspect, live stream, and Samples share the selected model and guided product context",
-    "the frontend disables image/live submission while a required product/category is empty",
-    "the inspection viewer derives its preprocessing caption from the selected model profile",
-    "the score UI is labelled Quality Score and retains backend qualityScore as authoritative",
-    "nine offline CC BY 4.0 showcase images remain source-labelled examples for PCB, steel, and concrete/crack inspection",
-    "historical AnomalyCLIP runtime records remain immutable historical evidence and are no longer treated as the current public registry state",
-    "the root setup instructions are platform-neutral and the default model installer requires no external model source checkout",
-    "a local CPU production-service probe qualified all four exposed models, including the Bayes-PFL default, and wrote the current model registry runtime record"
+    "the model manifest keeps bayespfl-general-v1 as the default and exposes only Bayes-PFL plus the steel and concrete specialists",
+    "factory-defect-guard-v6-mc remains registered for historical reproducibility but is hidden after its general-model rejection",
+    "tracked model-selection metadata records selected and rejected candidates and prevents a rejected registered model from being exposed",
+    "the Bayes-PFL deployment checkpoint remains train_visa.pth with VisA as the auxiliary training domain and MVTec AD as the distinct held-out qualification domain",
+    "Bayes-PFL category input is normalized to lowercase, accepts underscores for backward compatibility, and rejects malformed context before inference",
+    "the public model registry exposes curated category examples with local, upstream, and comparison evidence labels",
+    "Dashboard, Inspect, live stream, and Samples share model/category state without automatically switching the selected model",
+    "the operator showcase is defined as four MVTec AD good/bad pairs for bottle, capsule, screw, and metal nut from a pinned mirror revision",
+    "the rejected legacy general YOLO no longer contributes classes to the user-visible model registry or history filter",
+    "the model installer provides a manual artifact fallback with source, destination, expected size, SHA-256, and retry command when a download fails",
+    "historical runtime bundles remain immutable and are validated against their recorded source snapshots rather than rewritten to current source"
   ],
   "known_limitations": [
     {
+      "id": "runtime-requalification-pending",
+      "area": "verification-evidence",
+      "detail": "The latest retained CPU runtime record predates the current model-exposure, category-validation, selection-metadata, and probe-contract changes. It remains historical evidence until a fresh production-service probe is run and committed."
+    },
+    {
+      "id": "showcase-network-source",
+      "area": "backend-api",
+      "detail": "The current MVTec AD showcase does not redistribute dataset binaries in Git; sample image endpoints proxy a pinned MMAD mirror revision and therefore require network access when a sample image is opened."
+    },
+    {
       "id": "bayespfl-generic-native-output",
       "area": "defect-detection",
-      "detail": "Bayes-PFL localizes anomalies but emits the native generic type anomaly rather than a semantic defect subtype. Supported specialists remain preferable when the inspected domain is known."
+      "detail": "Bayes-PFL localizes anomalies but emits the native generic type anomaly rather than a semantic defect subtype. Supported specialists remain preferable when semantic domain-specific classes are required."
     },
     {
       "id": "bayespfl-adapter-threshold",
@@ -43,7 +46,7 @@
     {
       "id": "automated-browser-coverage-partial",
       "area": "verification-evidence",
-      "detail": "Python API/detection/storage tests, frontend utility tests, validators, and a production build are present; full browser end-to-end automation is not part of the current repository checks."
+      "detail": "Python API/detection/storage tests, frontend utility tests, validators, and a production build are present; full browser end-to-end automation is not part of the repository checks."
     }
   ]
 }

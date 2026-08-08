@@ -22,7 +22,7 @@
       "displayName": "General Manufacturing (Bayes-PFL)",
       "role": "general",
       "domain": "Cross-domain manufacturing anomaly localization",
-      "description": "Category-guided anomaly localization for varied manufactured products. Enter the product/category name; output is the native generic class anomaly, so specialists remain preferable for supported known domains.",
+      "description": "Category-guided anomaly localization for varied manufactured products. Use a concrete product/category prompt; output is the native generic class anomaly, so specialists remain preferable for known supported domains.",
       "backend": "bayespfl",
       "exposed": true,
       "artifacts": [
@@ -102,9 +102,9 @@
       "displayName": "General Manufacturing (YOLO)",
       "role": "general",
       "domain": "General manufacturing",
-      "description": "Legacy multiclass coverage detector for steel, PCB, tile, electronics, fasteners, and capsules.",
+      "description": "Retained legacy multiclass checkpoint for historical reproducibility; rejected from the current operator model list after local cross-domain checks.",
       "backend": "ultralytics",
-      "exposed": true,
+      "exposed": false,
       "artifacts": [
         {
           "id": "checkpoint",

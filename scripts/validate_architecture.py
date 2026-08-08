@@ -51,24 +51,27 @@ def _expected_runtime_fields(model: dict) -> tuple[str | None, float | None, flo
     return task, None, 0.0, None
 
 
+def _check_evidence_source_commit(evidence: dict, label: str, errors: list[str]) -> None:
+    source_commit = evidence.get("sourceCommit")
+    if not isinstance(source_commit, str) or not core.COMMIT_PATTERN.fullmatch(source_commit):
+        errors.append(f"{label} evidence has an invalid sourceCommit")
+        return
+    process = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+    )
+    if process.returncode != 0:
+        errors.append(f"{label} evidence sourceCommit is not an ancestor: {source_commit}")
+
+
 def _check_current_detection_evidence(
     evidence: dict,
     manifest: dict,
     errors: list[str],
 ) -> None:
-    source_commit = evidence.get("sourceCommit")
-    if not isinstance(source_commit, str) or not core.COMMIT_PATTERN.fullmatch(source_commit):
-        errors.append("Detection evidence has an invalid sourceCommit")
-    else:
-        process = subprocess.run(
-            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
-            cwd=REPOSITORY_ROOT,
-            capture_output=True,
-            check=False,
-        )
-        if process.returncode != 0:
-            errors.append(f"Detection evidence sourceCommit is not an ancestor: {source_commit}")
-
+    _check_evidence_source_commit(evidence, "Detection", errors)
     core._check_historical_source_files("Detection", evidence, errors)
 
     manifest_models = {
@@ -146,30 +149,52 @@ def _check_current_detection_evidence(
             if sample.get("annotationDimensionsMatchOriginal") is not True:
                 errors.append(f"Detection evidence annotation dimensions mismatch: {model_id}")
 
+        if model_spec.get("backend") == "bayespfl":
+            if model_result.get("auxiliaryTrainingDomain") != "VisA":
+                errors.append("Current Bayes-PFL evidence must record VisA as auxiliary training domain")
+            if "MVTec AD" not in str(model_result.get("qualificationDomain", "")):
+                errors.append("Current Bayes-PFL evidence must qualify on MVTec AD")
+            if model_result.get("protocol") != "held-out-cross-dataset-zero-shot":
+                errors.append("Current Bayes-PFL evidence must record the cross-dataset zero-shot protocol")
+
+
+def _check_historical_detection_evidence(evidence: dict, errors: list[str]) -> None:
+    """Keep a prior runtime record valid without pretending it covers current source."""
+
+    _check_evidence_source_commit(evidence, "Historical detection", errors)
+    core._check_historical_source_files("Historical detection", evidence, errors)
+    if evidence.get("pipeline") != "DetectionRuntimeManager -> DetectionService":
+        errors.append("Historical detection record does not use the production runtime/service pipeline")
+    if evidence.get("accuracyClaim") is not False:
+        errors.append("Historical detection record must not make an accuracy claim")
+    models = evidence.get("models")
+    if not isinstance(models, list) or not models:
+        errors.append("Historical detection record must contain model observations")
+
+    status = core._load_json("docs/project-status.json")
+    limitations = {
+        item.get("id")
+        for item in status.get("known_limitations", [])
+        if isinstance(item, dict)
+    }
+    if "runtime-requalification-pending" not in limitations:
+        errors.append(
+            "Current detector source differs from the runtime record without an explicit requalification-pending status"
+        )
+
 
 def _check_detection_snapshot(errors: list[str]) -> None:
-    """Validate detector evidence against either the current or historical registry state."""
-
-    expected_historical_default = "factory-defect-guard-v6-mc"
-    expected_current_default = "bayespfl-general-v1"
     evidence = core._load_json("docs/evidence/models/model-registry-acceptance.json")
     manifest = core._load_json("backend/models/model-manifest.json")
+    relative_manifest = "backend/models/model-manifest.json"
+    source_files = evidence.get("sourceFiles", {})
+    recorded_hash = source_files.get(relative_manifest) if isinstance(source_files, dict) else None
+    current_hash = hashlib.sha256((REPOSITORY_ROOT / relative_manifest).read_bytes()).hexdigest()
 
-    if evidence.get("defaultModelId") == expected_current_default:
+    if recorded_hash == current_hash:
         _check_current_detection_evidence(evidence, manifest, errors)
-        return
-
-    start = len(errors)
-    core._check_detection_evidence_original(errors)
-
-    stale_default_error = "Detection evidence default model does not match the manifest"
-    if (
-        evidence.get("defaultModelId") == expected_historical_default
-        and manifest.get("defaultModelId") == expected_current_default
-    ):
-        for index in range(len(errors) - 1, start - 1, -1):
-            if errors[index] == stale_default_error:
-                errors.pop(index)
+    else:
+        _check_historical_detection_evidence(evidence, errors)
 
 
 def _check_anomalyclip_snapshot(errors: list[str]) -> None:
@@ -183,22 +208,7 @@ def _check_anomalyclip_snapshot(errors: list[str]) -> None:
     if evidence.get("schemaVersion") != 1 or contract.get("schemaVersion") != 1:
         errors.append("AnomalyCLIP historical API bundle must use schemaVersion 1")
 
-    source_commit = evidence.get("sourceCommit")
-    if not isinstance(source_commit, str) or not core.COMMIT_PATTERN.fullmatch(source_commit):
-        errors.append("AnomalyCLIP historical API evidence has an invalid sourceCommit")
-    else:
-        process = subprocess.run(
-            ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
-            cwd=REPOSITORY_ROOT,
-            capture_output=True,
-            check=False,
-        )
-        if process.returncode != 0:
-            errors.append(
-                "AnomalyCLIP historical API evidence sourceCommit is not an ancestor: "
-                f"{source_commit}"
-            )
-
+    _check_evidence_source_commit(evidence, "AnomalyCLIP historical API", errors)
     source_files = core._check_historical_source_files(
         "AnomalyCLIP historical API",
         evidence,

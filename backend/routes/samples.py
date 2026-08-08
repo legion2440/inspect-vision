@@ -1,21 +1,22 @@
-"""Curated, redistributable inspection samples served from manifest IDs."""
+"""Curated MVTec AD showcase served through stable manifest IDs."""
 
 from __future__ import annotations
 
 import json
+import urllib.error
+import urllib.request
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, Response
 
 
 router = APIRouter(prefix="/api/samples", tags=["samples"])
 
 SAMPLES_ROOT = Path(__file__).resolve().parents[1] / "samples"
 MANIFEST_PATH = SAMPLES_ROOT / "showcase-samples.json"
-IMAGE_DIRECTORY = (SAMPLES_ROOT / "showcase").resolve()
+MAX_SAMPLE_BYTES = 10 * 1024 * 1024
 
 
 @lru_cache(maxsize=1)
@@ -34,14 +35,17 @@ def _sample_by_id(sample_id: str) -> dict[str, Any]:
     raise HTTPException(status_code=404, detail="Sample not found")
 
 
-def _sample_path(sample: dict[str, Any]) -> Path:
-    filename = sample.get("filename")
-    if not isinstance(filename, str) or Path(filename).name != filename:
-        raise RuntimeError("Invalid showcase sample filename")
-    path = (IMAGE_DIRECTORY / filename).resolve()
-    if path.parent != IMAGE_DIRECTORY or not path.is_file():
-        raise RuntimeError("Showcase sample file is missing")
-    return path
+@lru_cache(maxsize=16)
+def _load_remote_sample(asset_url: str) -> bytes:
+    request = urllib.request.Request(asset_url, headers={"User-Agent": "Inspect-Vision/1.0"})
+    try:
+        with urllib.request.urlopen(request, timeout=30) as source:
+            payload = source.read(MAX_SAMPLE_BYTES + 1)
+    except (urllib.error.URLError, TimeoutError, OSError) as error:
+        raise HTTPException(status_code=502, detail="Could not load the pinned sample source") from error
+    if not payload or len(payload) > MAX_SAMPLE_BYTES:
+        raise HTTPException(status_code=502, detail="Pinned sample source returned invalid image bytes")
+    return payload
 
 
 @router.get("")
@@ -52,7 +56,7 @@ def list_samples() -> dict[str, Any]:
         "datasets": manifest["datasets"],
         "samples": [
             {
-                **sample,
+                **{key: value for key, value in sample.items() if key != "assetUrl"},
                 "imageUrl": f"/api/samples/{sample['id']}/image",
             }
             for sample in manifest["samples"]
@@ -60,10 +64,8 @@ def list_samples() -> dict[str, Any]:
     }
 
 
-@router.get("/{sample_id}/image", response_class=FileResponse)
-def get_sample_image(sample_id: str) -> FileResponse:
+@router.get("/{sample_id}/image", response_class=Response)
+def get_sample_image(sample_id: str) -> Response:
     sample = _sample_by_id(sample_id)
-    return FileResponse(
-        _sample_path(sample),
-        media_type=sample["mediaType"],
-    )
+    payload = _load_remote_sample(sample["assetUrl"])
+    return Response(content=payload, media_type=sample["mediaType"])

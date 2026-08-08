@@ -12,7 +12,7 @@ import cv2
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile, status
 
 from backend.detection.dto import InspectionResult
-from backend.detection.runtime import DetectionRuntimeManager
+from backend.detection.runtime import DetectionRuntimeManager, ProductNameValidationError
 from backend.models.record import InspectionDetailRecord
 from backend.storage.service import InspectionDraft, InspectionStorage
 from backend.utils.model_loader import (
@@ -77,7 +77,7 @@ def inspect_image(
                 model_id,
                 product_name=product_name,
             )
-    except ProductNameRequiredError as error:
+    except (ProductNameRequiredError, ProductNameValidationError) as error:
         raise HTTPException(status_code=422, detail=str(error)) from None
     except ModelNotFoundError:
         raise HTTPException(status_code=404, detail="Detection model not found") from None

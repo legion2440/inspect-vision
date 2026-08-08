@@ -22,6 +22,8 @@ from backend.utils.preprocessing import InspectionPreprocessingConfig
 
 from .base import DetectorBackend, GeometryOwnership
 from .dto import InspectionResult
+from .model_selection import product_name_presets
+from .product_context import ProductNameValidationError, normalize_product_name
 from .service import DetectionService
 
 
@@ -98,10 +100,7 @@ class DetectionRuntimeManager:
     def _product_name_for(spec: ModelSpec, product_name: str | None) -> str | None:
         if not spec.requires_product_name:
             return None
-        normalized = (product_name or "").strip()
-        if not normalized:
-            raise ProductNameRequiredError("Product name is required for this detection model")
-        return normalized
+        return normalize_product_name(product_name)
 
     def _build_service(self, spec: ModelSpec, product_name: str | None) -> DetectionService:
         try:

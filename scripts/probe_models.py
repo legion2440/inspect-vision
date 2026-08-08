@@ -54,6 +54,7 @@ def _source_hashes() -> dict[str, str]:
     paths = [
         REPOSITORY_ROOT / "backend/models/model-manifest.json",
         REPOSITORY_ROOT / "backend/samples/model-probe-samples.json",
+        REPOSITORY_ROOT / "backend/detection/model-selection.json",
         *sorted((REPOSITORY_ROOT / "backend/detection").glob("*.py")),
         REPOSITORY_ROOT / "backend/utils/model_loader.py",
         REPOSITORY_ROOT / "backend/utils/preprocessing.py",
@@ -143,7 +144,7 @@ def _probe_group(runtime: Any, group: dict[str, Any]) -> dict[str, Any]:
             sample_result["productName"] = sample["productName"]
         sample_results.append(sample_result)
 
-    return {
+    model_result = {
         "modelId": spec.model_id,
         "displayName": spec.display_name,
         "role": spec.role,
@@ -172,6 +173,11 @@ def _probe_group(runtime: Any, group: dict[str, Any]) -> dict[str, Any]:
         "totalDetections": total_detections,
         "samples": sample_results,
     }
+    if group.get("auxiliaryTrainingDomain"):
+        model_result["auxiliaryTrainingDomain"] = group["auxiliaryTrainingDomain"]
+    if group.get("protocol"):
+        model_result["protocol"] = group["protocol"]
+    return model_result
 
 
 def _parse_args() -> argparse.Namespace:

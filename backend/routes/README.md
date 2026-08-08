@@ -7,23 +7,28 @@ and storage boundaries without loading model weights.
 
 Implemented routes:
 
-- `POST /api/inspect`: bounded multipart read, content decode, model-selected
-  inference, same-format annotation encoding, persistence, and detail response;
-- `GET /api/models`: registry metadata, default/installed state, and the
-  `requiresProductName` capability without loading checkpoints;
-- `GET /api/samples` and `GET /api/samples/{id}/image`: attributed source
-  showcase metadata and manifest-ID-only image retrieval;
-- `GET /api/history`, `GET /api/history/{id}`, `DELETE /api/history/{id}`, and
-  `POST /api/history/clear`: filtered inspection history and media lifecycle;
+- `POST /api/inspect`: bounded multipart read, content decode, selected-model
+  inference, annotation encoding, persistence, and detail response;
+- `GET /api/models`: exposed registry metadata, installed/default state,
+  `requiresProductName`, and curated guided-category examples;
+- `GET /api/samples` and `GET /api/samples/{id}/image`: pinned MVTec AD showcase
+  metadata and manifest-ID-only remote image proxying;
+- history list/detail/delete/clear;
 - `POST /api/stream`: JPEG-only serialized inference without persistence;
 - `GET /api/export`: canonical history filters and UTF-8 CSV projection.
 
-Inspect and stream accept optional `modelId`. Models that declare
-`requiresProductName=true` additionally require multipart field `productName`;
-missing or blank context returns HTTP 422 before inference. Ordinary models do
-not require that field.
+Inspect and stream accept optional `modelId`. Models declaring
+`requiresProductName=true` require guided product/category context. Bayes-PFL
+context is normalized before inference: `_` is accepted as a space separator,
+input is lowercased, length is 2-40 characters, only Latin letters/spaces/
+hyphens are accepted, and at most three words are allowed. Invalid guided input
+returns HTTP 422.
+
+Model and category selection remain independent. A steel or concrete category
+does not automatically route to a specialist. Showcase inspection deliberately
+reuses the ordinary `/api/inspect` path with the operator's current model; a
+sample supplies its own category context only.
 
 Image decoding and history-filter parsing are shared route utilities so inspect,
 stream, history, and export cannot silently diverge. Detection and persistence
-logic stay in their owning modules. Showcase inspection deliberately reuses
-`POST /api/inspect`; there is no sample-specific inference route.
+logic stay in their owning modules.

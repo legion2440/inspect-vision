@@ -39,6 +39,11 @@ class ModelRecord(ContractModel):
     display_name: str = Field(min_length=1)
 
 
+class ProductNamePresetRecord(ContractModel):
+    value: str = Field(min_length=1)
+    evidence: Literal["local", "upstream", "comparison"]
+
+
 class AvailableModelRecord(ModelRecord):
     role: Literal["general", "specialist"]
     domain: str = Field(min_length=1)
@@ -51,6 +56,7 @@ class AvailableModelRecord(ModelRecord):
         "bayespfl-stretch",
     ]
     requires_product_name: bool = False
+    product_name_presets: tuple[ProductNamePresetRecord, ...] = ()
     is_default: bool
     installed: bool
 

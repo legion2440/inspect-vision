@@ -39,6 +39,10 @@ class InstallResult:
     downloaded: bool
 
 
+class ArtifactInstallError(ValueError):
+    """Raised with a user-facing manual-install fallback."""
+
+
 def verify_artifact(path: Path, artifact: ModelArtifactSpec) -> bool:
     if not path.is_file() or path.stat().st_size != artifact.size_bytes:
         return False
@@ -67,6 +71,23 @@ def requested_models(
     return (registry.get(model_id),)
 
 
+def _manual_install_message(
+    artifact: ModelArtifactSpec,
+    target_path: Path,
+    error: Exception,
+) -> str:
+    return "\n".join(
+        [
+            f"Could not install artifact {artifact.artifact_id}: {error}",
+            "Manual fallback:",
+            f"  source: {artifact.source.download_url}",
+            f"  save as: {target_path}",
+            f"  expected size: {artifact.size_bytes} bytes",
+            f"  expected SHA-256: {artifact.sha256}",
+        ]
+    )
+
+
 def install_artifact(
     artifact: ModelArtifactSpec,
     *,
@@ -81,34 +102,43 @@ def install_artifact(
 
     temporary_path: Path | None = None
     try:
-        with tempfile.NamedTemporaryFile(
-            mode="wb",
-            prefix=f"{artifact.filename}.",
-            suffix=".part",
-            dir=destination_dir,
-            delete=False,
-        ) as temporary_file:
-            temporary_path = Path(temporary_file.name)
-            digest = hashlib.sha256()
-            downloaded_size = 0
-            with closing(opener(artifact.source.download_url)) as response:
-                content_length = getattr(response, "headers", {}).get("Content-Length")
-                if content_length is not None and int(content_length) != artifact.size_bytes:
-                    raise ValueError("download Content-Length does not match model manifest")
-                while chunk := response.read(1024 * 1024):
-                    downloaded_size += len(chunk)
-                    if downloaded_size > artifact.size_bytes:
-                        raise ValueError("downloaded artifact exceeds model manifest size")
-                    digest.update(chunk)
-                    temporary_file.write(chunk)
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="wb",
+                prefix=f"{artifact.filename}.",
+                suffix=".part",
+                dir=destination_dir,
+                delete=False,
+            ) as temporary_file:
+                temporary_path = Path(temporary_file.name)
+                digest = hashlib.sha256()
+                downloaded_size = 0
+                with closing(opener(artifact.source.download_url)) as response:
+                    headers = getattr(response, "headers", {})
+                    content_type = str(headers.get("Content-Type", "")).casefold()
+                    if "text/html" in content_type:
+                        raise ValueError("download source returned HTML instead of model bytes")
+                    content_length = headers.get("Content-Length")
+                    if content_length is not None and int(content_length) != artifact.size_bytes:
+                        raise ValueError("download Content-Length does not match model manifest")
+                    while chunk := response.read(1024 * 1024):
+                        downloaded_size += len(chunk)
+                        if downloaded_size > artifact.size_bytes:
+                            raise ValueError("downloaded artifact exceeds model manifest size")
+                        digest.update(chunk)
+                        temporary_file.write(chunk)
 
-        if downloaded_size != artifact.size_bytes:
-            raise ValueError("downloaded artifact size does not match model manifest")
-        if digest.hexdigest() != artifact.sha256:
-            raise ValueError("downloaded artifact SHA-256 does not match model manifest")
-        os.replace(temporary_path, target_path)
-        temporary_path = None
-        return target_path, True
+            if downloaded_size != artifact.size_bytes:
+                raise ValueError("downloaded artifact size does not match model manifest")
+            if digest.hexdigest() != artifact.sha256:
+                raise ValueError("downloaded artifact SHA-256 does not match model manifest")
+            os.replace(temporary_path, target_path)
+            temporary_path = None
+            return target_path, True
+        except (OSError, TimeoutError, ValueError) as error:
+            raise ArtifactInstallError(
+                _manual_install_message(artifact, target_path, error)
+            ) from error
     finally:
         if temporary_path is not None:
             temporary_path.unlink(missing_ok=True)
@@ -126,11 +156,16 @@ def install_models(
     results: list[InstallResult] = []
     for model in requested_models(registry, model_id=model_id, install_all=install_all):
         for artifact in model.artifacts:
-            path, downloaded = install_artifact(
-                artifact,
-                destination_dir=destination_dir,
-                opener=opener,
-            )
+            try:
+                path, downloaded = install_artifact(
+                    artifact,
+                    destination_dir=destination_dir,
+                    opener=opener,
+                )
+            except ArtifactInstallError as error:
+                raise ArtifactInstallError(
+                    f"{error}\n  retry: python scripts/install_models.py --model {model.model_id}"
+                ) from error
             results.append(InstallResult(model, artifact, path, downloaded))
         if model.backend == "bayespfl":
             from backend.detection.bayespfl_runtime import install_bayespfl_runtime
@@ -166,12 +201,16 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
-    results = install_models(
-        args.manifest,
-        destination_dir=args.destination_dir,
-        model_id=args.model_id,
-        install_all=args.install_all,
-    )
+    try:
+        results = install_models(
+            args.manifest,
+            destination_dir=args.destination_dir,
+            model_id=args.model_id,
+            install_all=args.install_all,
+        )
+    except ArtifactInstallError as error:
+        print(f"[ERROR] {error}", file=sys.stderr)
+        return 1
     for result in results:
         action = "installed" if result.downloaded else "already verified"
         print(

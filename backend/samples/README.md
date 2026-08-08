@@ -1,56 +1,66 @@
 # Samples
 
-`model-probe-samples.json` pins three external NEU-DET images by source revision,
-URL, and SHA-256 for local model verification. The probe downloads them into a
-temporary directory; this repository does not redistribute the research-use
-dataset files.
+The repository has three different sample/evidence roles. They must not be
+confused.
 
-`docs/evidence/anomalyclip-public-api/sample-contract.json` separately freezes
-the exact MVTec/MMAD and NEU files used to qualify the public AnomalyCLIP API
-path. It records source URLs, hashes, dimensions, qualification-relative paths,
-and prior observations; the images remain remote and untracked.
+## Runtime qualification sources
 
-The inspection-service evidence stores three annotated derivative outputs under
-`docs/evidence/inspection-service/`. Their exact source URLs, immutable source
-hashes, output hashes, and dimensions are recorded in the adjacent acceptance
-JSON; the unmodified source images remain temporary.
+`model-probe-samples.json` pins remote images by URL and SHA-256 for executable
+model qualification. Bayes-PFL is explicitly recorded as:
 
-`demo/` contains twelve unmodified images from the Visual Anomaly (VisA)
-industrial inspection dataset: four source-normal and eight source-anomaly
-images across candle, capsules, cashew, and chewing gum. VisA data is released
-under CC BY 4.0. Full annotation CSVs for those categories are preserved under
-`provenance/` with source and tracked hashes.
+```text
+checkpoint: train_visa.pth
+auxiliary training domain: VisA
+qualification domain: MVTec AD
+```
 
-`demo-samples.json` keeps `sourceGroundTruth` and `modelObservation` separate.
-Source labels and defect cases are read from `image_anno.csv`; native model
-classes, confidence, boxes, score, and status are observations at threshold
-`0.25`, never ground truth. Model output does not influence sample selection.
+The probe downloads source bytes into a temporary directory and does not
+redistribute them.
 
-Validate the static inventory with `scripts/validate_demo_samples.py`. Run all
-all images through the selected production service at confidence `0.25` with
-`scripts/probe_demo_samples.py`. `scripts/prepare_demo_samples.py` can rebuild
-the source-quota inventory from the official archive; no synthetic image or fake
-detection is used.
+## Historical VisA demo corpus
 
-`showcase/` is a separate operator-facing collection of nine source-derived
-images: three PCB images from DefectDet V1, three blade-surface images from the
-GKN Blade Surface Defect Dataset V1, and three pavement/wall crack contexts from
-HU Infrastructure Cracks V1. All three sources are pinned to a published
-version under CC BY 4.0. `showcase-samples.json` records source paths, dataset
-labels, attribution, hashes, dimensions, media types, and a recommended
-registered model. The PCB and HU files were downscaled and are marked as
-modified in the manifest and UI; GKN files retain their selected source bytes.
-It never stores model predictions.
+`demo/` contains twelve unmodified VisA images across candle, capsules, cashew,
+and chewing gum, with tracked provenance and source annotations. Its retained
+`modelObservation` contract belongs to the historical steel-specialist demo
+exercise; it is not current Bayes-PFL zero-shot evidence.
 
-`provenance/showcase/defectdet-selected-coco.json` and
-`provenance/showcase/hu-selected-metadata.json` are minimal excerpts of the selected
-records from the pinned source metadata. The validator reconstructs every PCB
-and HU label from those excerpts; blade labels are reconstructed from the
-source archive folder path. A label written only in the showcase manifest is
-therefore insufficient.
+Validate that corpus with:
 
-The `/api/samples` metadata endpoint and `/api/samples/{id}/image` asset endpoint
-serve this offline collection by manifest ID. Running one from the frontend
-uses the operator's current model selection and the ordinary `/api/inspect`
-path, so the result is persisted to history. Validate the catalog with
-`scripts/validate_showcase_samples.py`.
+```bash
+python scripts/validate_demo_samples.py
+```
+
+## Current operator showcase
+
+`showcase-samples.json` now defines eight MVTec AD examples:
+
+```text
+Bottle      GOOD / BAD
+Capsule     GOOD / BAD
+Screw       GOOD / BAD
+Metal nut   GOOD / BAD
+```
+
+The catalog pins MMAD mirror revision
+`e88b7bd615ad582b0a7e8238066a9fb293a072b4` and records the MVTec AD
+CC BY-NC-SA 4.0 attribution. The current operator showcase no longer contains
+PCB entries.
+
+To avoid silently creating another redistributed dataset snapshot in Git, the
+showcase stores the pinned catalog and proxies image bytes from that exact mirror
+revision through `/api/samples/{id}/image`. Network access is therefore required
+when a showcase image is opened.
+
+Each sample carries the correct Bayes product/category context. Selecting a
+sample can populate that category, but it never changes the operator's currently
+selected model automatically. This makes it possible to run the same image
+through the general model and a specialist manually.
+
+Validate the current showcase catalog with:
+
+```bash
+python scripts/validate_showcase_samples.py
+```
+
+Historical sample provenance and evidence files remain immutable even when they
+are no longer part of the current operator showcase.

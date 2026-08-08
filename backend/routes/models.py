@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from backend.detection.runtime import DetectionRuntimeManager
-from backend.models.record import AvailableModelRecord
+from backend.detection.runtime import DetectionRuntimeManager, product_name_presets
+from backend.models.record import AvailableModelRecord, ProductNamePresetRecord
 
 from .dependencies import get_detection_runtime
 
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/api", tags=["models"])
 def list_models(
     detection_runtime: DetectionRuntimeManager = Depends(get_detection_runtime),
 ) -> list[AvailableModelRecord]:
+    presets = tuple(ProductNamePresetRecord(**item) for item in product_name_presets())
     return [
         AvailableModelRecord(
             id=registered.spec.model_id,
@@ -27,6 +28,7 @@ def list_models(
             classes=registered.spec.native_classes,
             preprocessing_profile=registered.spec.preprocessing.profile_id,
             requires_product_name=registered.spec.requires_product_name,
+            product_name_presets=(presets if registered.spec.requires_product_name else ()),
             is_default=registered.is_default,
             installed=registered.installed,
         )

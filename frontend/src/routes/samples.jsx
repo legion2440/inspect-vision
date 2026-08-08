@@ -10,11 +10,6 @@ import {
   recommendedModelFor,
 } from '../utils/samples.js';
 
-const TRANSFORM_LABELS = {
-  cropped: 'cropped from source',
-  downscaled: 'downscaled from source',
-};
-
 export const Route = createFileRoute('/samples')({ component: Samples });
 
 function Samples() {
@@ -88,12 +83,15 @@ function Samples() {
     sampleRequestRef.current = controller;
     setBusySampleId(sample.id);
     setError(null);
+    const sampleProductName = sample.productName || productName;
+    if (sample.productName) setProductName(sample.productName);
     try {
       const record = await inspectShowcaseSample({
         sample,
         selectedModelId,
+        productName: sampleProductName,
         loadSample: api.getSampleImage,
-        runInspection: (file, modelId) => runInspection(file, modelId, productName),
+        runInspection,
         navigate,
         signal: controller.signal,
       });
@@ -114,10 +112,10 @@ function Samples() {
     <main className="qc-main">
       <div className="qc-pagehead">
         <div>
-          <h6 className="qc-kicker">Model-aware showcase</h6>
+          <h6 className="qc-kicker">Held-out MVTec AD showcase</h6>
           <h1>Inspection samples</h1>
           <p className="text-muted qc-lede">
-            Licensed source images spanning PCB, steel, and structural crack inspection.
+            Good/bad pairs for bottle, capsule, screw, and metal nut. The selected model never changes automatically.
           </p>
         </div>
       </div>
@@ -135,27 +133,29 @@ function Samples() {
       <div className="qc-sample-notice" role="note">
         <strong>{catalog.notice || 'Source labels describe dataset metadata, not model predictions.'}</strong>
         <span>
-          The selected model is always used. Running a sample sends it through <code>/api/inspect</code>
-          {' '}and creates a normal inspection history record.
+          Clicking a sample supplies its product/category context but keeps your current model selection, so the same source can be compared across general and specialist models.
         </span>
       </div>
 
       {loading && <p className="qc-mono text-muted">loading sample catalog…</p>}
       {(error || inspectionError) && <p className="qc-error">{error || inspectionError}</p>}
-      {!productReady && <p className="qc-error">Enter a product / category before using the selected model.</p>}
+      {!productReady && <p className="qc-mono text-muted">Choose a category above or click a sample to use that sample&apos;s category.</p>}
 
       {[...groups.entries()].map(([domain, samples]) => (
         <section className="qc-sample-domain" key={domain}>
           <div className="qc-sectionrow">
             <h2>{domain}</h2>
-            <span className="qc-mono text-muted">{samples.length} source images</span>
+            <span className="qc-mono text-muted">good / bad</span>
           </div>
-          <div className="qc-sample-grid">
+          <div className="qc-sample-grid qc-sample-grid-pairs">
             {samples.map((sample) => {
               const dataset = datasets.get(sample.datasetId);
               const recommended = recommendedModelFor(sample, models);
               const recommendedAvailable = Boolean(recommended?.installed);
               const busy = busySampleId === sample.id;
+              const canInspect = Boolean(selectedModelId) && (
+                !selectedModel?.requiresProductName || Boolean(sample.productName || productName.trim())
+              );
               return (
                 <article className="card qc-sample-card" key={sample.id}>
                   <div className="qc-sample-image-wrap">
@@ -167,30 +167,24 @@ function Samples() {
                     />
                   </div>
                   <div className="qc-sample-copy">
-                    <span className="card-kicker">{dataset?.name || sample.datasetId}</span>
+                    <span className="card-kicker">{sample.condition === 'good' ? 'GOOD' : 'BAD'} · {dataset?.name || sample.datasetId}</span>
                     <h3>{sample.sourceLabels.join(' · ')}</h3>
                     <div className="qc-tags">
+                      <span className="tag tag-neutral">{sample.productName}</span>
                       {sample.sourceLabels.map((label) => (
                         <span className="tag tag-neutral" key={label}>{label}</span>
                       ))}
                     </div>
                     <p className="card-body">
-                      Recommended: <strong>{recommended?.displayName || sample.recommendedModelId}</strong>
+                      Suggested general model: <strong>{recommended?.displayName || sample.recommendedModelId}</strong>
                       {!recommendedAvailable && ' — Not installed'}
                     </p>
-                    <p className="qc-mono text-muted">
-                      {sample.width}×{sample.height} · {dataset?.license?.name}
-                    </p>
-                    {TRANSFORM_LABELS[sample.assetTransform] && (
-                      <p className="qc-mono text-muted">
-                        Modified: {TRANSFORM_LABELS[sample.assetTransform]}
-                      </p>
-                    )}
+                    <p className="qc-mono text-muted">Pinned source: {sample.sourcePath}</p>
                     <div className="qc-sample-actions">
                       <button
                         type="button"
                         className="btn btn-primary"
-                        disabled={busy || !selectedModelId || !productReady}
+                        disabled={busy || !canInspect}
                         onClick={() => inspectSample(sample)}
                       >
                         {busy ? 'Inspecting…' : 'Inspect sample'} <ArrowRight size={15} />
@@ -201,7 +195,7 @@ function Samples() {
                         disabled={!recommendedAvailable || selectedModelId === sample.recommendedModelId}
                         onClick={() => handleModelChange(sample.recommendedModelId)}
                       >
-                        Use recommended model
+                        Use suggested general model
                       </button>
                     </div>
                   </div>
@@ -220,16 +214,13 @@ function Samples() {
               <article className="card" key={dataset.id}>
                 <h3>{dataset.name}</h3>
                 <p className="card-body">{dataset.attribution}</p>
-                {catalog.samples.some(
-                  (sample) => sample.datasetId === dataset.id && sample.assetTransform === 'downscaled',
-                ) && (
-                  <p className="qc-mono text-muted">
-                    Modified from source; see the sample cards for the declared transform.
-                  </p>
-                )}
+                <p className="qc-mono text-muted">Mirror revision: {dataset.sourceRevision}</p>
                 <div className="qc-sample-links">
                   <a href={dataset.sourceUrl} target="_blank" rel="noreferrer">
-                    Source <ExternalLink size={13} />
+                    Dataset source <ExternalLink size={13} />
+                  </a>
+                  <a href={dataset.mirrorUrl} target="_blank" rel="noreferrer">
+                    Pinned mirror <ExternalLink size={13} />
                   </a>
                   <a href={dataset.license.url} target="_blank" rel="noreferrer">
                     {dataset.license.name} <ExternalLink size={13} />

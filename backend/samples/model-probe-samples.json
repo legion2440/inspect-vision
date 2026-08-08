@@ -1,61 +1,33 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "purpose": "Runtime qualification only; remote source images are downloaded to a temporary directory and are not redistributed.",
   "models": [
     {
       "modelId": "bayespfl-general-v1",
-      "qualificationDomain": "Category-guided local manufacturing anomalies across unseen MVTec product categories",
+      "auxiliaryTrainingDomain": "VisA",
+      "qualificationDomain": "MVTec AD held-out product categories",
+      "protocol": "held-out-cross-dataset-zero-shot",
       "samples": [
         {
           "id": "bayes-capsule-crack",
-          "productName": "capsule",
+          "productName": "Capsule",
           "sourceLabel": "crack",
           "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/crack/006.png",
           "sha256": "d63295f7073046911ab3d84d5d38ca12adbb0de33951a05d03578da9e0163904"
         },
         {
           "id": "bayes-screw-manipulated-front",
-          "productName": "screw",
+          "productName": "Screw",
           "sourceLabel": "manipulated_front",
           "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/screw/test/manipulated_front/012.png",
           "sha256": "a7cf576939c22e42d90d579e293ad597f8b4c04318dd7052e30fa3509f1850e9"
         },
         {
           "id": "bayes-bottle-broken-large",
-          "productName": "bottle",
+          "productName": "Bottle",
           "sourceLabel": "broken_large",
           "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/bottle/test/broken_large/000.png",
           "sha256": "11a691a06a33dd78c5fcab6a822caa48c0d72f27f660e19f5abd9b5aa392b0eb"
-        }
-      ]
-    },
-    {
-      "modelId": "factory-defect-guard-v6-mc",
-      "qualificationDomain": "Broad manufacturing coverage across PCB and steel source cases",
-      "samples": [
-        {
-          "id": "pcb-missing-hole-example",
-          "sourceLabel": "missing_hole",
-          "url": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/01_missing_hole_01.jpg",
-          "sha256": "58327e373a07f63afb71771be75351b7e0a5063cd01bcd491bccc271df427229"
-        },
-        {
-          "id": "pcb-mouse-bite-example",
-          "sourceLabel": "mouse_bite",
-          "url": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/04_mouse_bite_10.jpg",
-          "sha256": "d22e9e237412b8a7981f0e6287a5d4f489d6e1070fae77b551a67aafbfcbb538"
-        },
-        {
-          "id": "broad-neu-crazing",
-          "sourceLabel": "crazing",
-          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
-          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca"
-        },
-        {
-          "id": "broad-neu-inclusion",
-          "sourceLabel": "inclusion",
-          "url": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
-          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634"
         }
       ]
     },

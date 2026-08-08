@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "generalModelId": "bayespfl-general-v1",
+  "bayesProtocol": {
+    "checkpoint": "train_visa.pth",
+    "auxiliaryTrainingDomain": "VisA",
+    "qualificationDomain": "MVTec AD",
+    "protocol": "held-out-cross-dataset-zero-shot",
+    "note": "The VisA-trained checkpoint is intentionally qualified on MVTec AD categories outside its auxiliary training domain."
+  },
+  "productNamePresets": [
+    { "value": "Bottle", "evidence": "local" },
+    { "value": "Capsule", "evidence": "local" },
+    { "value": "Screw", "evidence": "local" },
+    { "value": "Metal nut", "evidence": "local" },
+    { "value": "Hazelnut", "evidence": "upstream" },
+    { "value": "Pill", "evidence": "upstream" },
+    { "value": "Toothbrush", "evidence": "upstream" },
+    { "value": "Tile", "evidence": "upstream" },
+    { "value": "Wood", "evidence": "upstream" },
+    { "value": "Carpet", "evidence": "upstream" },
+    { "value": "Steel surface", "evidence": "comparison" },
+    { "value": "Concrete surface", "evidence": "comparison" }
+  ],
+  "excludedProductPresets": [
+    { "value": "Cable", "reason": "Removed after local Bayes-PFL checks produced unacceptable localization." },
+    { "value": "Zipper", "reason": "Removed after local Bayes-PFL checks produced an unacceptable miss." }
+  ],
+  "registeredModels": [
+    {
+      "modelId": "bayespfl-general-v1",
+      "status": "selected",
+      "role": "general",
+      "reason": "Selected as the cross-domain anomaly localizer after local candidate checks; useful bottle, capsule, screw, and metal-nut localization was observed when meaningful category context was supplied."
+    },
+    {
+      "modelId": "factory-defect-guard-v6-mc",
+      "status": "rejected",
+      "role": "general",
+      "reason": "Rejected as the general detector after local checks missed required tile, screw, capsule, and metal-nut cases and showed class confusion across broad PCB/steel coverage; retained only for historical reproducibility."
+    },
+    {
+      "modelId": "neu-defect-yolov8",
+      "status": "selected",
+      "role": "specialist",
+      "reason": "Selected as the steel-surface specialist with six checkpoint-native defect classes."
+    },
+    {
+      "modelId": "concrete-crack-yolov8",
+      "status": "selected",
+      "role": "specialist",
+      "reason": "Selected as the concrete and structural-crack specialist."
+    }
+  ],
+  "externalCandidates": [
+    {
+      "id": "yolo-world-x",
+      "status": "rejected",
+      "reason": "Local checks produced oversized/poorly localized boxes and excessive false positives: five of five generic-normal checks and four of five domain-vocabulary checks produced false positives."
+    },
+    {
+      "id": "anomalyclip-general-v1",
+      "status": "rejected",
+      "reason": "Local checks had useful capsule/screw cases but also a zipper miss and false-positive or overly broad anomaly regions on metal nut, bottle, toothbrush, hazelnut, transistor, pill, and PCB cases."
+    }
+  ]
+}

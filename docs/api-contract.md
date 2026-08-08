@@ -39,10 +39,8 @@ Contract invariants:
 - `totalDefects` equals `defects.length`.
 - `status` is `passed` only when `totalDefects` is zero.
 - `qualityScore` is an authoritative integer from `0` to `100`; higher is better.
-- `model.id` is the persisted manifest model ID and `model.displayName` is its
-  operator-facing label.
-- Historical records remain readable after a model is removed; the persisted ID
-  becomes the display fallback.
+- `model.id` is the persisted manifest model ID and `model.displayName` is its operator-facing label.
+- Historical records remain readable after a model is hidden or removed; the persisted ID becomes the display fallback.
 - `type` preserves the checkpoint-native class name without semantic remapping.
 
 ## Model selection fields
@@ -52,9 +50,20 @@ registry `defaultModelId`.
 
 `productName` is a multipart text field used only by category-guided models. The
 model registry advertises this requirement with `requiresProductName`. For
-`bayespfl-general-v1`, `productName` must be a concrete category such as
-`metal_nut`, `capsule`, or `bottle`; it is passed to the native Bayes-PFL prompt
-path. Specialist and ordinary Ultralytics models ignore this field.
+`bayespfl-general-v1`, the server normalizes `_` to a space, collapses
+whitespace, lowercases the value, and requires:
+
+- 2-40 characters;
+- Latin letters, spaces, or hyphens after normalization;
+- at most three whitespace-separated words.
+
+Missing, blank, malformed, or non-Latin guided context returns HTTP 422. Ordinary
+Ultralytics specialists ignore `productName`.
+
+The model registry also returns `productNamePresets` for Bayes-PFL. Presets are
+curated examples, not a whitelist of target classes. Each object has `value` and
+an `evidence` label (`local`, `upstream`, or `comparison`). Custom values remain
+valid when they satisfy server validation.
 
 ## Endpoints
 
@@ -63,10 +72,8 @@ path. Specialist and ordinary Ultralytics models ignore this field.
 Accepts `multipart/form-data` with required field `image`, optional `modelId`, and
 conditional `productName`. Supported content is JPEG or PNG up to 10 MiB.
 Validation uses decoded content, not only the extension or supplied MIME type.
-
-For a model whose registry entry has `requiresProductName: true`, missing or
-blank `productName` returns HTTP 422. Successful requests return the full detail
-record and persist metadata plus original and annotated media.
+Successful requests return the full detail record and persist metadata plus
+original and annotated media.
 
 ### `GET /api/history`
 
@@ -105,24 +112,9 @@ same conditional `productName` used by inspect. Validation rejects PNG and
 undecodable payloads. The endpoint uses the same detection runtime and inference
 lock as `/api/inspect`; frames are not persisted.
 
-```json
-{
-  "frameWidth": 1280,
-  "frameHeight": 720,
-  "defects": [],
-  "totalDefects": 0,
-  "qualityScore": 100,
-  "status": "passed",
-  "model": {
-    "id": "bayespfl-general-v1",
-    "displayName": "General Manufacturing (Bayes-PFL)"
-  }
-}
-```
-
 ### `GET /api/models`
 
-Returns the exposed validated registry projection without loading checkpoints:
+Returns only currently exposed registry models without loading checkpoints:
 
 ```json
 [
@@ -135,6 +127,10 @@ Returns the exposed validated registry projection without loading checkpoints:
     "classes": ["anomaly"],
     "preprocessingProfile": "bayespfl-stretch",
     "requiresProductName": true,
+    "productNamePresets": [
+      { "value": "Bottle", "evidence": "local" },
+      { "value": "Steel surface", "evidence": "comparison" }
+    ],
     "isDefault": true,
     "installed": true
   }
@@ -142,29 +138,32 @@ Returns the exposed validated registry projection without loading checkpoints:
 ```
 
 `installed` means every required local model artifact and runtime source passes
-its pinned integrity checks. Uninstalled models remain visible so the UI can show
-the exact installer command.
+its pinned integrity checks. Uninstalled exposed models remain visible so the UI
+can show the exact installer command.
 
-The current exposed set is Bayes-PFL general, legacy multiclass general YOLO,
-steel surface specialist, and concrete/structural crack specialist. Bayes-PFL
-emits only the native generic class `anomaly`; the specialists provide native
-semantic defect classes for their supported domains.
+The current exposed set is Bayes-PFL general, Steel Surface, and Concrete &
+Structural Cracks. `factory-defect-guard-v6-mc` remains registered for historical
+reproducibility but is rejected and not exposed.
 
 ### `GET /api/samples`
 
-Returns the offline showcase manifest as `notice`, `datasets`, and `samples`.
-Each sample contains source metadata and an image URL but no precomputed model
-output. Source labels are dataset metadata, not model predictions.
+Returns `notice`, `datasets`, and eight MVTec AD `samples`. Each sample contains
+source metadata, `condition` (`good` or `bad`), its product/category context, and
+a stable same-origin `imageUrl`; no model predictions are stored in the sample
+catalog.
 
-The recommended model is advisory. The frontend never changes the operator's
-selection automatically; `Inspect sample` sends the source image through normal
-`POST /api/inspect` with the current model and, when required, current product
-category.
+The four product pairs are Bottle, Capsule, Screw, and Metal nut. The image
+source is pinned to MMAD revision
+`e88b7bd615ad582b0a7e8238066a9fb293a072b4`. The frontend passes a sample's
+`productName` to inference but never changes the operator's selected model
+automatically.
 
 ### `GET /api/samples/{id}/image`
 
-Returns the local JPEG or PNG for a manifest sample ID. Filesystem paths are
-never accepted as request input. Unknown IDs return HTTP 404.
+Proxies the pinned remote PNG for a manifest sample ID. Filesystem paths and
+arbitrary remote URLs are never accepted as request input. Unknown IDs return
+HTTP 404; pinned-source retrieval failures return HTTP 502. The current showcase
+therefore requires network access when source images are opened.
 
 ### `GET /api/export`
 
@@ -187,12 +186,14 @@ FastAPI errors use `{ "detail": "message" }`.
 | --- | ---: | --- |
 | Undecodable or unsupported image | 415 | `Unsupported file type` |
 | More than 10 MiB | 413 | `File size exceeds 10MB limit` |
-| Guided model missing `productName` | 422 | `Product name is required for this detection model` |
+| Guided model missing category | 422 | `Product / category is required for Bayes-PFL` |
+| Guided model invalid category | 422 | Specific length/word/character validation message |
 | Model inference failure after successful load | 500 | `Detection model error` |
 | Unknown `modelId` | 404 | `Detection model not found` |
-| Registered model missing or invalid | 409 | Message includes `python scripts/install_models.py --model <id>` |
+| Registered exposed model missing or invalid | 409 | Message includes `python scripts/install_models.py --model <id>` |
 | Unknown inspection ID | 404 | `Inspection not found` |
 | Unknown showcase sample ID | 404 | `Sample not found` |
+| Pinned showcase source unavailable | 502 | `Could not load the pinned sample source` |
 
 Internal paths, stack traces, model paths, and original unsafe filenames are not
 returned. Filenames are sanitized before filesystem use.

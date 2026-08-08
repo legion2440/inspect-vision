@@ -6,7 +6,7 @@ import threading
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile, status
 
-from backend.detection.runtime import DetectionRuntimeManager
+from backend.detection.runtime import DetectionRuntimeManager, ProductNameValidationError
 from backend.models.record import (
     BoundingBoxRecord,
     DefectRecord,
@@ -47,7 +47,7 @@ def inspect_stream_frame(
                 model_id,
                 product_name=product_name,
             )
-    except ProductNameRequiredError as error:
+    except (ProductNameRequiredError, ProductNameValidationError) as error:
         raise HTTPException(status_code=422, detail=str(error)) from None
     except ModelNotFoundError:
         raise HTTPException(status_code=404, detail="Detection model not found") from None

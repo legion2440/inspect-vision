@@ -75,7 +75,6 @@ function Dashboard() {
         <section>
           <h6 className="qc-sectionhead">Quick upload</h6>
           <ModelSelector
-            compact
             models={models}
             value={selectedModelId}
             onChange={selectModel}

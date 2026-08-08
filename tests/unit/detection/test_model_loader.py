@@ -116,18 +116,19 @@ def test_default_model_and_full_contract_are_loaded_from_manifest(tmp_path: Path
     assert spec.class_weights == {"dent": 1.2}
 
 
-def test_production_registry_exposes_bayespfl_as_public_default() -> None:
+def test_production_registry_exposes_selected_models_only() -> None:
     registry = ModelRegistry()
 
     bayespfl = registry.get_exposed("bayespfl-general-v1")
+    legacy = registry.get("factory-defect-guard-v6-mc")
 
     assert registry.default_model_id == "bayespfl-general-v1"
     assert bayespfl.backend == "bayespfl"
     assert bayespfl.native_classes == ("anomaly",)
     assert bayespfl.exposed is True
+    assert legacy.exposed is False
     assert [model.model_id for model in registry.exposed_models] == [
         "bayespfl-general-v1",
-        "factory-defect-guard-v6-mc",
         "neu-defect-yolov8",
         "concrete-crack-yolov8",
     ]

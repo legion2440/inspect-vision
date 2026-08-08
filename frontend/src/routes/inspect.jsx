@@ -50,35 +50,37 @@ function Inspect() {
 
   return (
     <main className="qc-main">
-      <div className="qc-pagehead">
-        <div>
+      <div className="qc-inspect-head">
+        <div className="qc-inspect-title">
           <h6 className="qc-kicker">Real-time inspection</h6>
           <h1>{heading}</h1>
         </div>
-        <div className="qc-toolbar">
-          <div className="qc-mode-control">
-            <span className="qc-mode-label" id="inspection-mode-label">Inspection mode:</span>
-            <div className="seg" role="radiogroup" aria-labelledby="inspection-mode-label">
-              <label className="seg-opt">
-                <input
-                  type="radio"
-                  name="inspection-mode"
-                  checked={imageMode}
-                  onChange={() => setMode('image')}
-                />
-                Image file
-              </label>
-              <label className="seg-opt">
-                <input
-                  type="radio"
-                  name="inspection-mode"
-                  checked={!imageMode}
-                  onChange={() => setMode('live')}
-                />
-                Live stream
-              </label>
-            </div>
+
+        <div className="qc-mode-control qc-inspect-mode">
+          <span className="qc-mode-label" id="inspection-mode-label">Inspection mode</span>
+          <div className="seg" role="radiogroup" aria-labelledby="inspection-mode-label">
+            <label className="seg-opt">
+              <input
+                type="radio"
+                name="inspection-mode"
+                checked={imageMode}
+                onChange={() => setMode('image')}
+              />
+              Image file
+            </label>
+            <label className="seg-opt">
+              <input
+                type="radio"
+                name="inspection-mode"
+                checked={!imageMode}
+                onChange={() => setMode('live')}
+              />
+              Live stream
+            </label>
           </div>
+        </div>
+
+        <div className="qc-toolbar qc-inspect-actions">
           {imageMode && current && (
             <>
               <button type="button" className="btn btn-secondary" onClick={reset}>Clear</button>

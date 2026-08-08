@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+from backend.detection.product_context import ProductNameValidationError, normalize_product_name
 from backend.utils.model_loader import ProductNameRequiredError
 
 
@@ -14,14 +15,14 @@ _CASES = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_CASES)
 
 
-# Most route/storage cases intentionally use the YOLO broad model so they remain
-# focused on HTTP, persistence, filtering, and cleanup semantics. Dedicated tests
-# below exercise the category-guided default and its required product context.
+# Route/storage cases use the installed steel specialist as their ordinary model
+# so they stay focused on HTTP, persistence, filtering, and cleanup semantics.
+# Dedicated tests below exercise the guided Bayes-PFL default.
 _ORIGINAL_FAKE_INSPECT = _CASES.FakeDetectionRuntime.inspect
 
 
 def _compat_fake_inspect(self, image, model_id=None, *, product_name=None):
-    resolved_model_id = model_id or "factory-defect-guard-v6-mc"
+    resolved_model_id = model_id or "neu-defect-yolov8"
     return _ORIGINAL_FAKE_INSPECT(self, image, resolved_model_id)
 
 
@@ -45,10 +46,14 @@ class GuidedRuntime(_CASES.FakeDetectionRuntime):
         self.requested_product_names: list[str | None] = []
 
     def inspect(self, image, model_id=None, *, product_name=None):
-        spec = self.registry.get(model_id)
-        normalized_product = (product_name or "").strip() or None
-        if spec.requires_product_name and normalized_product is None:
-            raise ProductNameRequiredError("Product name is required for this detection model")
+        spec = self.registry.get_exposed(model_id)
+        if spec.requires_product_name:
+            try:
+                normalized_product = normalize_product_name(product_name)
+            except ProductNameValidationError:
+                raise
+        else:
+            normalized_product = None
         self.requested_model_ids.append(spec.model_id)
         self.requested_product_names.append(normalized_product)
         if spec.model_id == self.missing_model_id:
@@ -101,7 +106,7 @@ def test_guided_default_accepts_images_and_preserves_original_bytes(
 
     response = client.post(
         "/api/inspect",
-        data={"productName": "capsule"},
+        data={"productName": "Metal_Nut"},
         files={"image": (f"..\\unsafe<>part{extension}", payload, "application/octet-stream")},
     )
 
@@ -116,7 +121,7 @@ def test_guided_default_accepts_images_and_preserves_original_bytes(
         "displayName": "General Manufacturing (Bayes-PFL)",
     }
     assert runtime.requested_model_ids == ["bayespfl-general-v1"]
-    assert runtime.requested_product_names == ["capsule"]
+    assert runtime.requested_product_names == ["metal nut"]
     assert body["imageUrl"].startswith(f"data:{media_type};base64,")
     prefix, encoded_original = body["originalImageUrl"].split(",", 1)
     assert prefix == f"data:{media_type};base64"
@@ -132,7 +137,28 @@ def test_guided_default_requires_product_name(api_factory) -> None:
     )
 
     assert response.status_code == 422
-    assert response.json() == {"detail": "Product name is required for this detection model"}
+    assert response.json() == {"detail": "Product / category is required for Bayes-PFL"}
+
+
+@_CASES.pytest.mark.parametrize(
+    ("endpoint", "field"),
+    [("/api/inspect", "image"), ("/api/stream", "frame")],
+)
+def test_guided_context_validation_is_shared_by_inspect_and_stream(
+    api_factory,
+    endpoint: str,
+    field: str,
+) -> None:
+    client = api_factory(GuidedRuntime())
+
+    response = client.post(
+        endpoint,
+        data={"productName": "хуй"},
+        files={field: ("part.jpg", _CASES.encoded_image(".jpg"), "image/jpeg")},
+    )
+
+    assert response.status_code == 422
+    assert "Latin letters" in response.json()["detail"]
 
 
 @_CASES.pytest.mark.parametrize(
@@ -154,7 +180,7 @@ def test_bayespfl_is_available_through_public_inference_routes(
 
     response = client.post(
         endpoint,
-        data={"modelId": "bayespfl-general-v1", "productName": "capsule"},
+        data={"modelId": "bayespfl-general-v1", "productName": "Capsule"},
         files={field: (filename, _CASES.encoded_image(".jpg"), "image/jpeg")},
     )
 
@@ -178,29 +204,24 @@ def test_models_endpoint_exposes_current_registry_entries(api_factory) -> None:
     models = response.json()
     assert [model["id"] for model in models] == [
         "bayespfl-general-v1",
-        "factory-defect-guard-v6-mc",
         "neu-defect-yolov8",
         "concrete-crack-yolov8",
     ]
     assert sum(model["isDefault"] for model in models) == 1
-    assert models[0] == {
-        "id": "bayespfl-general-v1",
-        "displayName": "General Manufacturing (Bayes-PFL)",
-        "role": "general",
-        "domain": "Cross-domain manufacturing anomaly localization",
-        "description": (
-            "Category-guided anomaly localization for varied manufactured products. "
-            "Enter the product/category name; output is the native generic class anomaly, "
-            "so specialists remain preferable for supported known domains."
-        ),
-        "classes": ["anomaly"],
-        "preprocessingProfile": "bayespfl-stretch",
-        "requiresProductName": True,
-        "isDefault": True,
-        "installed": True,
+    assert models[0]["id"] == "bayespfl-general-v1"
+    assert models[0]["requiresProductName"] is True
+    assert models[0]["classes"] == ["anomaly"]
+    assert len(models[0]["productNamePresets"]) == 12
+    assert {item["value"] for item in models[0]["productNamePresets"]} >= {
+        "Bottle",
+        "Capsule",
+        "Screw",
+        "Metal nut",
+        "Steel surface",
+        "Concrete surface",
     }
-    assert models[1]["requiresProductName"] is False
-    assert models[3]["installed"] is False
+    assert all(model["productNamePresets"] == [] for model in models[1:])
+    assert models[2]["installed"] is False
 
 
 def test_guided_default_stream_does_not_persist(api_factory) -> None:
@@ -210,7 +231,7 @@ def test_guided_default_stream_does_not_persist(api_factory) -> None:
 
     response = client.post(
         "/api/stream",
-        data={"productName": "capsule"},
+        data={"productName": "Capsule"},
         files={"frame": ("frame.png", _CASES.encoded_image(".jpg"), "image/png")},
     )
     after = client.get("/api/history").json()
