@@ -3,6 +3,33 @@
   "purpose": "Runtime qualification only; remote source images are downloaded to a temporary directory and are not redistributed.",
   "models": [
     {
+      "modelId": "bayespfl-general-v1",
+      "qualificationDomain": "Category-guided local manufacturing anomalies across unseen MVTec product categories",
+      "samples": [
+        {
+          "id": "bayes-capsule-crack",
+          "productName": "capsule",
+          "sourceLabel": "crack",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/capsule/test/crack/006.png",
+          "sha256": "d63295f7073046911ab3d84d5d38ca12adbb0de33951a05d03578da9e0163904"
+        },
+        {
+          "id": "bayes-screw-manipulated-front",
+          "productName": "screw",
+          "sourceLabel": "manipulated_front",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/screw/test/manipulated_front/012.png",
+          "sha256": "a7cf576939c22e42d90d579e293ad597f8b4c04318dd7052e30fa3509f1850e9"
+        },
+        {
+          "id": "bayes-bottle-broken-large",
+          "productName": "bottle",
+          "sourceLabel": "broken_large",
+          "url": "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/e88b7bd615ad582b0a7e8238066a9fb293a072b4/MVTec-AD/bottle/test/broken_large/000.png",
+          "sha256": "11a691a06a33dd78c5fcab6a822caa48c0d72f27f660e19f5abd9b5aa392b0eb"
+        }
+      ]
+    },
+    {
       "modelId": "factory-defect-guard-v6-mc",
       "qualificationDomain": "Broad manufacturing coverage across PCB and steel source cases",
       "samples": [
