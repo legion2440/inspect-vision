@@ -3,7 +3,7 @@
   "recorded_at": "2026-08-08",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "bayespfl-default-ready-for-local-verification",
+  "state": "bayespfl-default-verified",
   "verified": [
     "manifest schema version 3 registers four exposed models with bayespfl-general-v1 as the default",
     "Bayes-PFL runtime source files are installer-managed from a pinned upstream revision, verified by exact Git blob IDs, and require no external repository clone",
@@ -21,7 +21,8 @@
     "the score UI is labelled Quality Score and retains backend qualityScore as authoritative",
     "nine offline CC BY 4.0 showcase images remain source-labelled examples for PCB, steel, and concrete/crack inspection",
     "historical AnomalyCLIP runtime records remain immutable historical evidence and are no longer treated as the current public registry state",
-    "the root setup instructions are platform-neutral and the default model installer requires no external model source checkout"
+    "the root setup instructions are platform-neutral and the default model installer requires no external model source checkout",
+    "a local CPU production-service probe qualified all four exposed models, including the Bayes-PFL default, and wrote the current model registry runtime record"
   ],
   "known_limitations": [
     {
@@ -38,11 +39,6 @@
       "id": "bayespfl-binary-license-scope",
       "area": "defect-detection",
       "detail": "The upstream Bayes-PFL repository states MIT licensing, but the distributed train_visa.pth checkpoint does not carry a separately stated binary license in the tracked source metadata."
-    },
-    {
-      "id": "current-default-runtime-verification-pending",
-      "area": "verification-evidence",
-      "detail": "The current Bayes-PFL default integration is ready for the final local validation and runtime probe. Existing committed runtime records cover earlier milestones and specialists; no new Bayes-PFL production result is claimed until that local run is completed."
     },
     {
       "id": "automated-browser-coverage-partial",
