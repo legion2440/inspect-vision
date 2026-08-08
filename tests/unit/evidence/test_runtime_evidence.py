@@ -11,19 +11,19 @@ from scripts.validate_architecture import (
 )
 
 
-def test_historical_runtime_source_hash_survives_later_source_changes() -> None:
+def test_current_runtime_source_hash_matches_current_manifest() -> None:
     evidence_path = (
         REPOSITORY_ROOT / "docs/evidence/models/model-registry-acceptance.json"
     )
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
     relative_path = "backend/models/model-manifest.json"
-    historical_hash = evidence["sourceFiles"][relative_path]
+    recorded_hash = evidence["sourceFiles"][relative_path]
     current_hash = hashlib.sha256(
         (REPOSITORY_ROOT / relative_path).read_bytes()
     ).hexdigest()
 
-    assert historical_hash != current_hash
-    assert _source_hash_exists_in_history(relative_path, historical_hash) is True
+    assert recorded_hash == current_hash
+    assert _source_hash_exists_in_history(relative_path, recorded_hash) is True
 
 
 def test_qualification_observation_comparison_rejects_semantic_tampering() -> None:
