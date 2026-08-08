@@ -26,6 +26,8 @@ function Samples() {
     selectModel,
     runInspection,
     error: inspectionError,
+    productName,
+    setProductName,
   } = useInspection();
   const [catalog, setCatalog] = useState({ notice: '', datasets: [], samples: [] });
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,8 @@ function Samples() {
     [catalog.datasets],
   );
   const groups = useMemo(() => groupSamplesByDomain(catalog.samples), [catalog.samples]);
+  const selectedModel = models.find((model) => model.id === selectedModelId);
+  const productReady = !selectedModel?.requiresProductName || Boolean(productName.trim());
 
   const cancelSampleRequest = () => {
     sampleRequestRef.current?.abort();
@@ -72,6 +76,12 @@ function Samples() {
     selectModel(modelId);
   };
 
+  const handleProductNameChange = (value) => {
+    cancelSampleRequest();
+    setError(null);
+    setProductName(value);
+  };
+
   const inspectSample = async (sample) => {
     cancelSampleRequest();
     const controller = new AbortController();
@@ -83,7 +93,7 @@ function Samples() {
         sample,
         selectedModelId,
         loadSample: api.getSampleImage,
-        runInspection,
+        runInspection: (file, modelId) => runInspection(file, modelId, productName),
         navigate,
         signal: controller.signal,
       });
@@ -118,6 +128,8 @@ function Samples() {
         onChange={handleModelChange}
         loading={modelsStatus === 'loading'}
         error={modelsError}
+        productName={productName}
+        onProductNameChange={handleProductNameChange}
       />
 
       <div className="qc-sample-notice" role="note">
@@ -130,6 +142,7 @@ function Samples() {
 
       {loading && <p className="qc-mono text-muted">loading sample catalog…</p>}
       {(error || inspectionError) && <p className="qc-error">{error || inspectionError}</p>}
+      {!productReady && <p className="qc-error">Enter a product / category before using the selected model.</p>}
 
       {[...groups.entries()].map(([domain, samples]) => (
         <section className="qc-sample-domain" key={domain}>
@@ -177,7 +190,7 @@ function Samples() {
                       <button
                         type="button"
                         className="btn btn-primary"
-                        disabled={busy || !selectedModelId}
+                        disabled={busy || !selectedModelId || !productReady}
                         onClick={() => inspectSample(sample)}
                       >
                         {busy ? 'Inspecting…' : 'Inspect sample'} <ArrowRight size={15} />
