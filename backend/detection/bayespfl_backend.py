@@ -1,18 +1,17 @@
-"""Bayes-PFL candidate backend for service-level model qualification."""
+"""Bayes-PFL backend for category-guided general anomaly localization."""
 
 from __future__ import annotations
 
+import collections.abc
 import gc
-import hashlib
 import importlib
 import os
 import random
-import subprocess
 import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from types import SimpleNamespace
+from types import ModuleType, SimpleNamespace
 from typing import Any, Sequence
 
 import cv2
@@ -21,17 +20,21 @@ from PIL import Image
 from scipy.ndimage import gaussian_filter
 
 from .base import DetectorBackend, GeometryOwnership
+from .bayespfl_runtime import (
+    BAYESPFL_RUNTIME_DIR,
+    BAYESPFL_SOURCE_COMMIT,
+    verify_bayespfl_runtime,
+)
 from .dto import Detection, InferenceResult
 
 
-BAYESPFL_SOURCE_COMMIT = "8f155a07e734913e021c33c469f16a1f75c60e5d"
 OPENAI_CLIP_SHA256 = "3035c92b350959924f9f00213499208652fc7ea050643e8b385c2dac08641f02"
 OPENAI_CLIP_SIZE_BYTES = 934_088_680
 
 
 @dataclass(frozen=True, slots=True)
 class BayesPflConfig:
-    """Frozen upstream inference settings plus provisional bbox conversion."""
+    """Frozen upstream inference settings plus deployment bbox conversion."""
 
     image_size: int = 518
     features_list: tuple[int, ...] = (6, 12, 18, 24)
@@ -42,8 +45,9 @@ class BayesPflConfig:
     sample_num: int = 10
     seed: int = 333
     gaussian_sigma: float = 8.0
-    map_threshold: float = 0.5
+    map_threshold: float = 0.72
     min_component_area_ratio: float = 0.0005
+    bbox_padding_ratio: float = 0.25
 
     def __post_init__(self) -> None:
         if self.image_size <= 0:
@@ -60,6 +64,8 @@ class BayesPflConfig:
             raise ValueError("Bayes-PFL map threshold must be between zero and one")
         if not 0.0 < self.min_component_area_ratio <= 1.0:
             raise ValueError("Bayes-PFL minimum area ratio must be in (0, 1]")
+        if not 0.0 <= self.bbox_padding_ratio <= 1.0:
+            raise ValueError("Bayes-PFL bbox padding ratio must be between zero and one")
 
 
 @dataclass(slots=True)
@@ -72,47 +78,7 @@ class _BayesPflRuntime:
     preprocess: Any
 
 
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as binary_file:
-        for chunk in iter(lambda: binary_file.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def verify_openai_backbone(path: Path) -> None:
-    if not path.is_file():
-        raise FileNotFoundError(f"OpenAI CLIP backbone is missing: {path}")
-    if path.stat().st_size != OPENAI_CLIP_SIZE_BYTES:
-        raise ValueError("OpenAI CLIP backbone size mismatch")
-    actual = sha256_file(path)
-    if actual != OPENAI_CLIP_SHA256:
-        raise ValueError(
-            f"OpenAI CLIP backbone hash mismatch: expected {OPENAI_CLIP_SHA256}, got {actual}"
-        )
-
-
-def verify_source_checkout(source_dir: Path) -> None:
-    if not source_dir.is_dir():
-        raise FileNotFoundError(f"Bayes-PFL source checkout is missing: {source_dir}")
-    try:
-        completed = subprocess.run(
-            ["git", "-C", str(source_dir), "rev-parse", "HEAD"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-    except (OSError, subprocess.CalledProcessError) as error:
-        raise ValueError("Bayes-PFL source directory must be a Git checkout") from error
-    revision = completed.stdout.strip().lower()
-    if revision != BAYESPFL_SOURCE_COMMIT:
-        raise ValueError(
-            "Bayes-PFL source revision mismatch: "
-            f"expected {BAYESPFL_SOURCE_COMMIT}, got {revision or '<empty>'}"
-        )
-
-
-def _load_candidate_checkpoint(path: Path, torch_module: Any) -> dict[str, Any]:
+def _load_checkpoint(path: Path, torch_module: Any) -> dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(f"Bayes-PFL checkpoint is missing: {path}")
     checkpoint = torch_module.load(path, map_location="cpu", weights_only=True)
@@ -145,22 +111,32 @@ def _component_boxes(
     return tuple(components)
 
 
-class BayesPflBackend(DetectorBackend):
-    """Run the official Bayes-PFL inference path behind DetectionService."""
+def _training_only(*_args: Any, **_kwargs: Any) -> None:
+    raise RuntimeError("The packaged Bayes-PFL runtime supports inference only")
 
-    name = "bayespfl-candidate"
+
+def _to_2tuple(value: Any) -> Any:
+    if isinstance(value, collections.abc.Iterable):
+        return value
+    return (value, value)
+
+
+class BayesPflBackend(DetectorBackend):
+    """Run the pinned Bayes-PFL inference path behind DetectionService."""
+
+    name = "bayespfl"
     geometry_ownership = GeometryOwnership.BACKEND
 
     def __init__(
         self,
         *,
-        source_dir: Path,
         backbone_path: Path,
         checkpoint_path: Path,
         product_name: str,
         device: Any,
         config: BayesPflConfig | None = None,
-        model_id: str = "bayespfl-general-candidate",
+        source_dir: Path = BAYESPFL_RUNTIME_DIR,
+        model_id: str = "bayespfl-general-v1",
     ) -> None:
         active_config = config or BayesPflConfig()
         normalized_product = product_name.strip()
@@ -193,12 +169,6 @@ class BayesPflBackend(DetectorBackend):
             return f"cuda:{self.device.torch_device}"
         return "cpu"
 
-    def set_product_name(self, product_name: str) -> None:
-        normalized = product_name.strip()
-        if not normalized:
-            raise ValueError("Bayes-PFL requires an explicit product/category name")
-        self.product_name = normalized
-
     def _args(self) -> SimpleNamespace:
         return SimpleNamespace(
             vision_width=1024,
@@ -213,23 +183,72 @@ class BayesPflBackend(DetectorBackend):
             image_size=self.config.image_size,
         )
 
+    def _load_patched_transformer(self) -> ModuleType:
+        path = self.source_dir / "models/transformer.py"
+        source = path.read_text(encoding="utf-8")
+        old = "out_attn = torch.zeros([H, H]).to('cuda')"
+        new = "out_attn = torch.zeros([H, H], device=x.device)"
+        if old not in source:
+            raise RuntimeError("Pinned Bayes-PFL CUDA compatibility point changed upstream")
+        source = source.replace(old, new, 1)
+        module = ModuleType("models.transformer")
+        module.__file__ = str(path)
+        module.__package__ = "models"
+        sys.modules[module.__name__] = module
+        exec(compile(source, str(path), "exec"), module.__dict__)
+        return module
+
     def _import_upstream(self) -> tuple[Any, Any]:
+        verify_bayespfl_runtime(self.source_dir)
         source = str(self.source_dir)
-        if source not in sys.path:
-            sys.path.insert(0, source)
+        previous_modules = {
+            name: module
+            for name, module in tuple(sys.modules.items())
+            if name == "models" or name.startswith("models.") or name == "loss"
+        }
+        for name in tuple(previous_modules):
+            sys.modules.pop(name, None)
+
+        package = ModuleType("models")
+        package.__path__ = [str(self.source_dir / "models")]
+        package.__package__ = "models"
+        sys.modules["models"] = package
+
+        utils_stub = ModuleType("models.utils")
+        utils_stub.to_2tuple = _to_2tuple
+        sys.modules["models.utils"] = utils_stub
+
+        loss_stub = ModuleType("loss")
+        loss_stub.binary_loss_function = _training_only
+        sys.modules["loss"] = loss_stub
+
         previous_cwd = Path.cwd()
+        inserted_path = False
         try:
-            # Upstream SimpleTokenizer resolves its BPE vocabulary from ./models.
-            # Import from the pinned checkout root, then restore the caller cwd.
+            if source not in sys.path:
+                sys.path.insert(0, source)
+                inserted_path = True
+            self._load_patched_transformer()
+            # Upstream SimpleTokenizer resolves its vocabulary from ./models at import time.
             os.chdir(self.source_dir)
             vp_module = importlib.import_module("models.VPB")
             clip_module = importlib.import_module("models.model_CLIP")
         finally:
             os.chdir(previous_cwd)
+            if inserted_path:
+                try:
+                    sys.path.remove(source)
+                except ValueError:
+                    pass
+            for name in tuple(sys.modules):
+                if name == "models" or name.startswith("models.") or name == "loss":
+                    sys.modules.pop(name, None)
+            sys.modules.update(previous_modules)
+
         for module in (vp_module, clip_module):
             module_path = Path(module.__file__).resolve()
             if self.source_dir not in module_path.parents:
-                raise RuntimeError(f"Loaded Bayes-PFL module outside pinned checkout: {module_path}")
+                raise RuntimeError(f"Loaded Bayes-PFL module outside pinned runtime: {module_path}")
         return vp_module, clip_module
 
     def _seed_runtime(self, torch_module: Any) -> None:
@@ -245,17 +264,14 @@ class BayesPflBackend(DetectorBackend):
     def load(self) -> None:
         if self._runtime is not None:
             return
-        verify_source_checkout(self.source_dir)
-        verify_openai_backbone(self.backbone_path)
+        verify_bayespfl_runtime(self.source_dir)
 
         import torch
 
-        # Prove the pinned backbone is the expected TorchScript archive before the
-        # upstream loader is allowed to touch it. This blocks its pickle fallback.
         archive = torch.jit.load(str(self.backbone_path), map_location="cpu").eval()
         del archive
         gc.collect()
-        checkpoint = _load_candidate_checkpoint(self.checkpoint_path, torch)
+        checkpoint = _load_checkpoint(self.checkpoint_path, torch)
         self._seed_runtime(torch)
         if self.device.kind == "cuda":
             torch.cuda.set_device(int(self.device.torch_device))
@@ -357,11 +373,19 @@ class BayesPflBackend(DetectorBackend):
             scale_y = image_height / float(self.config.image_size)
             detections: list[Detection] = []
             for (x1, y1, x2, y2), score in components:
+                box_x1 = x1 * scale_x
+                box_y1 = y1 * scale_y
+                box_x2 = x2 * scale_x
+                box_y2 = y2 * scale_y
+                box_width = box_x2 - box_x1
+                box_height = box_y2 - box_y1
+                padding_x = box_width * self.config.bbox_padding_ratio
+                padding_y = box_height * self.config.bbox_padding_ratio
                 box = (
-                    max(0.0, min(float(image_width), x1 * scale_x)),
-                    max(0.0, min(float(image_height), y1 * scale_y)),
-                    max(0.0, min(float(image_width), x2 * scale_x)),
-                    max(0.0, min(float(image_height), y2 * scale_y)),
+                    max(0.0, box_x1 - padding_x),
+                    max(0.0, box_y1 - padding_y),
+                    min(float(image_width), box_x2 + padding_x),
+                    min(float(image_height), box_y2 + padding_y),
                 )
                 if box[2] <= box[0] or box[3] <= box[1]:
                     continue
