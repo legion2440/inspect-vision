@@ -81,8 +81,10 @@ python scripts/install_models.py
 
 No external model repository clone is required. The installer reads
 `backend/models/model-manifest.json`, downloads the pinned Bayes-PFL checkpoint
-and CLIP backbone, verifies byte size and SHA-256, and only then moves each file
-into `backend/models`.
+and CLIP backbone with size/SHA-256 verification, and also installs the minimal
+Bayes-PFL inference source set from its pinned upstream revision. Runtime source
+files are verified against exact Git blob IDs and remain untracked under
+`backend/detection/third_party/bayespfl/runtime/`.
 
 Other installation options:
 
