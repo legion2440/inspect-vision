@@ -109,7 +109,11 @@ function Inspect() {
 
       {!imageMode ? (
         <div className="qc-row qc-row-inspect">
-          <LiveStream modelId={selectedModelId} productName={productName} />
+          <LiveStream
+            modelId={selectedModelId}
+            productName={productName}
+            disabled={!productReady}
+          />
           <aside className="qc-aside">
             <p className="text-muted">
               Frames are grabbed from the camera at 2 fps and posted to <code>/api/stream</code>; the
