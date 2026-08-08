@@ -10,8 +10,10 @@ import {
 import { annotatedImageFilename, imageExtension } from '../src/utils/media.js';
 import {
   appendModelId,
+  appendProductName,
   installModelCommand,
   modelClassesLabel,
+  preprocessingLabel,
   selectInitialModel,
 } from '../src/utils/models.js';
 import { scoreOf, severityScore } from '../src/utils/severity.js';
@@ -82,12 +84,32 @@ test('model selection prefers the installed API default', () => {
   assert.equal(selectInitialModel([{ id: 'broad', isDefault: true, installed: false }, models[0]]), 'steel');
 });
 
-test('upload and stream use the canonical modelId multipart field', () => {
+test('upload and stream use canonical guided multipart fields', () => {
   const fields = [];
   const form = { append: (...args) => fields.push(args) };
-  assert.equal(appendModelId(form, 'concrete-crack-yolov8'), form);
+  assert.equal(appendModelId(form, 'bayespfl-general-v1'), form);
+  assert.equal(appendProductName(form, '  capsule  '), form);
   appendModelId(form, '');
-  assert.deepEqual(fields, [['modelId', 'concrete-crack-yolov8']]);
+  appendProductName(form, '   ');
+  assert.deepEqual(fields, [
+    ['modelId', 'bayespfl-general-v1'],
+    ['productName', 'capsule'],
+  ]);
+});
+
+test('preprocessing labels follow the selected model profile', () => {
+  assert.equal(
+    preprocessingLabel({ preprocessingProfile: 'standard-color' }),
+    'preprocess: letterbox 640² · color',
+  );
+  assert.equal(
+    preprocessingLabel({ preprocessingProfile: 'steel-enhanced' }),
+    'preprocess: letterbox 640² · grayscale · CLAHE',
+  );
+  assert.equal(
+    preprocessingLabel({ preprocessingProfile: 'bayespfl-stretch' }),
+    'preprocess: stretch 518² · CLIP normalization',
+  );
 });
 
 test('model switch clears upload state and rejects a stale response', () => {
@@ -273,10 +295,10 @@ test('samples route cancels pending loads before changing the global model', () 
   assert.match(route, /cropped from source/);
 });
 
-test('dashboard quick upload is wired to the shared selected model', () => {
+test('dashboard quick upload is wired to the shared selected model and context', () => {
   const dashboard = readFileSync(new URL('../src/routes/index.jsx', import.meta.url), 'utf8');
   assert.match(dashboard, /<ModelSelector[\s\S]*value=\{selectedModelId\}/);
-  assert.match(dashboard, /runInspection\(file, selectedModelId\)/);
+  assert.match(dashboard, /runInspection\(file, selectedModelId, productName\)/);
 });
 
 test('inspect separates mode selection from the image file picker action', () => {
