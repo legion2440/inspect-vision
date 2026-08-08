@@ -48,7 +48,9 @@ class AvailableModelRecord(ModelRecord):
         "standard-color",
         "steel-enhanced",
         "anomalyclip-stretch",
+        "bayespfl-stretch",
     ]
+    requires_product_name: bool = False
     is_default: bool
     installed: bool
 
