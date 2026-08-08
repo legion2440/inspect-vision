@@ -14,6 +14,7 @@ from backend.utils.model_loader import (
     ModelNotInstalledError,
     ModelRegistry,
     ModelSpec,
+    ProductNameRequiredError,
     create_detector,
     model_is_installed,
 )
@@ -56,7 +57,7 @@ def preprocessing_config(spec: ModelSpec) -> InspectionPreprocessingConfig:
 
 
 class DetectionRuntimeManager:
-    """Resolve, lazy-load, and cache one DetectionService per registered model."""
+    """Resolve, lazy-load, and cache DetectionService instances per model context."""
 
     def __init__(
         self,
@@ -70,13 +71,13 @@ class DetectionRuntimeManager:
         self.models_directory = models_directory.resolve()
         self.device = device
         self._detector_factory = detector_factory
-        self._services: dict[str, DetectionService] = {}
+        self._services: dict[tuple[str, str | None], DetectionService] = {}
         self._cache_lock = threading.Lock()
 
     @property
     def cached_model_ids(self) -> tuple[str, ...]:
         with self._cache_lock:
-            return tuple(self._services)
+            return tuple(dict.fromkeys(model_id for model_id, _ in self._services))
 
     def registered_models(
         self,
@@ -93,7 +94,16 @@ class DetectionRuntimeManager:
             for spec in specs
         )
 
-    def _build_service(self, spec: ModelSpec) -> DetectionService:
+    @staticmethod
+    def _product_name_for(spec: ModelSpec, product_name: str | None) -> str | None:
+        if not spec.requires_product_name:
+            return None
+        normalized = (product_name or "").strip()
+        if not normalized:
+            raise ProductNameRequiredError("Product name is required for this detection model")
+        return normalized
+
+    def _build_service(self, spec: ModelSpec, product_name: str | None) -> DetectionService:
         try:
             detector = (
                 self._detector_factory(spec)
@@ -103,9 +113,12 @@ class DetectionRuntimeManager:
                     device=self.device,
                     models_directory=self.models_directory,
                     registry=self.registry,
+                    product_name=product_name,
                 )
             )
             detector.load()
+        except ProductNameRequiredError:
+            raise
         except (FileNotFoundError, ValueError) as error:
             command = f"python scripts/install_models.py --model {spec.model_id}"
             raise ModelNotInstalledError(
@@ -125,16 +138,29 @@ class DetectionRuntimeManager:
             quality_default_weight=spec.quality_default_weight,
         )
 
-    def get_service(self, model_id: str | None = None) -> DetectionService:
+    def get_service(
+        self,
+        model_id: str | None = None,
+        *,
+        product_name: str | None = None,
+    ) -> DetectionService:
         spec = self.registry.get(model_id)
+        normalized_product = self._product_name_for(spec, product_name)
+        cache_key = (spec.model_id, normalized_product)
         with self._cache_lock:
-            cached = self._services.get(spec.model_id)
+            cached = self._services.get(cache_key)
             if cached is not None:
                 return cached
-            service = self._build_service(spec)
-            self._services[spec.model_id] = service
+            service = self._build_service(spec, normalized_product)
+            self._services[cache_key] = service
             return service
 
-    def inspect(self, image: np.ndarray, model_id: str | None = None) -> InspectionResult:
+    def inspect(
+        self,
+        image: np.ndarray,
+        model_id: str | None = None,
+        *,
+        product_name: str | None = None,
+    ) -> InspectionResult:
         spec = self.registry.get_exposed(model_id)
-        return self.get_service(spec.model_id).inspect(image)
+        return self.get_service(spec.model_id, product_name=product_name).inspect(image)
