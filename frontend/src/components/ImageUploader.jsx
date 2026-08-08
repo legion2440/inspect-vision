@@ -3,13 +3,13 @@ import { Upload } from 'lucide-react';
 import Blueprint from './Blueprint.jsx';
 import { acceptAttr, validateImage } from '../utils/validateImage.js';
 
-/** Drag-and-drop + explicit file-picker button with client-side validation. */
-export default function ImageUploader({ onFile, compact = false, error }) {
+export default function ImageUploader({ onFile, compact = false, error, disabled = false }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(false);
   const [localError, setLocalError] = useState(null);
 
   const accept = (file) => {
+    if (disabled) return;
     const invalid = validateImage(file);
     setLocalError(invalid);
     if (!invalid) onFile(file);
@@ -19,11 +19,15 @@ export default function ImageUploader({ onFile, compact = false, error }) {
     <div>
       <Blueprint
         className={'qc-drop' + (dragging ? ' is-dragging' : '') + (compact ? ' is-compact' : '')}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!disabled) setDragging(true);
+        }}
         onDragLeave={() => setDragging(false)}
         onDrop={(e) => {
           e.preventDefault();
           setDragging(false);
+          if (disabled) return;
           const file = e.dataTransfer.files?.[0];
           if (file) accept(file);
         }}
@@ -38,6 +42,7 @@ export default function ImageUploader({ onFile, compact = false, error }) {
         <button
           type="button"
           className="btn btn-primary qc-choose-image"
+          disabled={disabled}
           onClick={() => inputRef.current?.click()}
         >
           <Upload size={16} strokeWidth={1.5} /> Choose image
@@ -47,6 +52,7 @@ export default function ImageUploader({ onFile, compact = false, error }) {
           ref={inputRef}
           type="file"
           accept={acceptAttr}
+          disabled={disabled}
           hidden
           onChange={(e) => {
             const file = e.target.files?.[0];
