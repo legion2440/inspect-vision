@@ -44,7 +44,6 @@ class DetectorStub:
         )
 
 
-
 class BackendOwnedDetectorStub(DetectorStub):
     geometry_ownership = GeometryOwnership.BACKEND
 
@@ -200,8 +199,8 @@ def test_runtime_applies_per_model_preprocessing_profiles() -> None:
     color_input = detectors["concrete-crack-yolov8"].received
     steel_input = detectors["neu-defect-yolov8"].received
     assert color_input is not None and steel_input is not None
-    assert not np.array_equal(color_input[[:, :], color_input[:, 2,])
-    np.testing.assert_array_equal(steel_input[:, 0,], steel_input[:, 2,])
+    assert not np.array_equal(color_input[:, :, 0], color_input[:, :, 2])
+    np.testing.assert_array_equal(steel_input[:, :, 0], steel_input[:, :, 2])
 
 
 def test_runtime_rejects_unknown_and_missing_models(tmp_path: Path) -> None:
