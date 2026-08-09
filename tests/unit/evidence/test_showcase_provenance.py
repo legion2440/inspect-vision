@@ -3,49 +3,54 @@ from __future__ import annotations
 import copy
 import json
 
-from scripts.validate_showcase_samples import (
-    MANIFEST_PATH,
-    _defectdet_source_records,
-    _hu_source_records,
-    _plos_source_records,
-    _validate_source_record,
-)
+import scripts.validate_showcase_samples as showcase_validator
 
 
-def _manifest_samples() -> list[dict[str, object]]:
-    with MANIFEST_PATH.open(encoding="utf-8") as manifest_file:
-        return json.load(manifest_file)["samples"]
+def _manifest_payload() -> dict[str, object]:
+    with showcase_validator.MANIFEST_PATH.open(encoding="utf-8") as manifest_file:
+        return json.load(manifest_file)
 
 
-def test_selected_labels_are_reconstructed_from_source_metadata() -> None:
-    errors: list[str] = []
-    defectdet_records = _defectdet_source_records(errors)
-    hu_records = _hu_source_records(errors)
-    plos_records = _plos_source_records(errors)
-
-    assert errors == []
-    for sample in _manifest_samples():
-        assert (
-            _validate_source_record(sample, defectdet_records, hu_records, plos_records)
-            is None
-        )
+def test_current_mvtec_showcase_provenance_is_valid() -> None:
+    assert showcase_validator.validate_showcase_samples() == []
 
 
-def test_manifest_only_label_claim_is_rejected() -> None:
-    errors: list[str] = []
-    defectdet_records = _defectdet_source_records(errors)
-    hu_records = _hu_source_records(errors)
-    plos_records = _plos_source_records(errors)
-    sample = copy.deepcopy(_manifest_samples()[0])
-    sample["sourceLabels"] = ["missing pad"]
-
-    mismatch = _validate_source_record(
-        sample,
-        defectdet_records,
-        hu_records,
-        plos_records,
+def test_unpinned_mvtec_revision_is_rejected(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    manifest = copy.deepcopy(_manifest_payload())
+    manifest["datasets"][0]["sourceRevision"] = "0" * 40
+    manifest_path = tmp_path / "showcase-samples.json"
+    manifest_path.write_text(
+        json.dumps(manifest),
+        encoding="utf-8",
+        newline="\n",
     )
+    monkeypatch.setattr(showcase_validator, "MANIFEST_PATH", manifest_path)
 
-    assert errors == []
-    assert mismatch is not None
-    assert "sourceLabels differs from source metadata" in mismatch
+    errors = showcase_validator.validate_showcase_samples()
+
+    assert "MVTec AD showcase provenance is incomplete or changed" in errors
+
+
+def test_sample_asset_must_match_pinned_source_path(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    manifest = copy.deepcopy(_manifest_payload())
+    manifest["samples"][0]["assetUrl"] = (
+        "https://huggingface.co/datasets/jiang-cc/MMAD/resolve/"
+        f"{showcase_validator.EXPECTED_REVISION}/MVTec-AD/bottle/test/broken_large/999.png"
+    )
+    manifest_path = tmp_path / "showcase-samples.json"
+    manifest_path.write_text(
+        json.dumps(manifest),
+        encoding="utf-8",
+        newline="\n",
+    )
+    monkeypatch.setattr(showcase_validator, "MANIFEST_PATH", manifest_path)
+
+    errors = showcase_validator.validate_showcase_samples()
+
+    assert any("asset URL/source path mismatch" in error for error in errors)
