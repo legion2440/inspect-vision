@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from backend.detection.device import select_device
+
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
 
 
 class CudaMock:
@@ -101,3 +106,12 @@ def test_unavailable_cuda_index_is_rejected() -> None:
 def test_unsupported_device_is_rejected() -> None:
     with pytest.raises(ValueError, match="Unsupported"):
         select_device("gpu", torch_module=TorchMock(False))
+
+
+def test_shared_requirements_do_not_force_cpu_only_pytorch() -> None:
+    requirements = (REPOSITORY_ROOT / "requirements-detection.txt").read_text(encoding="utf-8")
+
+    assert "torch==2.12.1\n" in requirements
+    assert "torchvision==0.27.1\n" in requirements
+    assert "+cpu" not in requirements
+    assert "download.pytorch.org/whl/cpu" not in requirements
