@@ -181,28 +181,26 @@ test('history model label uses display name and preserves retired-model fallback
   assert.equal(modelLabel({}), 'Unknown model');
 });
 
-test('showcase manifest produces three cards for each registered model domain', () => {
+test('showcase manifest produces four MVTec good/bad pairs for Bayes-PFL', () => {
   const manifest = JSON.parse(readFileSync(
     new URL('../../backend/samples/showcase-samples.json', import.meta.url),
     'utf8',
   ));
   const groups = groupSamplesByDomain(manifest.samples);
 
-  assert.equal(manifest.samples.length, 9);
-  assert.deepEqual([...groups.values()].map((samples) => samples.length), [3, 3, 3]);
+  assert.equal(manifest.datasets.length, 1);
+  assert.equal(manifest.datasets[0].id, 'mvtec-ad');
+  assert.equal(manifest.samples.length, 8);
+  assert.deepEqual([...groups.values()].map((samples) => samples.length), [2, 2, 2, 2]);
+  assert.deepEqual([...groups.keys()], ['Bottle', 'Capsule', 'Screw', 'Metal nut']);
   assert.deepEqual(
     [...new Set(manifest.samples.map((sample) => sample.recommendedModelId))],
-    ['factory-defect-guard-v6-mc', 'neu-defect-yolov8', 'concrete-crack-yolov8'],
+    ['bayespfl-general-v1'],
   );
-  const gkn = manifest.datasets.find((dataset) => dataset.id === 'gkn-blade-v1');
-  assert.ok(gkn.sourceLabelVocabulary.includes('Nick'));
-  assert.equal(manifest.samples.some((sample) => sample.sourceLabels.includes('Nick')), false);
-  assert.deepEqual(
-    manifest.samples
-      .filter((sample) => sample.recommendedModelId === 'neu-defect-yolov8')
-      .flatMap((sample) => sample.sourceLabels),
-    ['Good', 'inclusion', 'Scratch'],
-  );
+  for (const samples of groups.values()) {
+    assert.deepEqual(new Set(samples.map((sample) => sample.condition)), new Set(['good', 'bad']));
+  }
+  assert.equal(manifest.samples.some((sample) => /pcb/i.test(sample.domain)), false);
 });
 
 test('showcase reports an unavailable recommended model without substituting another', () => {
@@ -287,12 +285,15 @@ test('sample model switch aborts image loading before stale inference can start'
   assert.equal(navigationCalls, 0);
 });
 
-test('samples route cancels pending loads before changing the global model', () => {
+test('samples route cancels pending loads and preserves explicit model selection', () => {
   const route = readFileSync(new URL('../src/routes/samples.jsx', import.meta.url), 'utf8');
   assert.match(route, /sampleRequestRef\.current\?\.abort\(\)/);
   assert.match(route, /onChange=\{handleModelChange\}/);
-  assert.match(route, /downscaled from source/);
-  assert.match(route, /cropped from source/);
+  assert.match(route, /const sampleProductName = sample\.productName \|\| productName/);
+  assert.match(route, /if \(sample\.productName\) setProductName\(sample\.productName\)/);
+  assert.match(route, /selectedModelId,/);
+  assert.doesNotMatch(route, /selectModel\(sample\.recommendedModelId\)/);
+  assert.match(route, /Pinned source: \{sample\.sourcePath\}/);
 });
 
 test('dashboard quick upload is wired to the shared selected model and context', () => {
