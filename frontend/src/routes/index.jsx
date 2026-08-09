@@ -73,7 +73,9 @@ function Dashboard() {
 
       <div className="qc-row qc-row-dash">
         <section>
-          <h6 className="qc-sectionhead">Quick upload</h6>
+          <div className="qc-sectionrow qc-dash-sectionhead">
+            <h6>Quick upload</h6>
+          </div>
           <ModelSelector
             models={models}
             value={selectedModelId}
@@ -90,7 +92,7 @@ function Dashboard() {
           />
         </section>
         <section>
-          <div className="qc-sectionrow">
+          <div className="qc-sectionrow qc-dash-sectionhead">
             <h6>Recent inspections</h6>
             <Link to="/history" className="btn btn-ghost">View all</Link>
           </div>

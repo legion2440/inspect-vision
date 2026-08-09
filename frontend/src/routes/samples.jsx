@@ -161,65 +161,74 @@ function Samples() {
       {!productReady && <p className="qc-mono text-muted">Choose a category above or click a sample to use that sample&apos;s category.</p>}
 
       <div className="qc-sample-grid qc-sample-catalog-grid">
-        {[...groups.entries()].map(([domain, samples]) => (
-          <section className="qc-sample-domain" aria-label={domain} key={domain}>
-            {samples.map((sample) => {
-              const dataset = datasets.get(sample.datasetId);
-              const recommended = recommendedModelFor(sample, models);
-              const recommendedAvailable = Boolean(recommended?.installed);
-              const busy = busySampleId === sample.id;
-              const canInspect = Boolean(selectedModelId) && (
-                !selectedModel?.requiresProductName || Boolean(sample.productName || productName.trim())
-              );
-              const sourceReference = sample.sourcePath || sample.sourceFile || sample.sourceReference || sample.filename;
-              return (
-                <article className="card qc-sample-card" key={sample.id}>
-                  <div className="qc-sample-image-wrap">
-                    <img
-                      src={api.sampleImageUrl(sample)}
-                      alt={`${domain}: ${sample.sourceLabels.join(', ')}`}
-                      className="qc-sample-image"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="qc-sample-copy">
-                    <span className="card-kicker">{dataset?.name || sample.datasetId}</span>
-                    <h3>{sampleCardTitle(sample, domain)}</h3>
-                    <div className="qc-tags">
-                      {sample.productName && <span className="tag tag-neutral">{sample.productName}</span>}
-                      {sample.sourceLabels.map((label) => (
-                        <span className="tag tag-neutral" key={label}>{label}</span>
-                      ))}
+        {[...groups.entries()].map(([domain, samples]) => {
+          const specialist = samples.every(
+            (sample) => sample.recommendedModelId !== 'bayespfl-general-v1',
+          );
+          return (
+            <section
+              className={`qc-sample-domain${specialist ? ' is-specialist' : ''}`}
+              aria-label={domain}
+              key={domain}
+            >
+              {samples.map((sample) => {
+                const dataset = datasets.get(sample.datasetId);
+                const recommended = recommendedModelFor(sample, models);
+                const recommendedAvailable = Boolean(recommended?.installed);
+                const busy = busySampleId === sample.id;
+                const canInspect = Boolean(selectedModelId) && (
+                  !selectedModel?.requiresProductName || Boolean(sample.productName || productName.trim())
+                );
+                const sourceReference = sample.sourcePath || sample.sourceFile || sample.sourceReference || sample.filename;
+                return (
+                  <article className="card qc-sample-card" key={sample.id}>
+                    <div className="qc-sample-image-wrap">
+                      <img
+                        src={api.sampleImageUrl(sample)}
+                        alt={`${domain}: ${sample.sourceLabels.join(', ')}`}
+                        className="qc-sample-image"
+                        loading="lazy"
+                      />
                     </div>
-                    <p className="card-body">
-                      Suggested model: <strong>{recommended?.displayName || sample.recommendedModelId}</strong>
-                      {!recommendedAvailable && ' — Not installed'}
-                    </p>
-                    <p className="qc-mono text-muted">Pinned source: {sourceReference}</p>
-                    <div className="qc-sample-actions">
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        disabled={busy || !canInspect}
-                        onClick={() => inspectSample(sample)}
-                      >
-                        {busy ? 'Inspecting…' : 'Inspect sample'} <ArrowRight size={15} />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        disabled={!recommendedAvailable || selectedModelId === sample.recommendedModelId}
-                        onClick={() => handleModelChange(sample.recommendedModelId)}
-                      >
-                        Use suggested model
-                      </button>
+                    <div className="qc-sample-copy">
+                      <span className="card-kicker">{dataset?.name || sample.datasetId}</span>
+                      <h3>{sampleCardTitle(sample, domain)}</h3>
+                      <div className="qc-tags">
+                        {sample.productName && <span className="tag tag-neutral">{sample.productName}</span>}
+                        {sample.sourceLabels.map((label) => (
+                          <span className="tag tag-neutral" key={label}>{label}</span>
+                        ))}
+                      </div>
+                      <p className="card-body">
+                        Suggested model: <strong>{recommended?.displayName || sample.recommendedModelId}</strong>
+                        {!recommendedAvailable && ' — Not installed'}
+                      </p>
+                      <p className="qc-mono text-muted">Pinned source: {sourceReference}</p>
+                      <div className="qc-sample-actions">
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          disabled={busy || !canInspect}
+                          onClick={() => inspectSample(sample)}
+                        >
+                          {busy ? 'Inspecting…' : 'Inspect sample'} <ArrowRight size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          disabled={!recommendedAvailable || selectedModelId === sample.recommendedModelId}
+                          onClick={() => handleModelChange(sample.recommendedModelId)}
+                        >
+                          Use suggested model
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </section>
-        ))}
+                  </article>
+                );
+              })}
+            </section>
+          );
+        })}
       </div>
 
       {!loading && (

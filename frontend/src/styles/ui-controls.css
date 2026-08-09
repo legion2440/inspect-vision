@@ -8,6 +8,12 @@
   border-color: var(--color-divider);
 }
 
+/* Dashboard columns use the same header row height so framed content starts level. */
+.qc-dash-sectionhead {
+  min-height: 36px;
+  margin-bottom: var(--space-3);
+}
+
 .qc-combobox { position: relative; }
 .qc-combobox-inputrow { position: relative; }
 .qc-combobox-input { padding-right: 34px; }
@@ -58,9 +64,19 @@
 .qc-combobox-option[aria-selected='true'] { box-shadow: inset 3px 0 0 var(--color-accent); }
 .qc-combobox-empty { padding: var(--space-3); }
 
-/* Domain sections remain semantic in the DOM while their cards share one visual grid. */
+/* General domains flow continuously; each specialist domain starts a fresh full row. */
 .qc-sample-catalog-grid { margin-bottom: var(--space-8); }
-.qc-sample-catalog-grid > .qc-sample-domain { display: contents; }
+.qc-sample-catalog-grid > .qc-sample-domain:not(.is-specialist) { display: contents; }
+.qc-sample-catalog-grid > .qc-sample-domain.is-specialist {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin-bottom: 0;
+}
+.qc-sample-card {
+  height: 100%;
+}
 .qc-sample-image-wrap {
   aspect-ratio: 1 / 1;
   height: auto;
@@ -74,8 +90,20 @@
   max-height: 100%;
   object-fit: contain;
 }
-.qc-sample-copy { min-height: 240px; }
+.qc-sample-copy {
+  min-height: 240px;
+  flex: 1;
+}
+.qc-sample-copy .card-body { margin-top: 0; }
+.qc-sample-actions { margin-top: auto; }
+
+@media (max-width: 1080px) {
+  .qc-sample-catalog-grid > .qc-sample-domain.is-specialist {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 720px) {
+  .qc-sample-catalog-grid > .qc-sample-domain.is-specialist { grid-template-columns: 1fr; }
   .qc-combobox-option { align-items: flex-start; flex-direction: column; gap: 2px; }
 }
