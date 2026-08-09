@@ -167,6 +167,8 @@ class BayesPflBackend(DetectorBackend):
     def _torch_device(self) -> str:
         if self.device.kind == "cuda":
             return f"cuda:{self.device.torch_device}"
+        if self.device.kind == "mps":
+            return "mps"
         return "cpu"
 
     def _args(self) -> SimpleNamespace:
@@ -189,9 +191,29 @@ class BayesPflBackend(DetectorBackend):
         old = "out_attn = torch.zeros([H, H]).to('cuda')"
         new = "out_attn = torch.zeros([H, H], device=x.device)"
         if old not in source:
-            raise RuntimeError("Pinned Bayes-PFL CUDA compatibility point changed upstream")
+            raise RuntimeError("Pinned Bayes-PFL transformer device compatibility point changed upstream")
         source = source.replace(old, new, 1)
         module = ModuleType("models.transformer")
+        module.__file__ = str(path)
+        module.__package__ = "models"
+        sys.modules[module.__name__] = module
+        exec(compile(source, str(path), "exec"), module.__dict__)
+        return module
+
+    def _load_patched_pfl(self) -> ModuleType:
+        path = self.source_dir / "models/PFL.py"
+        source = path.read_text(encoding="utf-8")
+        old = (
+            "        if self.is_cuda:\n"
+            "            self.log_det_j = torch.zeros([x.shape[0]]).cuda()\n"
+            "        else:\n"
+            "            self.log_det_j = torch.zeros([x.shape[0]])"
+        )
+        new = "        self.log_det_j = torch.zeros([x.shape[0]], device=x.device)"
+        if source.count(old) != 2:
+            raise RuntimeError("Pinned Bayes-PFL flow device compatibility points changed upstream")
+        source = source.replace(old, new)
+        module = ModuleType("models.PFL")
         module.__file__ = str(path)
         module.__package__ = "models"
         sys.modules[module.__name__] = module
@@ -229,6 +251,7 @@ class BayesPflBackend(DetectorBackend):
                 sys.path.insert(0, source)
                 inserted_path = True
             self._load_patched_transformer()
+            self._load_patched_pfl()
             # Upstream SimpleTokenizer resolves its vocabulary from ./models at import time.
             os.chdir(self.source_dir)
             vp_module = importlib.import_module("models.VPB")
