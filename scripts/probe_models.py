@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import torch
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -205,8 +206,16 @@ def main() -> int:
     args = _parse_args()
     if str(REPOSITORY_ROOT) not in sys.path:
         sys.path.insert(0, str(REPOSITORY_ROOT))
+    from backend.detection.device import select_device
     from backend.detection.runtime import DetectionRuntimeManager
     from backend.utils.model_loader import ModelRegistry
+
+    device_info = select_device(args.device, torch_module=torch)
+    resolved_device = (
+        f"cuda:{device_info.torch_device}"
+        if device_info.kind == "cuda"
+        else device_info.torch_device
+    )
 
     registry = ModelRegistry(args.manifest)
     sample_manifest = _load_json(args.samples)
@@ -231,9 +240,15 @@ def main() -> int:
         "sourceFiles": _source_hashes(),
         "runtime": {
             "python": platform.python_version(),
+            "torch": torch.__version__,
+            "torchCuda": torch.version.cuda,
             "ultralytics": importlib.metadata.version("ultralytics"),
             "opencv": cv2.__version__,
-            "device": args.device,
+            "requestedDevice": args.device,
+            "device": resolved_device,
+            "deviceKind": device_info.kind,
+            "deviceName": device_info.name,
+            "deviceBackend": device_info.backend,
         },
         "defaultModelId": registry.default_model_id,
         "accuracyClaim": False,
@@ -246,7 +261,10 @@ def main() -> int:
         encoding="utf-8",
         newline="\n",
     )
-    print(f"[OK] Qualified {len(models)} exposed models through production service: {args.output}")
+    print(
+        f"[OK] Qualified {len(models)} exposed models through production service "
+        f"on {resolved_device} ({device_info.name}): {args.output}"
+    )
     return 0
 
 
