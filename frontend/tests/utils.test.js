@@ -181,40 +181,33 @@ test('history model label uses display name and preserves retired-model fallback
   assert.equal(modelLabel({}), 'Unknown model');
 });
 
-test('showcase manifest keeps four Bayes pairs and restores both specialists', () => {
+test('demo manifest contains twelve tracked local VisA images', () => {
   const manifest = JSON.parse(readFileSync(
-    new URL('../../backend/samples/showcase-samples.json', import.meta.url),
+    new URL('../../backend/samples/demo-samples.json', import.meta.url),
     'utf8',
   ));
-  const groups = groupSamplesByDomain(manifest.samples);
+  const products = {
+    candle: 'Candle',
+    capsules: 'Capsules',
+    cashew: 'Cashew',
+    chewinggum: 'Chewing gum',
+  };
+  const samples = manifest.files.map((sample) => ({
+    domain: products[sample.sourceGroundTruth.category],
+    condition: sample.sourceGroundTruth.label === 'normal' ? 'good' : 'bad',
+  }));
+  const groups = groupSamplesByDomain(samples);
 
-  assert.equal(manifest.datasets.length, 4);
-  assert.equal(manifest.samples.length, 14);
-  assert.deepEqual([...groups.keys()], [
-    'Bottle',
-    'Capsule',
-    'Screw',
-    'Metal nut',
-    'Steel Surface',
-    'Concrete & Structural Cracks',
-  ]);
-  assert.deepEqual([...groups.values()].map((samples) => samples.length), [2, 2, 2, 2, 3, 3]);
-  assert.deepEqual(
-    new Set(manifest.samples.map((sample) => sample.recommendedModelId)),
-    new Set(['bayespfl-general-v1', 'neu-defect-yolov8', 'concrete-crack-yolov8']),
-  );
-  for (const productName of ['Bottle', 'Capsule', 'Screw', 'Metal nut']) {
-    const samples = manifest.samples.filter((sample) => sample.productName === productName);
-    assert.deepEqual(new Set(samples.map((sample) => sample.condition)), new Set(['good', 'bad']));
+  assert.equal(manifest.dataset.id, 'visa');
+  assert.equal(manifest.selection.sampleCount, 12);
+  assert.equal(manifest.files.length, 12);
+  assert.deepEqual([...groups.keys()], ['Candle', 'Capsules', 'Cashew', 'Chewing gum']);
+  assert.deepEqual([...groups.values()].map((items) => items.length), [3, 3, 3, 3]);
+  for (const items of groups.values()) {
+    assert.equal(items.filter((sample) => sample.condition === 'good').length, 1);
+    assert.equal(items.filter((sample) => sample.condition === 'bad').length, 2);
   }
-  const screwGood = manifest.samples.find(
-    (sample) => sample.productName === 'Screw' && sample.condition === 'good',
-  );
-  assert.equal(screwGood.id, 'mvtec-screw-good-001');
-  assert.equal(screwGood.sourcePath, 'MVTec-AD/screw/test/good/001.png');
-  assert.equal(screwGood.sha256, '983a27fcea10ce8eafeebac3db0899e5fb6ad84338a6cabc5746ee96d2865daa');
-  assert.equal(manifest.samples.some((sample) => /screw\/test\/good\/000\.png/.test(sample.sourcePath || '')), false);
-  assert.equal(manifest.samples.some((sample) => /pcb/i.test(sample.domain)), false);
+  assert.ok(manifest.files.every((sample) => sample.path.startsWith('backend/samples/demo/')));
 });
 
 test('showcase reports an unavailable recommended model without substituting another', () => {
@@ -307,6 +300,7 @@ test('samples route cancels pending loads and preserves explicit model selection
   assert.match(route, /if \(sample\.productName\) setProductName\(sample\.productName\)/);
   assert.match(route, /selectedModelId,/);
   assert.doesNotMatch(route, /selectModel\(sample\.recommendedModelId\)/);
+  assert.match(route, /Twelve local VisA demo images/);
   assert.match(route, /Suggested model:/);
   assert.match(route, /Use suggested model/);
   assert.doesNotMatch(route, /qc-sample-grid-pairs/);
