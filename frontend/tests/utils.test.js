@@ -19,7 +19,7 @@ import {
 import { scoreOf, severityScore } from '../src/utils/severity.js';
 import {
   groupSamplesByDomain,
-  inspectShowcaseSample,
+  inspectSample,
   recommendedModelFor,
 } from '../src/utils/samples.js';
 
@@ -210,7 +210,7 @@ test('demo manifest contains twelve tracked local VisA images', () => {
   assert.ok(manifest.files.every((sample) => sample.path.startsWith('backend/samples/demo/')));
 });
 
-test('showcase reports an unavailable recommended model without substituting another', () => {
+test('sample reports an unavailable recommended model without substituting another', () => {
   const sample = { recommendedModelId: 'concrete-crack-yolov8' };
   const models = [
     { id: 'factory-defect-guard-v6-mc', installed: true },
@@ -235,7 +235,7 @@ test('inspect sample uses the current global model selection and navigates after
     recommendedModelId: 'concrete-crack-yolov8',
   };
 
-  const record = await inspectShowcaseSample({
+  const record = await inspectSample({
     sample,
     selectedModelId: 'neu-defect-yolov8',
     loadSample: async () => ({ type: 'image/jpeg', bytes: 'source' }),
@@ -266,7 +266,7 @@ test('sample model switch aborts image loading before stale inference can start'
     }
   }
 
-  const pending = inspectShowcaseSample({
+  const pending = inspectSample({
     sample: { id: 'steel-demo', filename: 'steel.jpg', mediaType: 'image/jpeg' },
     selectedModelId: 'neu-defect-yolov8',
     loadSample: async (_sample, options) => {
