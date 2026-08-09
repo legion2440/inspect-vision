@@ -17,9 +17,39 @@ environment-owned.
 | `INSPECT_VISION_CORS_ORIGINS` | yes | Comma-separated exact frontend origins |
 | `INSPECT_VISION_MAX_UPLOAD_BYTES` | yes | Positive upload limit capped at 10485760 bytes |
 | `INSPECT_VISION_MODELS_DIR` | yes | Directory containing untracked model artifacts |
-| `INSPECT_VISION_MODEL_DEVICE` | yes | Exactly `auto`, `cpu`, `cuda`, or `cuda:N` |
+| `INSPECT_VISION_MODEL_DEVICE` | yes | `auto`, `cpu`, `cuda`, `cuda:N`, or `mps` |
 | `INSPECT_VISION_DATABASE_PATH` | yes | SQLite database path |
 | `INSPECT_VISION_MEDIA_DIR` | yes | Original and annotated image directory |
+
+`INSPECT_VISION_MODEL_DEVICE=auto` is the portable default. Runtime selection is
+ordered as CUDA first, Apple MPS second, and CPU last. An explicit `cuda`,
+`cuda:N`, or `mps` request fails clearly when that accelerator is unavailable;
+`cpu` always forces CPU execution.
+
+The PyTorch build is a separate installation choice from runtime selection.
+`requirements-detection.txt` pins `torch==2.12.1` and `torchvision==0.27.1`
+without forcing a `+cpu` wheel. Install the desired official PyTorch build first,
+then install `requirements-api.txt`; the matching pinned version is preserved.
+
+For PyTorch 2.12.1 the project documents these platform paths:
+
+```bash
+# Windows/Linux with NVIDIA CUDA 12.6
+python -m pip install torch==2.12.1 torchvision==0.27.1 \
+  --index-url https://download.pytorch.org/whl/cu126
+
+# Windows/Linux CPU only
+python -m pip install torch==2.12.1 torchvision==0.27.1 \
+  --index-url https://download.pytorch.org/whl/cpu
+
+# macOS, including Apple Silicon; the standard wheel exposes MPS when available
+python -m pip install torch==2.12.1 torchvision==0.27.1
+```
+
+On Apple Silicon, `auto` selects MPS when `torch.backends.mps.is_available()` is
+true and otherwise falls back to CPU. PyTorch also supports
+`PYTORCH_ENABLE_MPS_FALLBACK=1` when an operation has no MPS implementation; this
+moves unsupported operations to CPU at a performance cost.
 
 ## Registry and selection lifecycle
 
@@ -60,6 +90,15 @@ hidden model IDs return HTTP 404. Missing/invalid exposed artifacts return HTTP
 
 ## Installation
 
+After the platform-specific PyTorch command above, install the remaining backend
+packages:
+
+```bash
+python -m pip install -r requirements-api.txt
+```
+
+Then install model artifacts as needed:
+
 ```bash
 # default Bayes-PFL + CLIP + pinned runtime source
 .venv/Scripts/python.exe scripts/install_models.py
@@ -86,6 +125,11 @@ Bayes-PFL uses backend-owned geometry: RGB conversion, bicubic `518x518` stretch
 CLIP normalization, features `6/12/18/24`, 10 flows, prompt context length 5,
 three prompt samples, prompt state length 5, ten stochastic samples, seed 333,
 and Gaussian sigma `8`.
+
+The tracked Bayes-PFL source remains byte-exact. Small device-allocation defects
+in the pinned upstream transformer and PFL flow code are adapted only in memory
+so CPU, CUDA, indexed CUDA, and MPS use the active tensor device without rewriting
+the upstream files.
 
 Application Bayes postprocessing remains:
 
