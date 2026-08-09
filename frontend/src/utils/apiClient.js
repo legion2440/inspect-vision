@@ -4,12 +4,23 @@ import { appendModelId, appendProductName } from './models.js';
 const BASE = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
 const USE_MOCK = String(import.meta.env.VITE_USE_MOCK ?? 'false').trim().toLowerCase() === 'true';
 
+function errorMessage(body, fallback) {
+  const detail = body?.detail ?? body?.message;
+  if (typeof detail === 'string' && detail) return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => (typeof item?.msg === 'string' ? item.msg : ''))
+      .filter(Boolean);
+    if (messages.length) return messages.join('; ');
+  }
+  return fallback;
+}
+
 async function unwrap(res) {
   if (!res.ok) {
     let message = 'Request failed (' + res.status + ')';
     try {
-      const body = await res.json();
-      message = body.detail || body.message || message;
+      message = errorMessage(await res.json(), message);
     } catch (err) {
       /* non-JSON error body — keep the status message */
     }
@@ -22,8 +33,7 @@ async function unwrapBlob(res) {
   if (!res.ok) {
     let message = 'Request failed (' + res.status + ')';
     try {
-      const body = await res.json();
-      message = body.detail || body.message || message;
+      message = errorMessage(await res.json(), message);
     } catch (err) {
       /* non-JSON error body — keep the status message */
     }
