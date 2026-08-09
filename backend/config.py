@@ -44,11 +44,11 @@ class Settings(BaseSettings):
     @classmethod
     def valid_model_device(cls, value: str) -> str:
         normalized = value.strip().lower()
-        if normalized in {"auto", "cpu", "cuda"}:
+        if normalized in {"auto", "cpu", "cuda", "mps"}:
             return normalized
         if normalized.startswith("cuda:") and normalized[5:].isdigit():
             return normalized
-        raise ValueError("model_device must be auto, cpu, cuda, or cuda:N")
+        raise ValueError("model_device must be auto, cpu, cuda, mps, or cuda:N")
 
     @model_validator(mode="after")
     def resolve_runtime_paths(self) -> Settings:
