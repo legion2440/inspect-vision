@@ -15,13 +15,14 @@
     "the operator showcase is defined as four MVTec AD good/bad pairs for bottle, capsule, screw, and metal nut from a pinned mirror revision",
     "the rejected legacy general YOLO no longer contributes classes to the user-visible model registry or history filter",
     "the model installer provides a manual artifact fallback with source, destination, expected size, SHA-256, and retry command when a download fails",
+    "runtime auto device selection prefers CUDA, then Apple MPS, then CPU, while shared dependency pins no longer force a CPU-only PyTorch build",
     "historical runtime bundles remain immutable and are validated against their recorded source snapshots rather than rewritten to current source"
   ],
   "known_limitations": [
     {
       "id": "runtime-requalification-pending",
       "area": "verification-evidence",
-      "detail": "The latest retained CPU runtime record predates the current model-exposure, category-validation, selection-metadata, and probe-contract changes. It remains historical evidence until a fresh production-service probe is run and committed."
+      "detail": "The latest retained CPU runtime record predates the current model-exposure, category-validation, selection-metadata, device-selection, Bayes device-compatibility, and probe-contract changes. It remains historical evidence until a fresh production-service probe is run and committed."
     },
     {
       "id": "showcase-network-source",
