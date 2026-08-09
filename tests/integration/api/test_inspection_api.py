@@ -18,8 +18,8 @@ _SPEC.loader.exec_module(_CASES)
 
 # Route/storage cases use the installed steel specialist as their ordinary model
 # so they stay focused on HTTP, persistence, filtering, and cleanup semantics.
-# Dedicated tests below exercise the guided Bayes-PFL default and current mixed
-# showcase contract.
+# Dedicated tests below exercise the guided Bayes-PFL default and local demo
+# sample contract.
 _ORIGINAL_FAKE_INSPECT = _CASES.FakeDetectionRuntime.inspect
 
 
@@ -228,54 +228,40 @@ def test_models_endpoint_exposes_current_registry_entries(api_factory) -> None:
     assert models[2]["installed"] is False
 
 
-def test_samples_endpoint_exposes_bayes_pairs_and_specialists(api_factory) -> None:
+def test_samples_endpoint_exposes_local_demo_catalog(api_factory) -> None:
     client = api_factory()
 
     response = client.get("/api/samples")
 
     assert response.status_code == 200
     body = response.json()
-    assert body["notice"] == "Source labels describe dataset metadata, not model predictions."
-    assert {dataset["id"] for dataset in body["datasets"]} == {
-        "mvtec-ad",
-        "gkn-blade-v1",
-        "plos-neu-steel-figure-v1",
-        "hu-infrastructure-cracks-v1",
-    }
-    assert len(body["samples"]) == 14
+    assert body["notice"] == "Source labels describe VisA dataset ground truth, not model predictions."
+    assert len(body["datasets"]) == 1
+    assert body["datasets"][0]["id"] == "visa"
+    assert len(body["samples"]) == 12
     assert "base64" not in response.text.casefold()
     assert {sample["recommendedModelId"] for sample in body["samples"]} == {
-        "bayespfl-general-v1",
-        "neu-defect-yolov8",
-        "concrete-crack-yolov8",
+        "bayespfl-general-v1"
     }
     assert {sample["productName"] for sample in body["samples"]} == {
-        "Bottle",
-        "Capsule",
-        "Screw",
-        "Metal nut",
-        "Steel surface",
-        "Concrete surface",
+        "Candle",
+        "Capsules",
+        "Cashew",
+        "Chewing gum",
     }
-    for product_name in ("Bottle", "Capsule", "Screw", "Metal nut"):
-        conditions = {
+    for product_name in ("Candle", "Capsules", "Cashew", "Chewing gum"):
+        conditions = [
             sample["condition"]
             for sample in body["samples"]
             if sample["productName"] == product_name
-        }
-        assert conditions == {"good", "bad"}
-    screw_good = next(
-        sample for sample in body["samples"]
-        if sample["productName"] == "Screw" and sample["condition"] == "good"
-    )
-    assert screw_good["id"] == "mvtec-screw-good-001"
-    assert screw_good["sourcePath"] == "MVTec-AD/screw/test/good/001.png"
-    assert screw_good["sha256"] == "983a27fcea10ce8eafeebac3db0899e5fb6ad84338a6cabc5746ee96d2865daa"
+        ]
+        assert conditions.count("good") == 1
+        assert conditions.count("bad") == 2
     assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
     assert all("assetUrl" not in sample for sample in body["samples"])
 
 
-def test_sample_image_is_served_by_current_manifest_id(api_factory) -> None:
+def test_sample_image_is_served_from_tracked_demo_file(api_factory) -> None:
     client = api_factory()
     sample = client.get("/api/samples").json()["samples"][0]
 
@@ -283,22 +269,23 @@ def test_sample_image_is_served_by_current_manifest_id(api_factory) -> None:
 
     assert response.status_code == 200
     assert response.headers["content-type"] == sample["mediaType"]
-    assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
-    assert 8 < len(response.content) <= 10 * 1024 * 1024
+    assert response.content.startswith(b"\xff\xd8")
+    assert 2 < len(response.content) <= 10 * 1024 * 1024
 
 
-def test_verified_screw_good_image_matches_recorded_hash(api_factory) -> None:
+def test_tracked_demo_image_matches_recorded_hash(api_factory) -> None:
     client = api_factory()
     sample = next(
         item for item in client.get("/api/samples").json()["samples"]
-        if item["id"] == "mvtec-screw-good-001"
+        if item["id"] == "visa-candle-normal-0000"
     )
 
     response = client.get(sample["imageUrl"])
 
     assert response.status_code == 200
-    assert len(response.content) == 393132
+    assert len(response.content) == 113963
     assert hashlib.sha256(response.content).hexdigest() == sample["sha256"]
+    assert sample["sha256"] == "223a16caac5a91232f7c52552dea5c7c7f096ef882e626c5908b4539a43dc131"
 
 
 def test_guided_default_stream_does_not_persist(api_factory) -> None:
