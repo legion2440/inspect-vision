@@ -3,7 +3,7 @@
   "recorded_at": "2026-08-09",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "operator-showcase-ui-correction-pending-validation",
+  "state": "operator-showcase-ui-correction-validated",
   "verified": [
     "the model manifest keeps bayespfl-general-v1 as the default and exposes only Bayes-PFL plus the steel and concrete specialists",
     "factory-defect-guard-v6-mc remains registered for historical reproducibility but is hidden after its general-model rejection",
@@ -14,6 +14,7 @@
     "Dashboard, Inspect, live stream, and Samples share model/category state without automatically switching the selected model",
     "the shared product/category control is an editable combobox that keeps custom input while exposing curated values across Dashboard, Inspect, and Samples",
     "the operator showcase keeps four checked Bayes-PFL MVTec AD good/bad pairs, uses screw/test/good/001.png for the verified Screw good case, and restores three steel plus three concrete specialist examples",
+    "the canonical complete repository validation passed after the operator combobox, Inspect caption, and mixed showcase update at commit b5833bb0db81d3e0ca50d4d7759d3d55b08f46bd",
     "the rejected legacy general YOLO no longer contributes classes to the user-visible model registry or history filter",
     "the model installer provides a manual artifact fallback with source, destination, expected size, SHA-256, and retry command when a download fails",
     "runtime auto device selection prefers CUDA, then Apple MPS, then CPU, while shared dependency pins no longer force a CPU-only PyTorch build",
@@ -21,11 +22,6 @@
     "historical runtime bundles remain recoverable from Git history and are validated against their recorded source snapshots rather than rewritten to current source"
   ],
   "known_limitations": [
-    {
-      "id": "repository-validation-pending",
-      "area": "verification-evidence",
-      "detail": "The operator combobox, Inspect caption, and mixed showcase update is integrated but still requires the canonical post-change repository validation."
-    },
     {
       "id": "showcase-network-source",
       "area": "backend-api",

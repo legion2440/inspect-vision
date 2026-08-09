@@ -9,7 +9,7 @@ claim.
 | --- | --- | --- | --- |
 | Repository structure | PASS | Required frontend, FastAPI, detection, storage, model, shared-contract, test, and verification paths are present | `python scripts/validate_structure.py` |
 | Comprehensive root README | PASS | Setup, model installation, platform-specific PyTorch setup, accelerator fallback, selection rationale, API, samples, structure, and validation are documented | `README.md` |
-| Full application starts without errors | PARTIAL | Three-model production-service runtime qualification remains current; the operator combobox/showcase UI update still requires the canonical post-change repository validation and browser smoke check | `python scripts/validate.py`; retained `python scripts/probe_models.py --device auto` evidence |
+| Full application starts without errors | PARTIAL | Canonical repository validation passes and three-model production-service runtime qualification remains current; full browser end-to-end smoke coverage remains outside the automated checks | `python scripts/validate.py`; retained `python scripts/probe_models.py --device auto` evidence |
 | Runtime device fallback | PASS | `auto` selects CUDA, then Apple MPS, then CPU; explicit `cpu`, `cuda`, `cuda:N`, and `mps` remain available and explicit unavailable accelerators fail clearly | device/config tests; `docs/env-model-contract.md` |
 | Model registry and local paths | PASS | Manifest v3 keeps Bayes-PFL as default, exposes only Bayes-PFL plus two specialists, and retains the rejected legacy YOLO hidden for historical reproducibility | manifest/selection tests |
 | Model selection decisions | PASS | Tracked selection metadata records selected/rejected registered models, external rejected candidates, cross-dataset protocol, curated prompts, and rejected prompts | `backend/detection/model-selection.json`; detection tests |
@@ -33,7 +33,7 @@ claim.
 | At least 10 demo images | PASS | Twelve attributed VisA source-truth demo images remain tracked separately from the operator showcase | demo validator and retained records |
 | Operator showcase | PARTIAL | Four checked MVTec AD Bayes good/bad pairs are accompanied by three steel and three concrete specialist examples; Screw GOOD is bound to `screw/test/good/001.png`; image bytes remain network-backed and source-pinned | `python scripts/validate_showcase_samples.py`; API/frontend tests |
 | Model artifact installation | PASS | Model artifacts are pinned by source, size, and SHA-256; artifact download failures return manual placement and verification details | installer tests |
-| Code quality and separation | PARTIAL | API, detection, storage, frontend, and shared-contract boundaries remain implemented; the current operator UI/showcase change is awaiting its canonical post-change check | `python scripts/validate.py` |
+| Code quality and separation | PASS | API, detection, storage, frontend, and shared-contract boundaries remain implemented and the complete repository validation passes after the operator UI/showcase update | `python scripts/validate.py` |
 | Quality-score bonus | PASS | Backend-authoritative 0-100 quality score is returned and persisted; UI labels higher values as better quality | service/API/frontend tests |
 | CSV export bonus | PASS | Server export reuses canonical history filters and CSV projection | API/storage tests |
 
