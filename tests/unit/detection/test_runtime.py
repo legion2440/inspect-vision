@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -22,12 +24,15 @@ class DetectorStub:
         self.image_size = spec.image_size
         self.load_calls = 0
         self.received: np.ndarray | None = None
+        self.product_name: str | None = None
+        self.received_product_names: list[str | None] = []
 
     def load(self) -> None:
         self.load_calls += 1
 
     def infer(self, image: np.ndarray) -> InferenceResult:
         self.received = image
+        self.received_product_names.append(self.product_name)
         return InferenceResult(
             detections=(),
             image_width=image.shape[1],
@@ -39,8 +44,22 @@ class DetectorStub:
         )
 
 
+
 class BackendOwnedDetectorStub(DetectorStub):
     geometry_ownership = GeometryOwnership.BACKEND
+
+
+class ConcurrentContextDetectorStub(BackendOwnedDetectorStub):
+    def __init__(self, spec: object) -> None:
+        super().__init__(spec)
+        self.context_windows: list[tuple[str | None, str | None]] = []
+
+    def infer(self, image: np.ndarray) -> InferenceResult:
+        before = self.product_name
+        time.sleep(0.02)
+        after = self.product_name
+        self.context_windows.append((before, after))
+        return super().infer(image)
 
 
 def test_runtime_uses_guided_manifest_default_and_lazy_cache() -> None:
@@ -79,7 +98,7 @@ def test_guided_model_requires_valid_product_name_before_loading() -> None:
         runtime.get_service("bayespfl-general-v1", product_name="one two three four")
 
 
-def test_guided_cache_normalizes_case_whitespace_and_underscores() -> None:
+def test_guided_cache_reuses_one_loaded_service_across_categories() -> None:
     registry = ModelRegistry()
     created: list[DetectorStub] = []
 
@@ -92,11 +111,74 @@ def test_guided_cache_normalizes_case_whitespace_and_underscores() -> None:
     first = runtime.get_service("bayespfl-general-v1", product_name=" Metal_Nut ")
     second = runtime.get_service("bayespfl-general-v1", product_name="metal nut")
     screw = runtime.get_service("bayespfl-general-v1", product_name="Screw")
+    capsule = runtime.get_service("bayespfl-general-v1", product_name="Capsule")
 
-    assert first is second
-    assert first is not screw
-    assert len(created) == 2
+    assert first is second is screw is capsule
+    assert len(created) == 1
+    assert created[0].load_calls == 1
     assert runtime.cached_model_ids == ("bayespfl-general-v1",)
+
+
+def test_guided_inspect_applies_each_category_to_the_shared_detector() -> None:
+    registry = ModelRegistry()
+    created: list[DetectorStub] = []
+
+    def factory(spec: object) -> DetectorStub:
+        detector = BackendOwnedDetectorStub(spec)
+        created.append(detector)
+        return detector
+
+    runtime = DetectionRuntimeManager(registry, detector_factory=factory)
+    image = np.zeros((20, 30, 3), dtype=np.uint8)
+
+    for product_name in ("Bottle", "Capsule", "Screw", "Metal nut", "Other objects"):
+        runtime.inspect(
+            image,
+            "bayespfl-general-v1",
+            product_name=product_name,
+        )
+
+    assert len(created) == 1
+    assert created[0].load_calls == 1
+    assert created[0].received_product_names == [
+        "bottle",
+        "capsule",
+        "screw",
+        "metal nut",
+        "other objects",
+    ]
+
+
+def test_guided_concurrent_requests_do_not_mix_product_context() -> None:
+    registry = ModelRegistry()
+    created: list[ConcurrentContextDetectorStub] = []
+
+    def factory(spec: object) -> ConcurrentContextDetectorStub:
+        detector = ConcurrentContextDetectorStub(spec)
+        created.append(detector)
+        return detector
+
+    runtime = DetectionRuntimeManager(registry, detector_factory=factory)
+    image = np.zeros((20, 30, 3), dtype=np.uint8)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [
+            executor.submit(
+                runtime.inspect,
+                image,
+                "bayespfl-general-v1",
+                product_name=product_name,
+            )
+            for product_name in ("Bottle", "Capsule")
+        ]
+        for future in futures:
+            future.result()
+
+    assert len(created) == 1
+    assert set(created[0].context_windows) == {
+        ("bottle", "bottle"),
+        ("capsule", "capsule"),
+    }
 
 
 def test_runtime_applies_per_model_preprocessing_profiles() -> None:
@@ -118,8 +200,8 @@ def test_runtime_applies_per_model_preprocessing_profiles() -> None:
     color_input = detectors["concrete-crack-yolov8"].received
     steel_input = detectors["neu-defect-yolov8"].received
     assert color_input is not None and steel_input is not None
-    assert not np.array_equal(color_input[:, :, 0], color_input[:, :, 2])
-    np.testing.assert_array_equal(steel_input[:, :, 0], steel_input[:, :, 2])
+    assert not np.array_equal(color_input[[:, :], color_input[:, 2,])
+    np.testing.assert_array_equal(steel_input[:, 0,], steel_input[:, 2,])
 
 
 def test_runtime_rejects_unknown_and_missing_models(tmp_path: Path) -> None:
@@ -147,7 +229,9 @@ def test_bayespfl_is_available_through_public_inspect_with_backend_geometry() ->
     assert result.model_id == "bayespfl-general-v1"
     assert result.image_width == 30
     assert result.image_height == 20
-    assert runtime.get_service(
+    service = runtime.get_service(
         "bayespfl-general-v1",
         product_name="capsule",
-    ).detector.received.shape == (20, 30, 3)
+    )
+    assert service.detector.received.shape == (20, 30, 3)
+    assert service.detector.received_product_names == ["capsule"]

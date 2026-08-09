@@ -3,29 +3,39 @@
   "recorded_at": "2026-08-09",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "operator-showcase-ui-correction-validated",
+  "state": "runtime-cache-correction-pending-validation-and-qualification",
   "verified": [
     "the model manifest keeps bayespfl-general-v1 as the default and exposes only Bayes-PFL plus the steel and concrete specialists",
     "factory-defect-guard-v6-mc remains registered for historical reproducibility but is hidden after its general-model rejection",
     "tracked model-selection metadata records selected and rejected candidates and prevents a rejected registered model from being exposed",
-    "the Bayes-PFL deployment checkpoint remains train_visa.pth with VisA as the auxiliary training domain and MVTec AD as the distinct held-out qualification domain",
+    "the Bayes-PFL deployment checkpoint remains train_visa.pth with VisA as the auxiliary training domain and MVTEC AD as the distinct held-out qualification domain",
     "Bayes-PFL category input is normalized to lowercase, accepts underscores for backward compatibility, and rejects malformed context before inference",
     "the public model registry exposes curated category examples with local, upstream, and comparison evidence labels",
     "Dashboard, Inspect, live stream, and Samples share model/category state without automatically switching the selected model",
     "the shared product/category control is an editable combobox that keeps custom input while exposing curated values across Dashboard, Inspect, and Samples",
-    "the operator showcase keeps four checked Bayes-PFL MVTec AD good/bad pairs, uses screw/test/good/001.png for the verified Screw good case, and restores three steel plus three concrete specialist examples",
+    "the operator showcase keeps four checked Bayes-PFL MVTEC AD good/bad pairs, uses screw/test/good/001.png for the verified Screw good case, and restores three steel plus three concrete specialist examples",
     "the canonical complete repository validation passed after the operator combobox, Inspect caption, and mixed showcase update at commit b5833bb0db81d3e0ca50d4d7759d3d55b08f46bd",
     "the rejected legacy general YOLO no longer contributes classes to the user-visible model registry or history filter",
     "the model installer provides a manual artifact fallback with source, destination, expected size, SHA-256, and retry command when a download fails",
     "runtime auto device selection prefers CUDA, then Apple MPS, then CPU, while shared dependency pins no longer force a CPU-only PyTorch build",
-    "a fresh production-service probe at source commit 5824fa1a647e1e05597f6750a2fd43e9d51e38aa qualified all three exposed models on PyTorch 2.12.1+cu126, CUDA 12.6, and NVIDIA GeForce RTX 4080 Laptop GPU",
+    "the retained production-service probe at source commit 5824fa1a647e1e05597f6750a2fd43e9d51e38aa qualified all three exposed models on PyTorch 2.12.1+cu126, CUDA 12.6, and NVIDIA GeForce RTX 4080 Laptop GPU; it is historical after the guided-runtime cache correction",
     "historical runtime bundles remain recoverable from Git history and are validated against their recorded source snapshots rather than rewritten to current source"
   ],
   "known_limitations": [
     {
+      "id": "repository-validation-pending",
+      "area": "verification-evidence",
+      "detail": "The guided-runtime cache correction requires the canonical complete repository validation."
+    },
+    {
+      "id": "runtime-requalification-pending",
+      "area": "verification-evidence",
+      "detail": "Detection runtime source changed after the retained CUDA evidence. A fresh production-service probe is required before current runtime qualification can be claimed."
+    },
+    {
       "id": "showcase-network-source",
       "area": "backend-api",
-      "detail": "Operator showcase image bytes are network-backed: Bayes-PFL MVTec entries use a pinned MMAD revision and restored specialist entries use exact repository-history assets pinned by commit."
+      "detail": "Operator showcase image bytes are network-backed: Bayes-PFL MVTEC entries use a pinned MMAD revision and restored specialist entries use exact repository-history assets pinned by commit."
     },
     {
       "id": "bayespfl-generic-native-output",

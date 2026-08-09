@@ -22,8 +22,7 @@ from backend.utils.preprocessing import InspectionPreprocessingConfig
 
 from .base import DetectorBackend, GeometryOwnership
 from .dto import InspectionResult
-from .model_selection import product_name_presets
-from .product_context import ProductNameValidationError, normalize_product_name
+from .product_context import normalize_product_name
 from .service import DetectionService
 
 
@@ -59,7 +58,7 @@ def preprocessing_config(spec: ModelSpec) -> InspectionPreprocessingConfig:
 
 
 class DetectionRuntimeManager:
-    """Resolve, lazy-load, and cache DetectionService instances per model context."""
+    """Resolve, lazy-load, and cache one DetectionService per registered model."""
 
     def __init__(
         self,
@@ -73,13 +72,14 @@ class DetectionRuntimeManager:
         self.models_directory = models_directory.resolve()
         self.device = device
         self._detector_factory = detector_factory
-        self._services: dict[tuple[str, str | None], DetectionService] = {}
+        self._services: dict[str, DetectionService] = {}
+        self._service_locks: dict[str, threading.RLock] = {}
         self._cache_lock = threading.Lock()
 
     @property
     def cached_model_ids(self) -> tuple[str, ...]:
         with self._cache_lock:
-            return tuple(dict.fromkeys(model_id for model_id, _ in self._services))
+            return tuple(self._services)
 
     def registered_models(
         self,
@@ -102,6 +102,24 @@ class DetectionRuntimeManager:
             return None
         return normalize_product_name(product_name)
 
+    @staticmethod
+    def _set_detector_product_name(
+        detector: DetectorBackend,
+        product_name: str | None,
+    ) -> None:
+        if product_name is None:
+            return
+        setter = getattr(detector, "set_product_name", None)
+        if callable(setter):
+            setter(product_name)
+            return
+        if hasattr(detector, "product_name"):
+            detector.product_name = product_name
+            return
+        raise RuntimeError(
+            f"Guided detector {detector.model_id} does not expose runtime product/category context"
+        )
+
     def _build_service(self, spec: ModelSpec, product_name: str | None) -> DetectionService:
         try:
             detector = (
@@ -115,6 +133,8 @@ class DetectionRuntimeManager:
                     product_name=product_name,
                 )
             )
+            if spec.requires_product_name:
+                self._set_detector_product_name(detector, product_name)
             detector.load()
         except ProductNameRequiredError:
             raise
@@ -143,15 +163,16 @@ class DetectionRuntimeManager:
         *,
         product_name: str | None = None,
     ) -> DetectionService:
+        """Return the shared service; guided context is applied atomically by inspect()."""
         spec = self.registry.get(model_id)
         normalized_product = self._product_name_for(spec, product_name)
-        cache_key = (spec.model_id, normalized_product)
         with self._cache_lock:
-            cached = self._services.get(cache_key)
+            cached = self._services.get(spec.model_id)
             if cached is not None:
                 return cached
             service = self._build_service(spec, normalized_product)
-            self._services[cache_key] = service
+            self._services[spec.model_id] = service
+            self._service_locks[spec.model_id] = threading.RLock()
             return service
 
     def inspect(
@@ -162,4 +183,11 @@ class DetectionRuntimeManager:
         product_name: str | None = None,
     ) -> InspectionResult:
         spec = self.registry.get_exposed(model_id)
-        return self.get_service(spec.model_id, product_name=product_name).inspect(image)
+        normalized_product = self._product_name_for(spec, product_name)
+        service = self.get_service(spec.model_id, product_name=normalized_product)
+        with self._cache_lock:
+            service_lock = self._service_locks[spec.model_id]
+        with service_lock:
+            if spec.requires_product_name:
+                self._set_detector_product_name(service.detector, normalized_product)
+            return service.inspect(image)
