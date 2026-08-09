@@ -35,6 +35,11 @@ def test_invalid_model_device_is_rejected(value: str) -> None:
         Settings(model_device=value)
 
 
+@pytest.mark.parametrize("value", ["auto", "cpu", "cuda", "cuda:1", "mps"])
+def test_supported_model_devices_are_accepted(value: str) -> None:
+    assert Settings(model_device=value).model_device == value
+
+
 def test_upload_limit_may_be_lowered_but_not_raised() -> None:
     assert Settings(max_upload_bytes=1024).max_upload_bytes == 1024
 
