@@ -22,7 +22,7 @@ The default is `VITE_USE_MOCK=false`: relative `/api` requests are proxied to
 | --- | --- |
 | `/` | Dashboard statistics, model-aware quick upload, recent inspections |
 | `/inspect` | Image-file/live-stream inspection with centered mode selector and Canvas overlay |
-| `/samples` | Checked Bayes-PFL product examples plus steel and concrete specialist examples |
+| `/samples` | Twelve tracked local VisA demo images with explicit model selection |
 | `/history` | Date/type/text filters and CSV export |
 | `/details/:id` | Persisted record and defect breakdown |
 
@@ -44,19 +44,21 @@ or `Concrete surface` does not switch models automatically; this allows an
 operator to compare the general Bayes localizer with a manually selected
 specialist on the same input.
 
-A Samples card sets its own product/category context before inspection but keeps
-the current model. The Bayes showcase keeps Bottle, Capsule, Screw, and Metal
-nut GOOD/BAD pairs; the verified Screw GOOD source is
-`MVTec-AD/screw/test/good/001.png`. Steel and concrete specialist examples are
-also present with explicit recommendations.
+The Samples page is backed by the same twelve VisA images tracked in
+`backend/samples/demo/`: Candle, Capsules, Cashew, and Chewing gum, with one
+normal and two anomalous source examples per category. A card supplies its own
+product/category context before inspection but keeps the current model. Source
+labels are dataset ground truth, not model predictions. Images are loaded from
+the local backend by manifest ID, so browsing the catalog has no network
+dependency.
 
 ## Backend contract used by the client
 
 | Method | Path | Client use |
 | --- | --- | --- |
 | GET | `/api/models` | model capabilities, category examples, default/installed state |
-| GET | `/api/samples` | pinned mixed showcase metadata |
-| GET | `/api/samples/{id}/image` | same-origin proxy for pinned source image |
+| GET | `/api/samples` | tracked local demo metadata |
+| GET | `/api/samples/{id}/image` | local demo image by manifest ID |
 | POST | `/api/inspect` | multipart image inference |
 | POST | `/api/stream` | multipart JPEG live-frame inference |
 | GET | `/api/history?from&to&type&q` | history |
