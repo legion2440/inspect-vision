@@ -115,5 +115,4 @@ def get_sample_image(sample_id: str) -> FileResponse:
     return FileResponse(
         _sample_path(sample),
         media_type=sample["mediaType"],
-        filename=Path(str(sample["path"])).name,
     )
