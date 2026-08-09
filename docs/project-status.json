@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-08-09",
+  "recorded_at": "2026-08-10",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
   "state": "runtime-cache-correction-pending-validation-and-qualification",
@@ -13,8 +13,8 @@
     "the public model registry exposes curated category examples with local, upstream, and comparison evidence labels",
     "Dashboard, Inspect, live stream, and Samples share model/category state without automatically switching the selected model",
     "the shared product/category control is an editable combobox that keeps custom input while exposing curated values across Dashboard, Inspect, and Samples",
-    "the operator showcase keeps four checked Bayes-PFL MVTEC AD good/bad pairs, uses screw/test/good/001.png for the verified Screw good case, and restores three steel plus three concrete specialist examples",
-    "the canonical complete repository validation passed after the operator combobox, Inspect caption, and mixed showcase update at commit b5833bb0db81d3e0ca50d4d7759d3d55b08f46bd",
+    "the operator Samples page is backed by the same twelve tracked VisA images in backend/samples/demo and no longer maintains a second network-backed showcase catalog",
+    "the canonical complete repository validation passed before the current cache/sample cleanup at commit b5833bb0db81d3e0ca50d4d7759d3d55b08f46bd; the current source still requires its own canonical validation record",
     "the rejected legacy general YOLO no longer contributes classes to the user-visible model registry or history filter",
     "the model installer provides a manual artifact fallback with source, destination, expected size, SHA-256, and retry command when a download fails",
     "runtime auto device selection prefers CUDA, then Apple MPS, then CPU, while shared dependency pins no longer force a CPU-only PyTorch build",
@@ -25,17 +25,12 @@
     {
       "id": "repository-validation-pending",
       "area": "verification-evidence",
-      "detail": "The guided-runtime cache correction requires the canonical complete repository validation."
+      "detail": "The guided-runtime cache correction and local demo-catalog consolidation require the canonical complete repository validation on current source."
     },
     {
       "id": "runtime-requalification-pending",
       "area": "verification-evidence",
       "detail": "Detection runtime source changed after the retained CUDA evidence. A fresh production-service probe is required before current runtime qualification can be claimed."
-    },
-    {
-      "id": "showcase-network-source",
-      "area": "backend-api",
-      "detail": "Operator showcase image bytes are network-backed: Bayes-PFL MVTEC entries use a pinned MMAD revision and restored specialist entries use exact repository-history assets pinned by commit."
     },
     {
       "id": "bayespfl-generic-native-output",
