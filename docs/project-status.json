@@ -3,7 +3,7 @@
   "recorded_at": "2026-08-09",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
-  "state": "model-selection-correction-pending-runtime-qualification",
+  "state": "model-selection-correction-runtime-qualified",
   "verified": [
     "the model manifest keeps bayespfl-general-v1 as the default and exposes only Bayes-PFL plus the steel and concrete specialists",
     "factory-defect-guard-v6-mc remains registered for historical reproducibility but is hidden after its general-model rejection",
@@ -16,14 +16,10 @@
     "the rejected legacy general YOLO no longer contributes classes to the user-visible model registry or history filter",
     "the model installer provides a manual artifact fallback with source, destination, expected size, SHA-256, and retry command when a download fails",
     "runtime auto device selection prefers CUDA, then Apple MPS, then CPU, while shared dependency pins no longer force a CPU-only PyTorch build",
-    "historical runtime bundles remain immutable and are validated against their recorded source snapshots rather than rewritten to current source"
+    "a fresh production-service probe at source commit 5824fa1a647e1e05597f6750a2fd43e9d51e38aa qualified all three exposed models on PyTorch 2.12.1+cu126, CUDA 12.6, and NVIDIA GeForce RTX 4080 Laptop GPU",
+    "historical runtime bundles remain recoverable from Git history and are validated against their recorded source snapshots rather than rewritten to current source"
   ],
   "known_limitations": [
-    {
-      "id": "runtime-requalification-pending",
-      "area": "verification-evidence",
-      "detail": "The latest retained CPU runtime record predates the current model-exposure, category-validation, selection-metadata, device-selection, Bayes device-compatibility, and probe-contract changes. It remains historical evidence until a fresh production-service probe is run and committed."
-    },
     {
       "id": "showcase-network-source",
       "area": "backend-api",
