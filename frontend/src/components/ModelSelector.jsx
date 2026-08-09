@@ -15,6 +15,7 @@ export default function ModelSelector({
   compact = false,
   productName = '',
   onProductNameChange = () => {},
+  alignControlsTop = false,
 }) {
   const selected = models.find((model) => model.id === value);
   const uninstalled = models.filter((model) => !model.installed);
@@ -22,7 +23,10 @@ export default function ModelSelector({
 
   return (
     <section className={`qc-model-selector${compact ? ' is-compact' : ''}`} aria-label="Detection model">
-      <div className={`qc-model-controls${selected?.requiresProductName ? '' : ' has-single'}`}>
+      <div
+        className={`qc-model-controls${selected?.requiresProductName ? '' : ' has-single'}`}
+        style={alignControlsTop ? { alignItems: 'start' } : undefined}
+      >
         <div className="field">
           <label htmlFor="inspection-model">Detection model</label>
           <select
