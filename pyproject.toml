@@ -15,6 +15,3 @@ include = ["backend*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra -p no:cacheprovider"
-markers = [
-  "integration: exercises local model weights or external runtimes",
-]
