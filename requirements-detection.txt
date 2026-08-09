@@ -10,6 +10,7 @@ ultralytics==8.4.78
 ftfy==6.3.1
 regex==2026.7.19
 
-# Architecture validation and scoped tests.
+# Runtime model-manifest validation.
 jsonschema==4.26.0
+# Repository test runner.
 pytest==9.1.1
