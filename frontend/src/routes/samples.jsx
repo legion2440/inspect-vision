@@ -12,10 +12,23 @@ import {
 
 export const Route = createFileRoute('/samples')({ component: Samples });
 
-function groupLabel(samples) {
-  const conditions = new Set(samples.map((sample) => sample.condition).filter(Boolean));
-  if (samples.length === 2 && conditions.has('good') && conditions.has('bad')) return 'good / bad';
-  return `${samples.length} examples`;
+function titleCase(value) {
+  return String(value || '')
+    .replaceAll('_', ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function sampleCardTitle(sample, domain) {
+  const subject = sample.productName === 'Bottle'
+    ? 'Bottle neck'
+    : (sample.productName || domain);
+  const state = sample.condition === 'good'
+    ? 'No defect'
+    : titleCase(sample.sourceLabels.join(' · '));
+  return `${subject} — ${state}`;
 }
 
 function Samples() {
@@ -147,13 +160,9 @@ function Samples() {
       {(error || inspectionError) && <p className="qc-error">{error || inspectionError}</p>}
       {!productReady && <p className="qc-mono text-muted">Choose a category above or click a sample to use that sample&apos;s category.</p>}
 
-      {[...groups.entries()].map(([domain, samples]) => (
-        <section className="qc-sample-domain" key={domain}>
-          <div className="qc-sectionrow">
-            <h2>{domain}</h2>
-            <span className="qc-mono text-muted">{groupLabel(samples)}</span>
-          </div>
-          <div className="qc-sample-grid">
+      <div className="qc-sample-grid qc-sample-catalog-grid">
+        {[...groups.entries()].map(([domain, samples]) => (
+          <section className="qc-sample-domain" aria-label={domain} key={domain}>
             {samples.map((sample) => {
               const dataset = datasets.get(sample.datasetId);
               const recommended = recommendedModelFor(sample, models);
@@ -174,10 +183,8 @@ function Samples() {
                     />
                   </div>
                   <div className="qc-sample-copy">
-                    <span className="card-kicker">
-                      {sample.condition ? `${sample.condition.toUpperCase()} · ` : ''}{dataset?.name || sample.datasetId}
-                    </span>
-                    <h3>{sample.sourceLabels.join(' · ')}</h3>
+                    <span className="card-kicker">{dataset?.name || sample.datasetId}</span>
+                    <h3>{sampleCardTitle(sample, domain)}</h3>
                     <div className="qc-tags">
                       {sample.productName && <span className="tag tag-neutral">{sample.productName}</span>}
                       {sample.sourceLabels.map((label) => (
@@ -211,9 +218,9 @@ function Samples() {
                 </article>
               );
             })}
-          </div>
-        </section>
-      ))}
+          </section>
+        ))}
+      </div>
 
       {!loading && (
         <section className="qc-attribution">

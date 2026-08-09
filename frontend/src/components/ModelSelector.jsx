@@ -1,11 +1,15 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import Blueprint from './Blueprint.jsx';
 import { installModelCommand, modelClassesLabel } from '../utils/models.js';
 
 const EVIDENCE_LABELS = {
   local: 'locally checked',
   upstream: 'upstream MVTec example',
   comparison: 'comparison domain',
+  general: 'general zero-shot prompt',
 };
+
+const OTHER_OBJECTS_PRESET = { value: 'Other objects', evidence: 'general' };
 
 function ProductCombobox({ presets, value, onChange }) {
   const rootRef = useRef(null);
@@ -162,10 +166,15 @@ export default function ModelSelector({
 }) {
   const selected = models.find((model) => model.id === value);
   const uninstalled = models.filter((model) => !model.installed);
-  const presets = selected?.productNamePresets || [];
+  const presets = selected?.requiresProductName
+    ? [
+        ...(selected.productNamePresets || []).filter((preset) => preset.value !== OTHER_OBJECTS_PRESET.value),
+        OTHER_OBJECTS_PRESET,
+      ]
+    : [];
 
   return (
-    <section className={`qc-model-selector${compact ? ' is-compact' : ''}`} aria-label="Detection model">
+    <Blueprint as="section" className={`qc-model-selector${compact ? ' is-compact' : ''}`} aria-label="Detection model">
       <div className={`qc-model-controls${selected?.requiresProductName ? '' : ' has-single'}`}>
         <div className="field">
           <label htmlFor="inspection-model">Detection model</label>
@@ -219,6 +228,6 @@ export default function ModelSelector({
         </div>
       )}
       {error && <p className="qc-error">{error}</p>}
-    </section>
+    </Blueprint>
   );
 }

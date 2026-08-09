@@ -1,6 +1,13 @@
 /* Operator control and showcase refinements layered after app.css. */
 .qc-model-controls { align-items: start; }
 
+/* Shared operator frames use the design-system blueprint language. */
+.qc-model-selector.blueprint,
+.qc-drop.blueprint {
+  border-style: solid;
+  border-color: var(--color-divider);
+}
+
 .qc-combobox { position: relative; }
 .qc-combobox-inputrow { position: relative; }
 .qc-combobox-input { padding-right: 34px; }
@@ -51,18 +58,24 @@
 .qc-combobox-option[aria-selected='true'] { box-shadow: inset 3px 0 0 var(--color-accent); }
 .qc-combobox-empty { padding: var(--space-3); }
 
+/* Domain sections remain semantic in the DOM while their cards share one visual grid. */
+.qc-sample-catalog-grid { margin-bottom: var(--space-8); }
+.qc-sample-catalog-grid > .qc-sample-domain { display: contents; }
 .qc-sample-image-wrap {
-  aspect-ratio: auto;
-  height: 230px;
-  padding: var(--space-2);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  padding: var(--space-3);
+  overflow: visible;
 }
-.qc-sample-copy { min-height: 220px; }
-
-@media (max-width: 1080px) {
-  .qc-sample-image-wrap { height: 210px; }
+.qc-sample-image {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
+.qc-sample-copy { min-height: 240px; }
 
 @media (max-width: 720px) {
-  .qc-sample-image-wrap { height: 240px; }
   .qc-combobox-option { align-items: flex-start; flex-direction: column; gap: 2px; }
 }
