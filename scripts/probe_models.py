@@ -197,7 +197,7 @@ def _parse_args() -> argparse.Namespace:
         type=Path,
         default=REPOSITORY_ROOT / "docs/evidence/models/model-registry-acceptance.json",
     )
-    parser.add_argument("--device", default="cpu")
+    parser.add_argument("--device", default="auto")
     return parser.parse_args()
 
 
