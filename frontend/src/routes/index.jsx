@@ -82,6 +82,7 @@ function Dashboard() {
             error={modelsError}
             productName={productName}
             onProductNameChange={setProductName}
+            alignControlsTop
           />
           <ImageUploader
             onFile={handleFile}
