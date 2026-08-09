@@ -5,7 +5,7 @@
   "modules": [
     {
       "id": "frontend-app",
-      "description": "Provides the operator dashboard, upload and live inspection UI, model-aware sample showcase, history, details, Canvas overlays, and HTTP client boundary.",
+      "description": "Provides the operator dashboard, upload and live inspection UI, local demo sample catalog, history, details, Canvas overlays, and HTTP client boundary.",
       "module_type": "application",
       "root": "frontend",
       "entrypoints": [
@@ -43,14 +43,14 @@
     },
     {
       "id": "backend-api",
-      "description": "Owns FastAPI composition, HTTP validation, endpoint serialization, CORS, and error mapping.",
+      "description": "Owns FastAPI composition, HTTP validation, endpoint serialization, CORS, error mapping, and local demo sample delivery.",
       "module_type": "service",
       "root": "backend/routes",
       "additional_owned_paths": [
         "backend/config.py",
         "backend/main.py",
-        "backend/samples/showcase-samples.json",
-        "backend/samples/showcase"
+        "backend/samples/demo-samples.json",
+        "backend/samples/demo"
       ],
       "entrypoints": [
         { "path": "backend/main.py", "status": "implemented" }
@@ -196,8 +196,7 @@
         { "path": "scripts/probe_anomalyclip_public_api.py", "status": "implemented" },
         { "path": "scripts/prepare_demo_samples.py", "status": "implemented" },
         { "path": "scripts/probe_demo_samples.py", "status": "implemented" },
-        { "path": "scripts/validate_demo_samples.py", "status": "implemented" },
-        { "path": "scripts/validate_showcase_samples.py", "status": "implemented" }
+        { "path": "scripts/validate_demo_samples.py", "status": "implemented" }
       ],
       "public_interfaces": [
         { "path": "docs/verification.md", "status": "implemented" },
@@ -305,7 +304,7 @@
           "path": "docs/evidence/api-persistence/get-history-after-delete.json",
           "status": "generated",
           "generator": "scripts/probe_api_persistence.py",
-            "sources": ["scripts/probe_api_persistence.py"]
+          "sources": ["scripts/probe_api_persistence.py"]
         },
         {
           "path": "docs/evidence/api-bonuses/api-bonuses-acceptance.json",
@@ -381,8 +380,6 @@
       "owned_configuration": [
         { "path": "docs/evidence/anomalyclip-public-api/sample-contract.json", "status": "implemented" },
         { "path": "backend/samples/model-probe-samples.json", "status": "implemented" },
-        { "path": "backend/samples/demo-samples.json", "status": "implemented" },
-        { "path": "backend/samples/demo", "status": "implemented" },
         { "path": "backend/samples/provenance", "status": "implemented" }
       ]
     }
