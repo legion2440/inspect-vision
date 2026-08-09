@@ -23,10 +23,11 @@ compared with the general model and a specialist.
 - Node.js with npm;
 - enough disk space for the Python environment, model artifacts, and inspection media.
 
-CUDA is optional. The tracked Python dependencies use CPU PyTorch by default.
-The full Bayes-PFL path requires a 934 MB CLIP backbone plus a 110 MB Bayes-PFL
-checkpoint, so its first installation is a little over 1 GB before environment
-overhead.
+The runtime is accelerator-optional. With `INSPECT_VISION_MODEL_DEVICE=auto`,
+Inspect-Vision selects CUDA first, Apple MPS second, and CPU last. Explicit
+`cuda`, `cuda:N`, `mps`, and `cpu` modes are also supported. The full Bayes-PFL
+path requires a 934 MB CLIP backbone plus a 110 MB Bayes-PFL checkpoint, so its
+first installation is a little over 1 GB before environment overhead.
 
 ## Fresh-clone setup
 
@@ -58,19 +59,77 @@ py -3.13 -m venv .venv
 source .venv/Scripts/activate
 ```
 
-Install backend dependencies and create the backend environment file:
+Upgrade pip first:
 
 ```bash
 python -m pip install --upgrade pip
+```
+
+### Choose the PyTorch compute build
+
+Inspect-Vision pins PyTorch `2.12.1` and torchvision `0.27.1` but does not force
+a CPU wheel. Install the compute build that matches the machine **before** the
+rest of the backend dependencies.
+
+Windows or Linux with NVIDIA CUDA 12.6:
+
+```bash
+python -m pip install torch==2.12.1 torchvision==0.27.1 \
+  --index-url https://download.pytorch.org/whl/cu126
+```
+
+Windows or Linux, CPU only:
+
+```bash
+python -m pip install torch==2.12.1 torchvision==0.27.1 \
+  --index-url https://download.pytorch.org/whl/cpu
+```
+
+macOS, including Apple Silicon M-series:
+
+```bash
+python -m pip install torch==2.12.1 torchvision==0.27.1
+```
+
+The standard macOS wheel exposes the Metal Performance Shaders (`mps`) backend
+when the OS and hardware support it. `auto` selects MPS when CUDA is absent and
+`torch.backends.mps.is_available()` is true; otherwise it falls back to CPU.
+For operations that PyTorch does not implement on MPS, macOS users may enable
+PyTorch's documented CPU operation fallback before starting the backend:
+
+```bash
+export PYTORCH_ENABLE_MPS_FALLBACK=1
+```
+
+Then install the remaining backend dependencies. The generic PyTorch pins in
+`requirements-detection.txt` preserve the already selected matching build:
+
+```bash
 python -m pip install -r requirements-api.txt
 cp .env.example .env
 ```
 
-PowerShell equivalent:
+PowerShell equivalent for the environment file:
 
 ```powershell
 Copy-Item .env.example .env
 ```
+
+Verify the installed compute backend:
+
+```bash
+python -c "import torch; print('torch:', torch.__version__); print('cuda:', torch.cuda.is_available()); print('mps:', bool(getattr(torch.backends, 'mps', None)) and torch.backends.mps.is_available())"
+```
+
+Runtime policy in `.env` defaults to:
+
+```text
+INSPECT_VISION_MODEL_DEVICE=auto
+```
+
+`auto` means `CUDA -> MPS -> CPU`. Use `cpu`, `cuda`, `cuda:N`, or `mps` only
+when an explicit device is required. An explicit unavailable accelerator fails
+instead of silently pretending to use it.
 
 ### Full default setup
 
@@ -255,6 +314,10 @@ Ultralytics models use the shared letterbox path. Bayes-PFL owns its 518x518
 stretch, CLIP normalization, anomaly-map postprocessing, and coordinate
 restoration, preventing a second geometry transform in the shared service.
 
+The pinned Bayes-PFL source files stay byte-exact. Device-specific allocation
+issues in the upstream transformer and PFL flow source are adapted only in
+memory so the active CPU, CUDA, indexed CUDA, or MPS tensor device is preserved.
+
 ## API
 
 | Method | Path | Purpose |
@@ -353,9 +416,19 @@ npm --prefix frontend test
 npm --prefix frontend run build
 ```
 
-Real-model qualification is a separate step:
+Real-model qualification is a separate step. The portable default uses the same
+runtime fallback policy as the application:
 
 ```bash
+python scripts/probe_models.py --device auto
+```
+
+For hardware-specific evidence, request the device explicitly only after the
+matching PyTorch build is installed:
+
+```bash
+python scripts/probe_models.py --device cuda
+python scripts/probe_models.py --device mps
 python scripts/probe_models.py --device cpu
 ```
 
