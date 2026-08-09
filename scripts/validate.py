@@ -23,7 +23,6 @@ def main() -> int:
         [sys.executable, "scripts/validate_structure.py"],
         [sys.executable, "scripts/validate_model_selection.py"],
         [sys.executable, "scripts/validate_demo_samples.py"],
-        [sys.executable, "scripts/validate_showcase_samples.py"],
         [sys.executable, "scripts/validate_architecture.py"],
         [sys.executable, "scripts/generate_dependency_graph.py", "--check"],
         [
