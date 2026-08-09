@@ -1,11 +1,11 @@
---extra-index-url https://download.pytorch.org/whl/cpu
-
 numpy==2.4.6
 opencv-python==4.13.0.92
 pillow==12.3.0
 scipy==1.16.1
-torch==2.12.1+cpu
-torchvision==0.27.1+cpu
+# Install the platform-specific PyTorch build first (CUDA, CPU, or macOS/MPS).
+# These version pins preserve that selected build instead of forcing +cpu.
+torch==2.12.1
+torchvision==0.27.1
 ultralytics==8.4.78
 ftfy==6.3.1
 regex==2026.7.19
