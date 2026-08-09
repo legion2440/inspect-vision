@@ -1,31 +1,40 @@
 {
   "schemaVersion": 2,
-  "recordedAt": "2026-08-08T17:47:51.884690Z",
-  "sourceCommit": "addbadef509b9f26bb2881c301c86e99098ae497",
+  "recordedAt": "2026-08-09T11:30:35.223311Z",
+  "sourceCommit": "5824fa1a647e1e05597f6750a2fd43e9d51e38aa",
   "sourceFiles": {
-    "backend/models/model-manifest.json": "cd0e752fd2a6f57095ee573c229b4df82cb81903437877b90297b3d2a972b734",
-    "backend/samples/model-probe-samples.json": "7928f18e713b075d01f8c8218600d42fb0b988e577c35abb71e39e97e8131579",
+    "backend/models/model-manifest.json": "4a1316033e0a4a06b40d35d0b33fe55e54f6c6446236d8c3d2ea49fec314ee83",
+    "backend/samples/model-probe-samples.json": "ce0f761dfd016c1fbe7bf2b6806dfacff9d8e422083816425d34b9be1e25b25d",
+    "backend/detection/model-selection.json": "a109a9b20811815bdf4c880ea9230b5017d45a51abedbfe5e18e0596856bc7ae",
     "backend/detection/__init__.py": "f08851f956b5571e09f714c702d948f5107e85f709ff5937cf75c8a801558c73",
     "backend/detection/annotation.py": "06adffb09a1d44db5cf6c1e62e2d65f2eedfcb9d6bedd0e309604fd528cc7ce4",
     "backend/detection/anomalyclip_backend.py": "3c35f8e97aedae2374d32895ed7cc423c61069ecd02f21a8dda8cecc28191868",
     "backend/detection/base.py": "1268325bbf791d6193ccee3a5a51dd56ea7f6915c81946fc97c4aa12909ec2e6",
-    "backend/detection/bayespfl_backend.py": "24cbae547b96ff052bc000067317a714744ca2a7370d5e817624f2355567019a",
+    "backend/detection/bayespfl_backend.py": "bf4f11e7267a04f91acdc1608b0ef9dd98d381a5fff4a5e248422af130048057",
     "backend/detection/bayespfl_runtime.py": "4169aa75fc06bb32bad8f1f40f745f19a3a0f882027b614b295ba70d85d92284",
-    "backend/detection/device.py": "1c44fe186de0a5bbd1e6578c8c334142ef3c978e501a88a4662199b89e5156d1",
+    "backend/detection/device.py": "fdae93f4fbf6745210cf14236f3e60105478b6c5a266c851f467ee747865ed41",
     "backend/detection/dto.py": "55e5ca348afd4839b9a9e5b3572d77ffa347939dc47f95e2899ae0343cd0f234",
+    "backend/detection/model_selection.py": "a894b54493c3c86eedf06a978c6e2c66aa9c3fdca710c7119d5d580c4f3279fc",
+    "backend/detection/product_context.py": "7707eae3332db93395d55fb0d98d45115d1516523848bb471e3953b5dd4b69c0",
     "backend/detection/quality.py": "eff11e577b286c522661bb9b53573771215bbc142d86c8df6b16bd28b5261a10",
-    "backend/detection/runtime.py": "5b7c518fb0e03d14f7441d2f2083531cf2fa17e23244e3adbe1fa0f151dd4411",
+    "backend/detection/runtime.py": "13fb9298e3d5527c89359f4ad542d50490d5e61f17c5549fff91f868a91e1aac",
     "backend/detection/service.py": "f0390692f740c43143c196e33235ce23158ad3f799eff137755d9ffc821eecb3",
-    "backend/detection/ultralytics_backend.py": "acb5171d72f8e174d8c7cbaf8f2aa4c6f9ceea9b0f82bae7de2bd08a94622a16",
+    "backend/detection/ultralytics_backend.py": "e71aa8f16529690af5130307305a0fbf351d66df9f1d4ca9bc82fcbf6e268719",
     "backend/utils/model_loader.py": "f9dc5f6a5c2e681e2c8f0bcbb63b4844841215f766868ec912a3fb776540a172",
     "backend/utils/preprocessing.py": "795f50f559bfab51c7946fb73a0ced346576cc40947ed2b114ea2c25734cec39",
-    "scripts/probe_models.py": "daf1495e1da339ec505a073d1bab343a4bd07c1b82178a67182203e0702b2b8a"
+    "scripts/probe_models.py": "d384b3c570602f6af7520cc09748132687f822ebbe25c64efc2e618975fc71aa"
   },
   "runtime": {
     "python": "3.13.5",
+    "torch": "2.12.1+cu126",
+    "torchCuda": "12.6",
     "ultralytics": "8.4.78",
     "opencv": "4.13.0",
-    "device": "cpu"
+    "requestedDevice": "auto",
+    "device": "cuda:0",
+    "deviceKind": "cuda",
+    "deviceName": "NVIDIA GeForce RTX 4080 Laptop GPU",
+    "deviceBackend": "PyTorch CUDA"
   },
   "defaultModelId": "bayespfl-general-v1",
   "accuracyClaim": false,
@@ -36,7 +45,7 @@
       "displayName": "General Manufacturing (Bayes-PFL)",
       "role": "general",
       "domain": "Cross-domain manufacturing anomaly localization",
-      "qualificationDomain": "Category-guided local manufacturing anomalies across unseen MVTec product categories",
+      "qualificationDomain": "MVTec AD held-out product categories",
       "artifacts": [
         {
           "id": "clip-backbone",
@@ -63,8 +72,8 @@
         "defaultWeight": 1.0,
         "classWeights": {}
       },
-      "inferenceMs": 49044.067,
-      "totalDetections": 5,
+      "inferenceMs": 31324.417,
+      "totalDetections": 4,
       "samples": [
         {
           "sampleId": "bayes-capsule-crack",
@@ -79,11 +88,11 @@
             {
               "classId": 0,
               "className": "anomaly",
-              "confidence": 0.73982,
+              "confidence": 0.742456,
               "xyxy": [
-                592.1815,
+                586.8726,
                 577.2201,
-                803.5714,
+                806.9498,
                 646.7181
               ]
             }
@@ -91,7 +100,7 @@
           "qualityScore": 92,
           "status": "failed",
           "annotationDimensionsMatchOriginal": true,
-          "productName": "capsule"
+          "productName": "Capsule"
         },
         {
           "sampleId": "bayes-screw-manipulated-front",
@@ -106,7 +115,7 @@
             {
               "classId": 0,
               "className": "anomaly",
-              "confidence": 0.727846,
+              "confidence": 0.728169,
               "xyxy": [
                 414.6409,
                 898.4711,
@@ -118,7 +127,7 @@
           "qualityScore": 93,
           "status": "failed",
           "annotationDimensionsMatchOriginal": true,
-          "productName": "screw"
+          "productName": "Screw"
         },
         {
           "sampleId": "bayes-bottle-broken-large",
@@ -133,226 +142,34 @@
             {
               "classId": 0,
               "className": "anomaly",
-              "confidence": 0.758226,
+              "confidence": 0.761747,
               "xyxy": [
-                621.139,
-                269.7394,
-                772.2973,
-                527.751
+                620.7047,
+                264.9614,
+                774.4691,
+                530.7915
               ]
             },
             {
               "classId": 0,
               "className": "anomaly",
-              "confidence": 0.736373,
+              "confidence": 0.73765,
               "xyxy": [
-                380.9363,
-                624.1796,
-                638.9479,
-                809.2181
-              ]
-            },
-            {
-              "classId": 0,
-              "className": "anomaly",
-              "confidence": 0.722581,
-              "xyxy": [
-                359.2181,
-                658.0599,
-                413.9479,
-                712.7896
+                303.6197,
+                622.0078,
+                660.666,
+                809.6525
               ]
             }
           ],
-          "qualityScore": 70,
+          "qualityScore": 76,
           "status": "failed",
           "annotationDimensionsMatchOriginal": true,
-          "productName": "bottle"
-        }
-      ]
-    },
-    {
-      "modelId": "factory-defect-guard-v6-mc",
-      "displayName": "General Manufacturing (YOLO)",
-      "role": "general",
-      "domain": "General manufacturing",
-      "qualificationDomain": "Broad manufacturing coverage across PCB and steel source cases",
-      "artifacts": [
-        {
-          "id": "checkpoint",
-          "filename": "factory_defect_guard_v6_mc.pt",
-          "sizeBytes": 22525290,
-          "sha256": "8043add358b0c0991b0f517cb2358873b5c546ce8c3eb9929ee5e72f94293253"
+          "productName": "Bottle"
         }
       ],
-      "task": "detect",
-      "classes": [
-        "crazing",
-        "inclusion",
-        "patches",
-        "pitted_surface",
-        "rolled_in_scale",
-        "scratches",
-        "pcb_missing_hole",
-        "pcb_mouse_bite",
-        "pcb_open_circuit",
-        "pcb_short",
-        "pcb_spur",
-        "pcb_spurious_copper",
-        "tile_defect",
-        "transistor_defect",
-        "screw_defect",
-        "metal_nut_defect",
-        "capsule_defect"
-      ],
-      "confidence": 0.05,
-      "iou": 0.5,
-      "preprocessingProfile": "standard-color",
-      "requiresProductName": false,
-      "quality": {
-        "defaultWeight": 1.0,
-        "classWeights": {}
-      },
-      "inferenceMs": 1845.604,
-      "totalDetections": 7,
-      "samples": [
-        {
-          "sampleId": "pcb-missing-hole-example",
-          "sourceUrl": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/01_missing_hole_01.jpg",
-          "sourceLabel": "missing_hole",
-          "sha256": "58327e373a07f63afb71771be75351b7e0a5063cd01bcd491bccc271df427229",
-          "dimensions": {
-            "width": 1147,
-            "height": 600
-          },
-          "detections": [
-            {
-              "classId": 2,
-              "className": "patches",
-              "confidence": 0.597585,
-              "xyxy": [
-                931.9211,
-                484.7799,
-                954.7676,
-                503.3649
-              ]
-            },
-            {
-              "classId": 2,
-              "className": "patches",
-              "confidence": 0.561859,
-              "xyxy": [
-                652.485,
-                304.7795,
-                679.6198,
-                325.7212
-              ]
-            },
-            {
-              "classId": 2,
-              "className": "patches",
-              "confidence": 0.133037,
-              "xyxy": [
-                608.6059,
-                132.1911,
-                634.5053,
-                156.4287
-              ]
-            }
-          ],
-          "qualityScore": 87,
-          "status": "failed",
-          "annotationDimensionsMatchOriginal": true
-        },
-        {
-          "sampleId": "pcb-mouse-bite-example",
-          "sourceUrl": "https://raw.githubusercontent.com/Ixiaohuihuihui/Tiny-Defect-Detection-for-PCB/1f2daeb9a57881653b6726305df2a88126177071/04_mouse_bite_10.jpg",
-          "sourceLabel": "mouse_bite",
-          "sha256": "d22e9e237412b8a7981f0e6287a5d4f489d6e1070fae77b551a67aafbfcbb538",
-          "dimensions": {
-            "width": 744,
-            "height": 600
-          },
-          "detections": [
-            {
-              "classId": 0,
-              "className": "crazing",
-              "confidence": 0.373082,
-              "xyxy": [
-                117.7221,
-                389.6004,
-                133.6553,
-                410.712
-              ]
-            },
-            {
-              "classId": 2,
-              "className": "patches",
-              "confidence": 0.140146,
-              "xyxy": [
-                697.6574,
-                261.6986,
-                712.1257,
-                274.6977
-              ]
-            }
-          ],
-          "qualityScore": 95,
-          "status": "failed",
-          "annotationDimensionsMatchOriginal": true
-        },
-        {
-          "sampleId": "broad-neu-crazing",
-          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/crazing_1.jpg",
-          "sourceLabel": "crazing",
-          "sha256": "5278cd3695adbcbd7a16a7e4b2c6bc27f18095ab8a1e034d2b06c0fc42020eca",
-          "dimensions": {
-            "width": 200,
-            "height": 200
-          },
-          "detections": [],
-          "qualityScore": 100,
-          "status": "passed",
-          "annotationDimensionsMatchOriginal": true
-        },
-        {
-          "sampleId": "broad-neu-inclusion",
-          "sourceUrl": "https://raw.githubusercontent.com/siddhartamukherjee/NEU-DET-Steel-Surface-Defect-Detection/351bee21b56bbf97a1e1d18262bceb202eb7ef41/IMAGES/inclusion_1.jpg",
-          "sourceLabel": "inclusion",
-          "sha256": "2b0a6eff755d5c5867d3e3ca6b26af9548813e50c9b12b0f3381a49560a42634",
-          "dimensions": {
-            "width": 200,
-            "height": 200
-          },
-          "detections": [
-            {
-              "classId": 1,
-              "className": "inclusion",
-              "confidence": 0.220961,
-              "xyxy": [
-                34.2864,
-                6.7294,
-                48.2342,
-                35.3962
-              ]
-            },
-            {
-              "classId": 1,
-              "className": "inclusion",
-              "confidence": 0.057819,
-              "xyxy": [
-                118.8717,
-                34.8297,
-                132.9522,
-                63.1592
-              ]
-            }
-          ],
-          "qualityScore": 97,
-          "status": "failed",
-          "annotationDimensionsMatchOriginal": true
-        }
-      ]
+      "auxiliaryTrainingDomain": "VisA",
+      "protocol": "held-out-cross-dataset-zero-shot"
     },
     {
       "modelId": "neu-defect-yolov8",
@@ -392,7 +209,7 @@
           "scratches": 0.85
         }
       },
-      "inferenceMs": 300.49,
+      "inferenceMs": 1237.846,
       "totalDetections": 7,
       "samples": [
         {
@@ -408,23 +225,23 @@
             {
               "classId": 0,
               "className": "crazing",
-              "confidence": 0.326266,
+              "confidence": 0.32674,
               "xyxy": [
-                133.0394,
+                133.0414,
                 0.0,
                 199.9883,
-                37.8237
+                37.8243
               ]
             },
             {
               "classId": 0,
               "className": "crazing",
-              "confidence": 0.318305,
+              "confidence": 0.318096,
               "xyxy": [
-                5.9693,
-                116.7834,
+                5.9829,
+                116.7876,
                 199.4435,
-                173.4702
+                173.4729
               ]
             }
           ],
@@ -445,45 +262,45 @@
             {
               "classId": 1,
               "className": "inclusion",
-              "confidence": 0.864431,
+              "confidence": 0.864363,
               "xyxy": [
-                115.0593,
-                73.0292,
-                140.4078,
-                114.7821
+                115.0602,
+                73.0284,
+                140.4079,
+                114.7825
               ]
             },
             {
               "classId": 1,
               "className": "inclusion",
-              "confidence": 0.852118,
+              "confidence": 0.852206,
               "xyxy": [
-                114.2481,
-                113.4898,
-                134.4884,
+                114.2474,
+                113.49,
+                134.4894,
                 200.0
               ]
             },
             {
               "classId": 1,
               "className": "inclusion",
-              "confidence": 0.605073,
+              "confidence": 0.605086,
               "xyxy": [
-                118.8128,
-                35.9367,
-                132.0846,
-                64.1424
+                118.8131,
+                35.9352,
+                132.0858,
+                64.1431
               ]
             },
             {
               "classId": 1,
               "className": "inclusion",
-              "confidence": 0.49906,
+              "confidence": 0.498606,
               "xyxy": [
-                34.2017,
-                6.5798,
-                47.5182,
-                35.565
+                34.2026,
+                6.5802,
+                47.5191,
+                35.5646
               ]
             }
           ],
@@ -504,12 +321,12 @@
             {
               "classId": 5,
               "className": "scratches",
-              "confidence": 0.69744,
+              "confidence": 0.697496,
               "xyxy": [
-                26.8889,
-                18.6851,
-                40.7448,
-                167.5262
+                26.8875,
+                18.684,
+                40.745,
+                167.5257
               ]
             }
           ],
@@ -547,7 +364,7 @@
           "crack": 1.35
         }
       },
-      "inferenceMs": 694.851,
+      "inferenceMs": 326.611,
       "totalDetections": 9,
       "samples": [
         {
@@ -563,12 +380,12 @@
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.845837,
+              "confidence": 0.845682,
               "xyxy": [
-                299.0186,
-                260.5037,
-                409.9351,
-                523.7792
+                299.0244,
+                260.504,
+                409.9336,
+                523.7374
               ]
             }
           ],
@@ -589,78 +406,78 @@
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.950321,
+              "confidence": 0.95032,
               "xyxy": [
-                126.0687,
-                76.3581,
-                473.1989,
-                532.6415
+                126.0783,
+                76.361,
+                473.2158,
+                532.6385
               ]
             },
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.946221,
+              "confidence": 0.946223,
               "xyxy": [
-                2002.9398,
-                80.2006,
-                2344.1687,
-                527.5007
+                2002.9495,
+                80.2116,
+                2344.1609,
+                527.4973
               ]
             },
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.931684,
+              "confidence": 0.931632,
               "xyxy": [
-                123.131,
-                655.2827,
-                470.567,
-                1116.1841
+                123.1319,
+                655.2816,
+                470.5656,
+                1116.1846
               ]
             },
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.890797,
+              "confidence": 0.890655,
               "xyxy": [
-                1070.4333,
-                78.9419,
-                1406.8138,
-                528.6314
+                1070.4457,
+                78.9459,
+                1406.8077,
+                528.6302
               ]
             },
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.853626,
+              "confidence": 0.853556,
               "xyxy": [
-                2004.7965,
-                653.106,
-                2351.356,
-                1110.7383
+                2004.8049,
+                653.111,
+                2351.3535,
+                1110.73
               ]
             },
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.788861,
+              "confidence": 0.788529,
               "xyxy": [
-                1072.8713,
-                654.0366,
-                1405.6619,
-                1116.5603
+                1072.884,
+                654.035,
+                1405.6578,
+                1116.5612
               ]
             },
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.629587,
+              "confidence": 0.628993,
               "xyxy": [
-                1533.3687,
-                652.4503,
-                1879.7574,
-                1115.2631
+                1533.3799,
+                652.4558,
+                1879.7565,
+                1115.2599
               ]
             }
           ],
@@ -681,12 +498,12 @@
             {
               "classId": 0,
               "className": "crack",
-              "confidence": 0.796737,
+              "confidence": 0.796452,
               "xyxy": [
-                195.2632,
-                94.3073,
-                1478.4812,
-                1329.9882
+                195.2672,
+                94.3025,
+                1478.3574,
+                1329.9368
               ]
             }
           ],
