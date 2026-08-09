@@ -77,7 +77,11 @@ class UltralyticsBackend(DetectorBackend):
                     return str(next(module.parameters()).device)
                 except (AttributeError, StopIteration, TypeError):
                     pass
-        return "cuda:0" if self.device.kind == "cuda" else "cpu"
+        if self.device.kind == "cuda":
+            return f"cuda:{self.device.torch_device}"
+        if self.device.kind == "mps":
+            return "mps"
+        return "cpu"
 
     def _normalize_prediction(
         self,
