@@ -6,7 +6,7 @@ import { useInspection } from '../hooks/useInspection.js';
 import * as api from '../utils/apiClient.js';
 import {
   groupSamplesByDomain,
-  inspectShowcaseSample,
+  inspectSample,
   recommendedModelFor,
 } from '../utils/samples.js';
 
@@ -96,7 +96,7 @@ function Samples() {
     setProductName(value);
   };
 
-  const inspectSample = async (sample) => {
+  const inspectSampleFromCatalog = async (sample) => {
     cancelSampleRequest();
     const controller = new AbortController();
     sampleRequestRef.current = controller;
@@ -105,7 +105,7 @@ function Samples() {
     const sampleProductName = sample.productName || productName;
     if (sample.productName) setProductName(sample.productName);
     try {
-      const record = await inspectShowcaseSample({
+      const record = await inspectSample({
         sample,
         selectedModelId,
         productName: sampleProductName,
@@ -209,7 +209,7 @@ function Samples() {
                           type="button"
                           className="btn btn-primary"
                           disabled={busy || !canInspect}
-                          onClick={() => inspectSample(sample)}
+                          onClick={() => inspectSampleFromCatalog(sample)}
                         >
                           {busy ? 'Inspecting…' : 'Inspect sample'} <ArrowRight size={15} />
                         </button>
