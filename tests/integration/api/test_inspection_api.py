@@ -17,7 +17,8 @@ _SPEC.loader.exec_module(_CASES)
 
 # Route/storage cases use the installed steel specialist as their ordinary model
 # so they stay focused on HTTP, persistence, filtering, and cleanup semantics.
-# Dedicated tests below exercise the guided Bayes-PFL default.
+# Dedicated tests below exercise the guided Bayes-PFL default and current MVTec
+# showcase contract.
 _ORIGINAL_FAKE_INSPECT = _CASES.FakeDetectionRuntime.inspect
 
 
@@ -34,6 +35,8 @@ _STALE_CASES = {
     "test_anomalyclip_is_available_through_public_inference_routes",
     "test_models_endpoint_exposes_four_registry_entries",
     "test_stream_accepts_jpeg_and_does_not_persist",
+    "test_samples_endpoint_exposes_manifest_metadata_without_image_payloads",
+    "test_sample_image_is_served_by_manifest_id_with_matching_hash",
 }
 for _name in dir(_CASES):
     if _name.startswith("test_") and _name not in _STALE_CASES:
@@ -222,6 +225,50 @@ def test_models_endpoint_exposes_current_registry_entries(api_factory) -> None:
     }
     assert all(model["productNamePresets"] == [] for model in models[1:])
     assert models[2]["installed"] is False
+
+
+def test_samples_endpoint_exposes_current_mvtec_pairs(api_factory) -> None:
+    client = api_factory()
+
+    response = client.get("/api/samples")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["notice"] == "Source labels describe MVTec AD dataset metadata, not model predictions."
+    assert len(body["datasets"]) == 1
+    assert body["datasets"][0]["id"] == "mvtec-ad"
+    assert len(body["samples"]) == 8
+    assert "base64" not in response.text.casefold()
+    assert {sample["recommendedModelId"] for sample in body["samples"]} == {
+        "bayespfl-general-v1"
+    }
+    assert {sample["productName"] for sample in body["samples"]} == {
+        "Bottle",
+        "Capsule",
+        "Screw",
+        "Metal nut",
+    }
+    for product_name in ("Bottle", "Capsule", "Screw", "Metal nut"):
+        conditions = {
+            sample["condition"]
+            for sample in body["samples"]
+            if sample["productName"] == product_name
+        }
+        assert conditions == {"good", "bad"}
+    assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
+    assert all("assetUrl" not in sample for sample in body["samples"])
+
+
+def test_sample_image_is_served_by_current_manifest_id(api_factory) -> None:
+    client = api_factory()
+    sample = client.get("/api/samples").json()["samples"][0]
+
+    response = client.get(sample["imageUrl"])
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == sample["mediaType"]
+    assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
+    assert 8 < len(response.content) <= 10 * 1024 * 1024
 
 
 def test_guided_default_stream_does_not_persist(api_factory) -> None:
