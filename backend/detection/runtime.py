@@ -22,6 +22,7 @@ from backend.utils.preprocessing import InspectionPreprocessingConfig
 
 from .base import DetectorBackend, GeometryOwnership
 from .dto import InspectionResult
+from .model_selection import product_name_presets
 from .product_context import ProductNameValidationError, normalize_product_name
 from .service import DetectionService
 
