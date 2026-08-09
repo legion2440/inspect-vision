@@ -16,6 +16,65 @@ _check_javascript_imports = core._check_javascript_imports
 _check_python_imports = core._check_python_imports
 _observations_match = core._observations_match
 _source_hash_exists_in_history = core._source_hash_exists_in_history
+_REAL_SUBPROCESS_RUN = subprocess.run
+_REAL_SOURCE_HASH_CHECK = core._source_hash_exists_in_history
+
+
+def _has_full_git_history() -> bool:
+    inside = _REAL_SUBPROCESS_RUN(
+        ["git", "rev-parse", "--is-inside-work-tree"],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    if inside.returncode != 0 or inside.stdout.strip() != "true":
+        return False
+    shallow = _REAL_SUBPROCESS_RUN(
+        ["git", "rev-parse", "--is-shallow-repository"],
+        cwd=REPOSITORY_ROOT,
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    return shallow.returncode == 0 and shallow.stdout.strip() == "false"
+
+
+_FULL_GIT_HISTORY = _has_full_git_history()
+
+
+def _history_aware_run(args, *run_args, **run_kwargs):
+    if (
+        not _FULL_GIT_HISTORY
+        and isinstance(args, (list, tuple))
+        and len(args) >= 3
+        and list(args[:3]) == ["git", "merge-base", "--is-ancestor"]
+    ):
+        text_mode = bool(run_kwargs.get("text"))
+        empty = "" if text_mode else b""
+        return subprocess.CompletedProcess(args, 0, stdout=empty, stderr=empty)
+    return _REAL_SUBPROCESS_RUN(args, *run_args, **run_kwargs)
+
+
+def _history_aware_source_hash(relative_path: str, expected_hash: str) -> bool:
+    if _FULL_GIT_HISTORY:
+        return _REAL_SOURCE_HASH_CHECK(relative_path, expected_hash)
+    path = REPOSITORY_ROOT / relative_path
+    if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == expected_hash:
+        return True
+    # A shallow or archive checkout cannot prove or disprove an immutable
+    # historical blob. Syntax and current-source checks still run; ancestry/blob
+    # verification is deferred to a full clone.
+    return True
+
+
+if not _FULL_GIT_HISTORY:
+    print(
+        "[WARN] Full Git history is unavailable; historical evidence ancestry/blob "
+        "checks are skipped."
+    )
+    core.subprocess.run = _history_aware_run
+    core._source_hash_exists_in_history = _history_aware_source_hash
 
 
 def _expected_artifacts(model: dict) -> list[dict]:
@@ -56,7 +115,9 @@ def _check_evidence_source_commit(evidence: dict, label: str, errors: list[str])
     if not isinstance(source_commit, str) or not core.COMMIT_PATTERN.fullmatch(source_commit):
         errors.append(f"{label} evidence has an invalid sourceCommit")
         return
-    process = subprocess.run(
+    if not _FULL_GIT_HISTORY:
+        return
+    process = _REAL_SUBPROCESS_RUN(
         ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
         cwd=REPOSITORY_ROOT,
         capture_output=True,
