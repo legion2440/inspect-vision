@@ -3,8 +3,8 @@
 ## Status
 
 The React operator UI, FastAPI service, multi-model detection runtime,
-SQLite/media persistence, history/export/live endpoints, and model-aware sample
-showcase are implemented. The default detector is the category-guided Bayes-PFL
+SQLite/media persistence, history/export/live endpoints, and local demo sample
+catalog are implemented. The default detector is the category-guided Bayes-PFL
 general anomaly localizer; steel and concrete specialists remain independently
 selectable for known domains. The rejected legacy general YOLO remains
 registered only for historical reproducibility and is not exposed to operators.
@@ -18,8 +18,7 @@ flowchart LR
     Frontend -->|"HTTP multipart and JSON"| API["FastAPI"]
     API --> Detection["OpenCV and defect models"]
     API --> History["Inspection history"]
-    API --> Samples["Pinned MVTec AD sample catalog"]
-    Samples --> Mirror["Pinned MMAD mirror revision"]
+    API --> Samples["Tracked local VisA demo corpus"]
     Detection --> Media["Original and annotated images"]
     History --> Database["SQLite metadata"]
 ```
@@ -42,8 +41,8 @@ flowchart LR
   current upload result.
 - Displays original pixels without CSS color transforms; Canvas is a separate
   overlay.
-- A showcase sample supplies its own product/category context but never changes
-  the selected model automatically.
+- A demo sample supplies its own product/category context but never changes the
+  selected model automatically.
 
 ### Backend API
 
@@ -57,13 +56,15 @@ flowchart LR
   separator, and is constrained to 2-40 characters, Latin letters/spaces/
   hyphens, and at most three words. Invalid guided context maps to HTTP 422.
 - One lazy runtime manager and one inference lock are shared by the application.
-  Successful services are cached by `(model ID, normalized product context)` so
-  guided prompts do not mutate another cached request context.
+  Successful detection services are cached once per model ID. Guided product
+  context is updated on the cached detector under that model's lock immediately
+  before inference, so concurrent category-guided requests cannot mix prompts
+  and do not load duplicate Bayes-PFL/CLIP services.
 - Stream inference does not persist records; upload inference persists metadata,
   original bytes, and annotated media through the storage service.
-- The Samples API serves only manifest IDs. Current MVTec image bytes are proxied
-  from a pinned MMAD mirror revision rather than stored as a new redistributed
-  dataset snapshot in Git.
+- The Samples API is backed by `backend/samples/demo-samples.json` and serves
+  only files from the tracked `backend/samples/demo/` directory by manifest ID.
+  Sample image delivery therefore has no runtime network dependency.
 
 ### Defect detection
 
@@ -79,6 +80,10 @@ flowchart LR
 - Keeps model-native class names; there is no semantic class remapping layer.
 - `DetectionService` owns common native-class validation, quality scoring,
   annotation, and DTO construction.
+- The AnomalyCLIP adapter and vendored minimal runtime are retained as a
+  supported experimental backend slot for reproducibility and future registry
+  entries. No currently exposed model uses the `anomalyclip` backend; its
+  rejected candidate result remains documented in model-selection history.
 
 Ultralytics detectors use service-owned geometry:
 
@@ -103,9 +108,11 @@ original BGR
 
 `bayespfl-general-v1` is the default. It intentionally uses `train_visa.pth`:
 VisA is its auxiliary training domain and MVTec AD is the distinct held-out
-qualification/showcase domain. That relationship is recorded as
+runtime qualification domain. That relationship is recorded as
 `held-out-cross-dataset-zero-shot`; it must not be inverted to
-`train_mvtec.pth` while MVTec remains the qualification domain.
+`train_mvtec.pth` while MVTec remains the qualification domain. The operator's
+tracked VisA demo corpus is a UI/demo asset and is not used as Bayes-PFL
+qualification evidence.
 
 The Bayes adapter uses explicit product/category prompting, `518×518` CLIP
 preprocessing, Gaussian sigma `8`, fixed application threshold `0.72`, minimum
@@ -155,6 +162,8 @@ unchanged.
   requalification is pending.
 - New current runtime results are recorded only after the integrated source is
   executed through `DetectionRuntimeManager -> DetectionService`.
+- Runtime qualification sources are separate from the operator demo corpus;
+  model probes may use pinned remote sources while `/api/samples` stays local.
 
 ## Boundary rules
 
@@ -186,6 +195,3 @@ sequenceDiagram
 
 Production threshold calibration against a larger labeled deployment set and a
 formal cross-domain accuracy benchmark remain outside the current product scope.
-The current operator showcase uses a network-backed pinned MVTec mirror; an
-offline redistribution strategy would require a separate licensing/distribution
-decision.
