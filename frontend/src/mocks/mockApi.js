@@ -59,34 +59,36 @@ const MODELS = [
 ];
 
 const SAMPLE_DATASETS = [{
-  id: 'mvtec-ad',
-  name: 'MVTec Anomaly Detection Dataset',
-  version: 'MVTec AD',
-  sourceUrl: 'https://www.mvtec.com/company/research/datasets/mvtec-ad',
-  mirrorUrl: 'https://huggingface.co/datasets/jiang-cc/MMAD',
-  sourceRevision: 'e88b7bd615ad582b0a7e8238066a9fb293a072b4',
-  license: { name: 'CC BY-NC-SA 4.0', url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
-  attribution: 'MVTec Anomaly Detection Dataset (MVTec AD), pinned mirror source.',
+  id: 'visa',
+  name: 'Visual Anomaly (VisA)',
+  version: '1.0',
+  sourceUrl: 'https://github.com/amazon-science/spot-diff',
+  license: { name: 'CDLA-Permissive-2.0', url: 'https://cdla.dev/permissive-2-0/' },
+  attribution: 'Visual Anomaly (VisA) tracked demo subset.',
 }];
 
 const MOCK_SAMPLES = [
-  ['mock-bottle-good', 'Bottle', 'Bottle', 'good', ['good']],
-  ['mock-bottle-bad', 'Bottle', 'Bottle', 'bad', ['broken large']],
-  ['mock-capsule-good', 'Capsule', 'Capsule', 'good', ['good']],
-  ['mock-capsule-bad', 'Capsule', 'Capsule', 'bad', ['crack']],
-  ['mock-screw-good', 'Screw', 'Screw', 'good', ['good']],
-  ['mock-screw-bad', 'Screw', 'Screw', 'bad', ['manipulated front']],
-  ['mock-metal-nut-good', 'Metal nut', 'Metal nut', 'good', ['good']],
-  ['mock-metal-nut-bad', 'Metal nut', 'Metal nut', 'bad', ['bent']],
-].map(([id, domain, productName, condition, sourceLabels]) => ({
+  ['mock-candle-good', 'Candle', 'good', ['normal']],
+  ['mock-candle-bad-1', 'Candle', 'bad', ['anomaly']],
+  ['mock-candle-bad-2', 'Candle', 'bad', ['anomaly']],
+  ['mock-capsules-good', 'Capsules', 'good', ['normal']],
+  ['mock-capsules-bad-1', 'Capsules', 'bad', ['anomaly']],
+  ['mock-capsules-bad-2', 'Capsules', 'bad', ['anomaly']],
+  ['mock-cashew-good', 'Cashew', 'good', ['normal']],
+  ['mock-cashew-bad-1', 'Cashew', 'bad', ['anomaly']],
+  ['mock-cashew-bad-2', 'Cashew', 'bad', ['anomaly']],
+  ['mock-chewing-gum-good', 'Chewing gum', 'good', ['normal']],
+  ['mock-chewing-gum-bad-1', 'Chewing gum', 'bad', ['anomaly']],
+  ['mock-chewing-gum-bad-2', 'Chewing gum', 'bad', ['anomaly']],
+].map(([id, productName, condition, sourceLabels]) => ({
   id,
-  domain,
+  domain: productName,
   productName,
   condition,
   recommendedModelId: 'bayespfl-general-v1',
-  datasetId: 'mvtec-ad',
+  datasetId: 'visa',
   sourceLabels,
-  sourcePath: `MVTec-AD/${domain.toLowerCase().replaceAll(' ', '_')}/test/${condition}/000.png`,
+  sourcePath: `backend/samples/demo/${id}.jpg`,
   filename: 'sample-part.jpg',
   mediaType: 'image/jpeg',
   imageUrl: SAMPLE,
@@ -161,7 +163,7 @@ export async function getModels() {
 export async function getSamples() {
   await wait(80);
   return {
-    notice: 'Source labels describe MVTec AD dataset metadata, not model predictions.',
+    notice: 'Source labels describe VisA dataset ground truth, not model predictions.',
     datasets: SAMPLE_DATASETS,
     samples: MOCK_SAMPLES,
   };
