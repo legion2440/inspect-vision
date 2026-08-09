@@ -55,6 +55,18 @@ def test_checkpoint_uses_weights_only() -> None:
     assert calls[0][1]["map_location"] == "cpu"
 
 
+def test_backend_maps_mps_device_without_falling_back_to_cpu(tmp_path: Path) -> None:
+    detector = BayesPflBackend(
+        source_dir=tmp_path,
+        backbone_path=tmp_path / "backbone.pt",
+        checkpoint_path=tmp_path / "checkpoint.pth",
+        product_name="capsule",
+        device=DeviceInfo("mps", "mps", "Apple Metal GPU", "PyTorch MPS"),
+    )
+
+    assert detector._torch_device == "mps"
+
+
 def test_backend_owned_geometry_restores_and_pads_boxes_once(tmp_path: Path) -> None:
     class FakeBackend(BayesPflBackend):
         def load(self) -> None:
