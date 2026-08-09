@@ -147,23 +147,25 @@ reproducibility but is rejected and not exposed.
 
 ### `GET /api/samples`
 
-Returns `notice`, `datasets`, and eight MVTec AD `samples`. Each sample contains
-source metadata, `condition` (`good` or `bad`), its product/category context, and
-a stable same-origin `imageUrl`; no model predictions are stored in the sample
-catalog.
+Returns `notice`, one VisA `datasets` entry, and twelve tracked local `samples`.
+Each sample contains its dataset/source metadata, `condition` (`good` or `bad`),
+product/category context, integrity metadata, and a stable same-origin
+`imageUrl`. The catalog contains one normal and two anomalous images for each of
+Candle, Capsules, Cashew, and Chewing gum.
 
-The four product pairs are Bottle, Capsule, Screw, and Metal nut. The image
-source is pinned to MMAD revision
-`e88b7bd615ad582b0a7e8238066a9fb293a072b4`. The frontend passes a sample's
-`productName` to inference but never changes the operator's selected model
-automatically.
+`sourceLabels` are reconstructed from `sourceGroundTruth` in
+`backend/samples/demo-samples.json`; they describe source-dataset truth and are
+not current model predictions. The retained `modelObservation` evidence in that
+manifest is intentionally not returned by this endpoint.
+
+The frontend may pass a sample's `productName` to a guided model, but opening or
+inspecting a sample never changes the operator's selected model automatically.
 
 ### `GET /api/samples/{id}/image`
 
-Proxies the pinned remote PNG for a manifest sample ID. Filesystem paths and
-arbitrary remote URLs are never accepted as request input. Unknown IDs return
-HTTP 404; pinned-source retrieval failures return HTTP 502. The current showcase
-therefore requires network access when source images are opened.
+Serves the tracked file for a demo manifest ID from `backend/samples/demo/`.
+Filesystem paths and arbitrary URLs are never accepted as request input. Unknown
+IDs return HTTP 404. The endpoint has no runtime network dependency.
 
 ### `GET /api/export`
 
@@ -192,8 +194,7 @@ FastAPI errors use `{ "detail": "message" }`.
 | Unknown `modelId` | 404 | `Detection model not found` |
 | Registered exposed model missing or invalid | 409 | Message includes `python scripts/install_models.py --model <id>` |
 | Unknown inspection ID | 404 | `Inspection not found` |
-| Unknown showcase sample ID | 404 | `Sample not found` |
-| Pinned showcase source unavailable | 502 | `Could not load the pinned sample source` |
+| Unknown sample ID | 404 | `Sample not found` |
 
 Internal paths, stack traces, model paths, and original unsafe filenames are not
 returned. Filenames are sanitized before filesystem use.
