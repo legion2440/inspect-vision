@@ -131,10 +131,10 @@ function Samples() {
     <main className="qc-main">
       <div className="qc-pagehead">
         <div>
-          <h6 className="qc-kicker">Curated inspection showcase</h6>
+          <h6 className="qc-kicker">Tracked demo corpus</h6>
           <h1>Inspection samples</h1>
           <p className="text-muted qc-lede">
-            Checked Bayes-PFL product examples plus steel and concrete specialist cases. Model choice always stays explicit.
+            Twelve local VisA demo images are served directly from the repository. Model choice always stays explicit.
           </p>
         </div>
       </div>
@@ -150,9 +150,9 @@ function Samples() {
       />
 
       <div className="qc-sample-notice" role="note">
-        <strong>{catalog.notice || 'Source labels describe dataset metadata, not model predictions.'}</strong>
+        <strong>{catalog.notice || 'Source labels describe VisA dataset ground truth, not model predictions.'}</strong>
         <span>
-          Clicking a sample supplies its product/category context but keeps your current model selection, so the same source can be compared across general and specialist models.
+          Clicking a sample supplies its product/category context but keeps your current model selection, so the same source can be compared across models.
         </span>
       </div>
 
