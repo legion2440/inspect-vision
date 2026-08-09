@@ -3,7 +3,7 @@ opencv-python==4.13.0.92
 pillow==12.3.0
 scipy==1.16.1
 # Install the platform-specific PyTorch build first (CUDA, CPU, or macOS/MPS).
-# These version pins preserve that selected build instead of forcing +cpu.
+# These version pins preserve the selected platform build.
 torch==2.12.1
 torchvision==0.27.1
 ultralytics==8.4.78
