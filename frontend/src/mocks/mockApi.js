@@ -61,10 +61,13 @@ const MODELS = [
 const SAMPLE_DATASETS = [{
   id: 'visa',
   name: 'Visual Anomaly (VisA)',
-  version: '1.0',
   sourceUrl: 'https://github.com/amazon-science/spot-diff',
-  license: { name: 'CDLA-Permissive-2.0', url: 'https://cdla.dev/permissive-2-0/' },
-  attribution: 'Visual Anomaly (VisA) tracked demo subset.',
+  sourceRevision: '2a692ab575001cbde74d402d897a7286086c6199',
+  license: {
+    name: 'CC BY 4.0',
+    url: 'https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET',
+  },
+  attribution: 'Visual Anomaly (VisA) tracked demo subset, licensed CC BY 4.0.',
 }];
 
 const MOCK_SAMPLES = [
