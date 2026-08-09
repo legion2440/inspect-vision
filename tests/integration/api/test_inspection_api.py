@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 from pathlib import Path
 
@@ -17,7 +18,7 @@ _SPEC.loader.exec_module(_CASES)
 
 # Route/storage cases use the installed steel specialist as their ordinary model
 # so they stay focused on HTTP, persistence, filtering, and cleanup semantics.
-# Dedicated tests below exercise the guided Bayes-PFL default and current MVTec
+# Dedicated tests below exercise the guided Bayes-PFL default and current mixed
 # showcase contract.
 _ORIGINAL_FAKE_INSPECT = _CASES.FakeDetectionRuntime.inspect
 
@@ -227,26 +228,34 @@ def test_models_endpoint_exposes_current_registry_entries(api_factory) -> None:
     assert models[2]["installed"] is False
 
 
-def test_samples_endpoint_exposes_current_mvtec_pairs(api_factory) -> None:
+def test_samples_endpoint_exposes_bayes_pairs_and_specialists(api_factory) -> None:
     client = api_factory()
 
     response = client.get("/api/samples")
 
     assert response.status_code == 200
     body = response.json()
-    assert body["notice"] == "Source labels describe MVTec AD dataset metadata, not model predictions."
-    assert len(body["datasets"]) == 1
-    assert body["datasets"][0]["id"] == "mvtec-ad"
-    assert len(body["samples"]) == 8
+    assert body["notice"] == "Source labels describe dataset metadata, not model predictions."
+    assert {dataset["id"] for dataset in body["datasets"]} == {
+        "mvtec-ad",
+        "gkn-blade-v1",
+        "plos-neu-steel-figure-v1",
+        "hu-infrastructure-cracks-v1",
+    }
+    assert len(body["samples"]) == 14
     assert "base64" not in response.text.casefold()
     assert {sample["recommendedModelId"] for sample in body["samples"]} == {
-        "bayespfl-general-v1"
+        "bayespfl-general-v1",
+        "neu-defect-yolov8",
+        "concrete-crack-yolov8",
     }
     assert {sample["productName"] for sample in body["samples"]} == {
         "Bottle",
         "Capsule",
         "Screw",
         "Metal nut",
+        "Steel surface",
+        "Concrete surface",
     }
     for product_name in ("Bottle", "Capsule", "Screw", "Metal nut"):
         conditions = {
@@ -255,6 +264,13 @@ def test_samples_endpoint_exposes_current_mvtec_pairs(api_factory) -> None:
             if sample["productName"] == product_name
         }
         assert conditions == {"good", "bad"}
+    screw_good = next(
+        sample for sample in body["samples"]
+        if sample["productName"] == "Screw" and sample["condition"] == "good"
+    )
+    assert screw_good["id"] == "mvtec-screw-good-001"
+    assert screw_good["sourcePath"] == "MVTec-AD/screw/test/good/001.png"
+    assert screw_good["sha256"] == "983a27fcea10ce8eafeebac3db0899e5fb6ad84338a6cabc5746ee96d2865daa"
     assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
     assert all("assetUrl" not in sample for sample in body["samples"])
 
@@ -269,6 +285,20 @@ def test_sample_image_is_served_by_current_manifest_id(api_factory) -> None:
     assert response.headers["content-type"] == sample["mediaType"]
     assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
     assert 8 < len(response.content) <= 10 * 1024 * 1024
+
+
+def test_verified_screw_good_image_matches_recorded_hash(api_factory) -> None:
+    client = api_factory()
+    sample = next(
+        item for item in client.get("/api/samples").json()["samples"]
+        if item["id"] == "mvtec-screw-good-001"
+    )
+
+    response = client.get(sample["imageUrl"])
+
+    assert response.status_code == 200
+    assert len(response.content) == 393132
+    assert hashlib.sha256(response.content).hexdigest() == sample["sha256"]
 
 
 def test_guided_default_stream_does_not_persist(api_factory) -> None:

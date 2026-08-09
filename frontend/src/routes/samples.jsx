@@ -12,6 +12,12 @@ import {
 
 export const Route = createFileRoute('/samples')({ component: Samples });
 
+function groupLabel(samples) {
+  const conditions = new Set(samples.map((sample) => sample.condition).filter(Boolean));
+  if (samples.length === 2 && conditions.has('good') && conditions.has('bad')) return 'good / bad';
+  return `${samples.length} examples`;
+}
+
 function Samples() {
   const {
     models,
@@ -112,10 +118,10 @@ function Samples() {
     <main className="qc-main">
       <div className="qc-pagehead">
         <div>
-          <h6 className="qc-kicker">Held-out MVTec AD showcase</h6>
+          <h6 className="qc-kicker">Curated inspection showcase</h6>
           <h1>Inspection samples</h1>
           <p className="text-muted qc-lede">
-            Good/bad pairs for bottle, capsule, screw, and metal nut. The selected model never changes automatically.
+            Checked Bayes-PFL product examples plus steel and concrete specialist cases. Model choice always stays explicit.
           </p>
         </div>
       </div>
@@ -145,9 +151,9 @@ function Samples() {
         <section className="qc-sample-domain" key={domain}>
           <div className="qc-sectionrow">
             <h2>{domain}</h2>
-            <span className="qc-mono text-muted">good / bad</span>
+            <span className="qc-mono text-muted">{groupLabel(samples)}</span>
           </div>
-          <div className="qc-sample-grid qc-sample-grid-pairs">
+          <div className="qc-sample-grid">
             {samples.map((sample) => {
               const dataset = datasets.get(sample.datasetId);
               const recommended = recommendedModelFor(sample, models);
@@ -156,6 +162,7 @@ function Samples() {
               const canInspect = Boolean(selectedModelId) && (
                 !selectedModel?.requiresProductName || Boolean(sample.productName || productName.trim())
               );
+              const sourceReference = sample.sourcePath || sample.sourceFile || sample.sourceReference || sample.filename;
               return (
                 <article className="card qc-sample-card" key={sample.id}>
                   <div className="qc-sample-image-wrap">
@@ -167,19 +174,21 @@ function Samples() {
                     />
                   </div>
                   <div className="qc-sample-copy">
-                    <span className="card-kicker">{sample.condition === 'good' ? 'GOOD' : 'BAD'} · {dataset?.name || sample.datasetId}</span>
+                    <span className="card-kicker">
+                      {sample.condition ? `${sample.condition.toUpperCase()} · ` : ''}{dataset?.name || sample.datasetId}
+                    </span>
                     <h3>{sample.sourceLabels.join(' · ')}</h3>
                     <div className="qc-tags">
-                      <span className="tag tag-neutral">{sample.productName}</span>
+                      {sample.productName && <span className="tag tag-neutral">{sample.productName}</span>}
                       {sample.sourceLabels.map((label) => (
                         <span className="tag tag-neutral" key={label}>{label}</span>
                       ))}
                     </div>
                     <p className="card-body">
-                      Suggested general model: <strong>{recommended?.displayName || sample.recommendedModelId}</strong>
+                      Suggested model: <strong>{recommended?.displayName || sample.recommendedModelId}</strong>
                       {!recommendedAvailable && ' — Not installed'}
                     </p>
-                    <p className="qc-mono text-muted">Pinned source: {sample.sourcePath}</p>
+                    <p className="qc-mono text-muted">Pinned source: {sourceReference}</p>
                     <div className="qc-sample-actions">
                       <button
                         type="button"
@@ -195,7 +204,7 @@ function Samples() {
                         disabled={!recommendedAvailable || selectedModelId === sample.recommendedModelId}
                         onClick={() => handleModelChange(sample.recommendedModelId)}
                       >
-                        Use suggested general model
+                        Use suggested model
                       </button>
                     </div>
                   </div>
@@ -214,17 +223,28 @@ function Samples() {
               <article className="card" key={dataset.id}>
                 <h3>{dataset.name}</h3>
                 <p className="card-body">{dataset.attribution}</p>
-                <p className="qc-mono text-muted">Mirror revision: {dataset.sourceRevision}</p>
+                {dataset.sourceRevision && <p className="qc-mono text-muted">Source revision: {dataset.sourceRevision}</p>}
                 <div className="qc-sample-links">
-                  <a href={dataset.sourceUrl} target="_blank" rel="noreferrer">
-                    Dataset source <ExternalLink size={13} />
-                  </a>
-                  <a href={dataset.mirrorUrl} target="_blank" rel="noreferrer">
-                    Pinned mirror <ExternalLink size={13} />
-                  </a>
-                  <a href={dataset.license.url} target="_blank" rel="noreferrer">
-                    {dataset.license.name} <ExternalLink size={13} />
-                  </a>
+                  {dataset.sourceUrl && (
+                    <a href={dataset.sourceUrl} target="_blank" rel="noreferrer">
+                      Dataset source <ExternalLink size={13} />
+                    </a>
+                  )}
+                  {dataset.mirrorUrl && (
+                    <a href={dataset.mirrorUrl} target="_blank" rel="noreferrer">
+                      Pinned mirror <ExternalLink size={13} />
+                    </a>
+                  )}
+                  {dataset.projectUrl && (
+                    <a href={dataset.projectUrl} target="_blank" rel="noreferrer">
+                      Project site <ExternalLink size={13} />
+                    </a>
+                  )}
+                  {dataset.license?.url && (
+                    <a href={dataset.license.url} target="_blank" rel="noreferrer">
+                      {dataset.license.name} <ExternalLink size={13} />
+                    </a>
+                  )}
                 </div>
               </article>
             ))}

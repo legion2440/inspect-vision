@@ -181,25 +181,39 @@ test('history model label uses display name and preserves retired-model fallback
   assert.equal(modelLabel({}), 'Unknown model');
 });
 
-test('showcase manifest produces four MVTec good/bad pairs for Bayes-PFL', () => {
+test('showcase manifest keeps four Bayes pairs and restores both specialists', () => {
   const manifest = JSON.parse(readFileSync(
     new URL('../../backend/samples/showcase-samples.json', import.meta.url),
     'utf8',
   ));
   const groups = groupSamplesByDomain(manifest.samples);
 
-  assert.equal(manifest.datasets.length, 1);
-  assert.equal(manifest.datasets[0].id, 'mvtec-ad');
-  assert.equal(manifest.samples.length, 8);
-  assert.deepEqual([...groups.values()].map((samples) => samples.length), [2, 2, 2, 2]);
-  assert.deepEqual([...groups.keys()], ['Bottle', 'Capsule', 'Screw', 'Metal nut']);
+  assert.equal(manifest.datasets.length, 4);
+  assert.equal(manifest.samples.length, 14);
+  assert.deepEqual([...groups.keys()], [
+    'Bottle',
+    'Capsule',
+    'Screw',
+    'Metal nut',
+    'Steel Surface',
+    'Concrete & Structural Cracks',
+  ]);
+  assert.deepEqual([...groups.values()].map((samples) => samples.length), [2, 2, 2, 2, 3, 3]);
   assert.deepEqual(
-    [...new Set(manifest.samples.map((sample) => sample.recommendedModelId))],
-    ['bayespfl-general-v1'],
+    new Set(manifest.samples.map((sample) => sample.recommendedModelId)),
+    new Set(['bayespfl-general-v1', 'neu-defect-yolov8', 'concrete-crack-yolov8']),
   );
-  for (const samples of groups.values()) {
+  for (const productName of ['Bottle', 'Capsule', 'Screw', 'Metal nut']) {
+    const samples = manifest.samples.filter((sample) => sample.productName === productName);
     assert.deepEqual(new Set(samples.map((sample) => sample.condition)), new Set(['good', 'bad']));
   }
+  const screwGood = manifest.samples.find(
+    (sample) => sample.productName === 'Screw' && sample.condition === 'good',
+  );
+  assert.equal(screwGood.id, 'mvtec-screw-good-001');
+  assert.equal(screwGood.sourcePath, 'MVTec-AD/screw/test/good/001.png');
+  assert.equal(screwGood.sha256, '983a27fcea10ce8eafeebac3db0899e5fb6ad84338a6cabc5746ee96d2865daa');
+  assert.equal(manifest.samples.some((sample) => /screw\/test\/good\/000\.png/.test(sample.sourcePath || '')), false);
   assert.equal(manifest.samples.some((sample) => /pcb/i.test(sample.domain)), false);
 });
 
@@ -293,13 +307,36 @@ test('samples route cancels pending loads and preserves explicit model selection
   assert.match(route, /if \(sample\.productName\) setProductName\(sample\.productName\)/);
   assert.match(route, /selectedModelId,/);
   assert.doesNotMatch(route, /selectModel\(sample\.recommendedModelId\)/);
-  assert.match(route, /Pinned source: \{sample\.sourcePath\}/);
+  assert.match(route, /Suggested model:/);
+  assert.match(route, /Use suggested model/);
+  assert.doesNotMatch(route, /qc-sample-grid-pairs/);
+});
+
+test('guided category control is an editable combobox instead of a native datalist', () => {
+  const selector = readFileSync(new URL('../src/components/ModelSelector.jsx', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../src/styles/ui-controls.css', import.meta.url), 'utf8');
+
+  assert.match(selector, /role="combobox"/);
+  assert.match(selector, /role="listbox"/);
+  assert.match(selector, /ArrowDown/);
+  assert.match(selector, /ArrowUp/);
+  assert.match(selector, /Escape/);
+  assert.match(selector, /Custom values are allowed/);
+  assert.doesNotMatch(selector, /<datalist/);
+  assert.match(css, /\.qc-model-controls \{ align-items: start; \}/);
+});
+
+test('inspection viewer labels original dimensions separately from model input', () => {
+  const viewer = readFileSync(new URL('../src/components/InspectionViewer.jsx', import.meta.url), 'utf8');
+  assert.match(viewer, /Original ·/);
+  assert.match(viewer, /Model input ·/);
 });
 
 test('dashboard quick upload is wired to the shared selected model and context', () => {
   const dashboard = readFileSync(new URL('../src/routes/index.jsx', import.meta.url), 'utf8');
   assert.match(dashboard, /<ModelSelector[\s\S]*value=\{selectedModelId\}/);
   assert.match(dashboard, /runInspection\(file, selectedModelId, productName\)/);
+  assert.doesNotMatch(dashboard, /alignControlsTop/);
 });
 
 test('inspect separates mode selection from the image file picker action', () => {

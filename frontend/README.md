@@ -1,7 +1,8 @@
 # Inspect-Vision — frontend
 
 React 18 + Vite + TanStack Router. Styling uses the Industry design-system tokens
-from `src/styles/industry.css` and application composition in `src/styles/app.css`.
+from `src/styles/industry.css`, application composition in `src/styles/app.css`,
+and focused operator-control refinements in `src/styles/ui-controls.css`.
 
 ## Run
 
@@ -21,7 +22,7 @@ The default is `VITE_USE_MOCK=false`: relative `/api` requests are proxied to
 | --- | --- |
 | `/` | Dashboard statistics, model-aware quick upload, recent inspections |
 | `/inspect` | Image-file/live-stream inspection with centered mode selector and Canvas overlay |
-| `/samples` | Four MVTec AD good/bad pairs inspected with the current model |
+| `/samples` | Checked Bayes-PFL product examples plus steel and concrete specialist examples |
 | `/history` | Date/type/text filters and CSV export |
 | `/details/:id` | Persisted record and defect breakdown |
 
@@ -32,9 +33,11 @@ contains Bayes-PFL general plus steel and concrete specialists. The rejected
 legacy general YOLO is not shown.
 
 When a selected model declares `requiresProductName: true`, `ModelSelector`
-shows a datalist-style combobox. Curated suggestions come from the API and are
-labeled by evidence source, while arbitrary custom zero-shot values are still
-allowed subject to server validation.
+shows an editable combobox rather than a native `datalist`. Clicking the control
+opens all curated suggestions, typing filters them, keyboard arrows/Enter/Escape
+are supported, and a custom zero-shot value remains valid subject to server
+validation. The same aligned control is shared by Dashboard, Inspect, and
+Samples.
 
 Model selection and category selection are independent. Choosing `Steel surface`
 or `Concrete surface` does not switch models automatically; this allows an
@@ -42,15 +45,17 @@ operator to compare the general Bayes localizer with a manually selected
 specialist on the same input.
 
 A Samples card sets its own product/category context before inspection but keeps
-the current model. The current showcase is Bottle, Capsule, Screw, and Metal nut,
-each with one GOOD and one BAD MVTec AD source.
+the current model. The Bayes showcase keeps Bottle, Capsule, Screw, and Metal
+nut GOOD/BAD pairs; the verified Screw GOOD source is
+`MVTec-AD/screw/test/good/001.png`. Steel and concrete specialist examples are
+also present with explicit recommendations.
 
 ## Backend contract used by the client
 
 | Method | Path | Client use |
 | --- | --- | --- |
 | GET | `/api/models` | model capabilities, category examples, default/installed state |
-| GET | `/api/samples` | pinned MVTec showcase metadata |
+| GET | `/api/samples` | pinned mixed showcase metadata |
 | GET | `/api/samples/{id}/image` | same-origin proxy for pinned source image |
 | POST | `/api/inspect` | multipart image inference |
 | POST | `/api/stream` | multipart JPEG live-frame inference |
@@ -60,10 +65,11 @@ each with one GOOD and one BAD MVTec AD source.
 | POST | `/api/history/clear` | clear |
 | GET | `/api/export?from&to&type&q` | server CSV |
 
-The Bayes UI caption reflects `stretch 518² · CLIP normalization`; steel shows
-its enhanced profile and concrete uses standard-color letterbox preprocessing.
-Bayes native output is `anomaly`; history filter choices are derived from classes
-of currently exposed models rather than hard-coded retired classes.
+The Inspect viewer labels original image dimensions separately from model input.
+Bayes shows `stretch 518² · CLIP normalization`; steel shows its enhanced
+profile and concrete uses standard-color letterbox preprocessing. Bayes native
+output is `anomaly`; history filter choices are derived from classes of currently
+exposed models rather than hard-coded retired classes.
 
 ## Structure
 
@@ -75,7 +81,7 @@ src/
 ├── context/      shared inspection/model/product state
 ├── utils/        API client, validation, quality fallback, CSV, formatting
 ├── mocks/        standalone API-compatible responses
-└── styles/       Industry design system and app composition
+└── styles/       Industry design system and app/operator composition
 ```
 
 ## Notes

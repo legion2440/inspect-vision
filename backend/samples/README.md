@@ -32,29 +32,38 @@ python scripts/validate_demo_samples.py
 
 ## Current operator showcase
 
-`showcase-samples.json` now defines eight MVTec AD examples:
+`showcase-samples.json` defines a mixed operator catalog:
 
 ```text
-Bottle      GOOD / BAD
-Capsule     GOOD / BAD
-Screw       GOOD / BAD
-Metal nut   GOOD / BAD
+Bayes-PFL
+  Bottle       GOOD / BAD
+  Capsule      GOOD / BAD
+  Screw        GOOD / BAD
+  Metal nut    GOOD / BAD
+
+Steel Surface specialist
+  3 attributed steel examples
+
+Concrete & Structural Cracks specialist
+  3 attributed crack examples
 ```
 
-The catalog pins MMAD mirror revision
-`e88b7bd615ad582b0a7e8238066a9fb293a072b4` and records the MVTec AD
-CC BY-NC-SA 4.0 attribution. The current operator showcase no longer contains
-PCB entries.
+All eight Bayes examples are served from MMAD revision
+`e88b7bd615ad582b0a7e8238066a9fb293a072b4`. The Screw GOOD entry is
+`MVTec-AD/screw/test/good/001.png`, the exact source whose SHA-256 and byte
+count match the previously checked `good-screw2.png`. The API verifies that
+binding before serving it. MVTec AD attribution remains CC BY-NC-SA 4.0.
 
-To avoid silently creating another redistributed dataset snapshot in Git, the
-showcase stores the pinned catalog and proxies image bytes from that exact mirror
-revision through `/api/samples/{id}/image`. Network access is therefore required
-when a showcase image is opened.
+The steel and concrete examples restore the exact historical showcase bytes
+through raw Git URLs pinned to commit
+`f82fe4645ada00d5b01a16b9a05b2ea36795cce2`. Their original dataset
+attribution remains tracked in the catalog, and the API verifies size/SHA-256
+where those historical records provide them.
 
-Each sample carries the correct Bayes product/category context. Selecting a
-sample can populate that category, but it never changes the operator's currently
-selected model automatically. This makes it possible to run the same image
-through the general model and a specialist manually.
+Each sample carries product/category context when Bayes-PFL needs one. Selecting
+a sample may populate that category, but it never changes the operator's
+selected model automatically. The explicit recommendation button is the only
+sample action that changes the model.
 
 Validate the current showcase catalog with:
 

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './styles/industry.css';
 import './styles/app.css';
+import './styles/ui-controls.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

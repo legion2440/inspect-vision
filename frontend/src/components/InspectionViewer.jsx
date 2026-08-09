@@ -12,6 +12,7 @@ export default function InspectionViewer({
   selectedIndex,
 }) {
   const [dims, setDims] = useState({ w: 0, h: 0 });
+  const modelInput = String(caption || 'preprocess: model-defined').replace(/^preprocess:\s*/i, '');
 
   return (
     <figure className="qc-figure">
@@ -39,10 +40,10 @@ export default function InspectionViewer({
         </div>
         <figcaption className="qc-figcaption">
           <span className="qc-mono">
-            {meta?.name || 'image'} · {dims.w}×{dims.h}
+            Original · {meta?.name || 'image'} · {dims.w}×{dims.h}
             {meta?.size ? ' · ' + (meta.size / 1048576).toFixed(1) + ' MB' : ''}
           </span>
-          <span className="qc-mono">{caption || 'preprocess: letterbox 640² · grayscale · CLAHE'}</span>
+          <span className="qc-mono">Model input · {modelInput}</span>
         </figcaption>
       </Blueprint>
     </figure>

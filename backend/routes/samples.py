@@ -1,7 +1,8 @@
-"""Curated MVTec AD showcase served through stable manifest IDs."""
+"""Curated inspection showcase served through stable manifest IDs."""
 
 from __future__ import annotations
 
+import hashlib
 import json
 import urllib.error
 import urllib.request
@@ -35,8 +36,12 @@ def _sample_by_id(sample_id: str) -> dict[str, Any]:
     raise HTTPException(status_code=404, detail="Sample not found")
 
 
-@lru_cache(maxsize=16)
-def _load_remote_sample(asset_url: str) -> bytes:
+@lru_cache(maxsize=32)
+def _load_remote_sample(
+    asset_url: str,
+    expected_sha256: str = "",
+    expected_size: int = 0,
+) -> bytes:
     request = urllib.request.Request(asset_url, headers={"User-Agent": "Inspect-Vision/1.0"})
     try:
         with urllib.request.urlopen(request, timeout=30) as source:
@@ -45,6 +50,10 @@ def _load_remote_sample(asset_url: str) -> bytes:
         raise HTTPException(status_code=502, detail="Could not load the pinned sample source") from error
     if not payload or len(payload) > MAX_SAMPLE_BYTES:
         raise HTTPException(status_code=502, detail="Pinned sample source returned invalid image bytes")
+    if expected_size and len(payload) != expected_size:
+        raise HTTPException(status_code=502, detail="Pinned sample source size changed")
+    if expected_sha256 and hashlib.sha256(payload).hexdigest() != expected_sha256:
+        raise HTTPException(status_code=502, detail="Pinned sample source hash changed")
     return payload
 
 
@@ -67,5 +76,12 @@ def list_samples() -> dict[str, Any]:
 @router.get("/{sample_id}/image", response_class=Response)
 def get_sample_image(sample_id: str) -> Response:
     sample = _sample_by_id(sample_id)
-    payload = _load_remote_sample(sample["assetUrl"])
+    asset_url = sample.get("assetUrl")
+    if not isinstance(asset_url, str):
+        raise HTTPException(status_code=500, detail="Pinned sample source is not configured")
+    payload = _load_remote_sample(
+        asset_url,
+        str(sample.get("sha256", "")),
+        int(sample.get("sizeBytes", 0)),
+    )
     return Response(content=payload, media_type=sample["mediaType"])

@@ -1,0 +1,68 @@
+/* Operator control and showcase refinements layered after app.css. */
+.qc-model-controls { align-items: start; }
+
+.qc-combobox { position: relative; }
+.qc-combobox-inputrow { position: relative; }
+.qc-combobox-input { padding-right: 34px; }
+.qc-combobox-toggle {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 32px;
+  height: calc(100% - 2px);
+  border: 0;
+  border-left: 1px solid var(--color-divider);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font: inherit;
+}
+.qc-combobox-toggle:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
+.qc-combobox-menu {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--color-divider);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-md);
+}
+.qc-combobox-option {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border: 0;
+  border-bottom: 1px solid var(--color-divider);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.qc-combobox-option:last-child { border-bottom: 0; }
+.qc-combobox-option.is-active,
+.qc-combobox-option:hover { background: color-mix(in srgb, var(--color-accent) 12%, transparent); }
+.qc-combobox-option[aria-selected='true'] { box-shadow: inset 3px 0 0 var(--color-accent); }
+.qc-combobox-empty { padding: var(--space-3); }
+
+.qc-sample-image-wrap {
+  aspect-ratio: auto;
+  height: 230px;
+  padding: var(--space-2);
+}
+.qc-sample-copy { min-height: 220px; }
+
+@media (max-width: 1080px) {
+  .qc-sample-image-wrap { height: 210px; }
+}
+
+@media (max-width: 720px) {
+  .qc-sample-image-wrap { height: 240px; }
+  .qc-combobox-option { align-items: flex-start; flex-direction: column; gap: 2px; }
+}
