@@ -20,7 +20,7 @@ function throwIfAborted(signal) {
   throw error;
 }
 
-export async function inspectShowcaseSample({
+export async function inspectSample({
   sample,
   selectedModelId,
   productName,
