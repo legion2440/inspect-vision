@@ -1,7 +1,7 @@
 # Samples
 
-The repository has three different sample/evidence roles. They must not be
-confused.
+The repository keeps two sample roles separate: runtime qualification sources and
+the tracked local demo corpus.
 
 ## Runtime qualification sources
 
@@ -15,61 +15,36 @@ qualification domain: MVTec AD
 ```
 
 The probe downloads source bytes into a temporary directory and does not
-redistribute them.
+redistribute them. These sources are verification inputs; they are not served by
+the operator Samples page.
 
-## Historical VisA demo corpus
+## Local demo corpus
 
 `demo/` contains twelve unmodified VisA images across candle, capsules, cashew,
-and chewing gum, with tracked provenance and source annotations. Its retained
-`modelObservation` contract belongs to the historical steel-specialist demo
-exercise; it is not current Bayes-PFL zero-shot evidence.
+and chewing gum. `demo-samples.json` records their tracked source provenance,
+source annotations, hashes, dimensions, media types, and the retained historical
+`modelObservation` exercise.
 
-Validate that corpus with:
+The source labels in `sourceGroundTruth` are dataset truth. The retained
+`modelObservation` block is historical evidence only and is not returned as a
+prediction by `/api/samples`.
+
+The same twelve files are the application's operator demo catalog. The API maps
+the manifest entries to `/api/samples` metadata and serves each image from
+`backend/samples/demo/` through `/api/samples/{id}/image`. No runtime network
+request is needed to browse or load the Samples page.
+
+Selecting a demo supplies its product/category context but never changes the
+operator's selected model automatically. The explicit recommendation button is
+the only sample action that changes the model, and inspection still uses the
+ordinary `/api/inspect` path so results are persisted to normal history.
+
+Validate the corpus with:
 
 ```bash
 python scripts/validate_demo_samples.py
 ```
 
-## Current operator showcase
-
-`showcase-samples.json` defines a mixed operator catalog:
-
-```text
-Bayes-PFL
-  Bottle       GOOD / BAD
-  Capsule      GOOD / BAD
-  Screw        GOOD / BAD
-  Metal nut    GOOD / BAD
-
-Steel Surface specialist
-  3 attributed steel examples
-
-Concrete & Structural Cracks specialist
-  3 attributed crack examples
-```
-
-All eight Bayes examples are served from MMAD revision
-`e88b7bd615ad582b0a7e8238066a9fb293a072b4`. The Screw GOOD entry is
-`MVTec-AD/screw/test/good/001.png`, the exact source whose SHA-256 and byte
-count match the previously checked `good-screw2.png`. The API verifies that
-binding before serving it. MVTec AD attribution remains CC BY-NC-SA 4.0.
-
-The steel and concrete examples restore the exact historical showcase bytes
-through raw Git URLs pinned to commit
-`f82fe4645ada00d5b01a16b9a05b2ea36795cce2`. Their original dataset
-attribution remains tracked in the catalog, and the API verifies size/SHA-256
-where those historical records provide them.
-
-Each sample carries product/category context when Bayes-PFL needs one. Selecting
-a sample may populate that category, but it never changes the operator's
-selected model automatically. The explicit recommendation button is the only
-sample action that changes the model.
-
-Validate the current showcase catalog with:
-
-```bash
-python scripts/validate_showcase_samples.py
-```
-
-Historical sample provenance and evidence files remain immutable even when they
-are no longer part of the current operator showcase.
+The demo corpus therefore satisfies both the repository's tracked demo-image
+requirement and the operator-facing sample workflow without maintaining a second
+showcase manifest or a second set of sample assets.
