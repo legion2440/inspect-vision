@@ -42,3 +42,5 @@ export async function inspectShowcaseSample({
   if (record) navigate({ to: '/inspect' });
   return record;
 }
+
+export const inspectSample = inspectShowcaseSample;
