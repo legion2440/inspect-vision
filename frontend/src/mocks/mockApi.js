@@ -58,40 +58,36 @@ const MODELS = [
   },
 ];
 
-const SAMPLE_DATASETS = [{
-  id: 'visa',
-  name: 'Visual Anomaly (VisA)',
-  sourceUrl: 'https://github.com/amazon-science/spot-diff',
-  sourceRevision: '2a692ab575001cbde74d402d897a7286086c6199',
-  license: {
-    name: 'CC BY 4.0',
-    url: 'https://raw.githubusercontent.com/amazon-science/spot-diff/2a692ab575001cbde74d402d897a7286086c6199/LICENSE-DATASET',
-  },
-  attribution: 'Visual Anomaly (VisA) tracked demo subset, licensed CC BY 4.0.',
-}];
+const SAMPLE_DATASETS = [
+  { id: 'mvtec-ad', name: 'MVTec Anomaly Detection Dataset', attribution: 'MVTec AD operator examples.' },
+  { id: 'gkn-blade-v1', name: 'GKN Blade Surface Defect Dataset', attribution: 'Steel surface operator examples.' },
+  { id: 'plos-neu-steel-figure-v1', name: 'Six Types of Metal Surface Defects, Figure 3', attribution: 'Steel inclusion example.' },
+  { id: 'hu-infrastructure-cracks-v1', name: 'HU Infrastructure Cracks Dataset', attribution: 'Concrete crack operator examples.' },
+];
 
 const MOCK_SAMPLES = [
-  ['mock-candle-good', 'Candle', 'good', ['normal']],
-  ['mock-candle-bad-1', 'Candle', 'bad', ['anomaly']],
-  ['mock-candle-bad-2', 'Candle', 'bad', ['anomaly']],
-  ['mock-capsules-good', 'Capsules', 'good', ['normal']],
-  ['mock-capsules-bad-1', 'Capsules', 'bad', ['anomaly']],
-  ['mock-capsules-bad-2', 'Capsules', 'bad', ['anomaly']],
-  ['mock-cashew-good', 'Cashew', 'good', ['normal']],
-  ['mock-cashew-bad-1', 'Cashew', 'bad', ['anomaly']],
-  ['mock-cashew-bad-2', 'Cashew', 'bad', ['anomaly']],
-  ['mock-chewing-gum-good', 'Chewing gum', 'good', ['normal']],
-  ['mock-chewing-gum-bad-1', 'Chewing gum', 'bad', ['anomaly']],
-  ['mock-chewing-gum-bad-2', 'Chewing gum', 'bad', ['anomaly']],
-].map(([id, productName, condition, sourceLabels]) => ({
+  ['mock-bottle-good', 'Bottle', 'Bottle', 'good', ['good'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-bottle-bad', 'Bottle', 'Bottle', 'bad', ['broken large'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-capsule-good', 'Capsule', 'Capsule', 'good', ['good'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-capsule-bad', 'Capsule', 'Capsule', 'bad', ['crack'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-screw-good', 'Screw', 'Screw', 'good', ['good'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-screw-bad', 'Screw', 'Screw', 'bad', ['manipulated front'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-metal-nut-good', 'Metal nut', 'Metal nut', 'good', ['good'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-metal-nut-bad', 'Metal nut', 'Metal nut', 'bad', ['bent'], 'bayespfl-general-v1', 'mvtec-ad'],
+  ['mock-steel-good', 'Steel Surface', 'Steel surface', 'good', ['Good'], 'neu-defect-yolov8', 'gkn-blade-v1'],
+  ['mock-steel-inclusion', 'Steel Surface', 'Steel surface', 'bad', ['inclusion'], 'neu-defect-yolov8', 'plos-neu-steel-figure-v1'],
+  ['mock-steel-scratch', 'Steel Surface', 'Steel surface', 'bad', ['Scratch'], 'neu-defect-yolov8', 'gkn-blade-v1'],
+  ['mock-concrete-transverse', 'Concrete & Structural Cracks', 'Concrete surface', 'bad', ['transverse'], 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1'],
+  ['mock-concrete-longitudinal', 'Concrete & Structural Cracks', 'Concrete surface', 'bad', ['longitudinal'], 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1'],
+  ['mock-concrete-diagonal', 'Concrete & Structural Cracks', 'Concrete surface', 'bad', ['diagonal'], 'concrete-crack-yolov8', 'hu-infrastructure-cracks-v1'],
+].map(([id, domain, productName, condition, sourceLabels, recommendedModelId, datasetId]) => ({
   id,
-  domain: productName,
+  domain,
   productName,
   condition,
-  recommendedModelId: 'bayespfl-general-v1',
-  datasetId: 'visa',
+  recommendedModelId,
+  datasetId,
   sourceLabels,
-  sourcePath: `backend/samples/demo/${id}.jpg`,
   filename: 'sample-part.jpg',
   mediaType: 'image/jpeg',
   imageUrl: SAMPLE,
@@ -166,7 +162,7 @@ export async function getModels() {
 export async function getSamples() {
   await wait(80);
   return {
-    notice: 'Source labels describe VisA dataset ground truth, not model predictions.',
+    notice: 'Source labels describe dataset metadata, not model predictions.',
     datasets: SAMPLE_DATASETS,
     samples: MOCK_SAMPLES,
   };
