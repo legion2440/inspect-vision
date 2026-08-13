@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { inspectSample } from '../src/utils/samples.js';
+import { inspectShowcaseSample } from '../src/utils/samples.js';
 
 class FileStub {
   constructor(parts, name, options) {
@@ -10,18 +10,18 @@ class FileStub {
   }
 }
 
-test('sample supplies category context without changing selected model', async () => {
+test('showcase sample supplies category context without changing selected model', async () => {
   const calls = [];
   const navigation = [];
   const sample = {
-    id: 'visa-candle-anomaly-0000',
-    filename: 'candle.jpg',
-    mediaType: 'image/jpeg',
-    productName: 'Candle',
+    id: 'mvtec-screw-bad',
+    filename: 'screw.png',
+    mediaType: 'image/png',
+    productName: 'Screw',
   };
-  const blob = { type: 'image/jpeg' };
+  const blob = { type: 'image/png' };
 
-  const record = await inspectSample({
+  const record = await inspectShowcaseSample({
     sample,
     selectedModelId: 'neu-defect-yolov8',
     productName: sample.productName,
@@ -36,8 +36,8 @@ test('sample supplies category context without changing selected model', async (
 
   assert.equal(record.inspectionId, 'insp_test');
   assert.equal(calls.length, 1);
-  assert.equal(calls[0][0].name, 'candle.jpg');
+  assert.equal(calls[0][0].name, 'screw.png');
   assert.equal(calls[0][1], 'neu-defect-yolov8');
-  assert.equal(calls[0][2], 'Candle');
+  assert.equal(calls[0][2], 'Screw');
   assert.deepEqual(navigation, [{ to: '/inspect' }]);
 });
