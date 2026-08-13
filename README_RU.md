@@ -172,7 +172,7 @@ npm --prefix frontend run dev
 - backend-authoritative quality score;
 - экспорт CSV;
 - live-frame инспекцию без сохранения записи;
-- локальный каталог из двенадцати demo-изображений, хранящихся прямо в репозитории.
+- атрибутированный каталог примеров для сравнения общей модели и специалистов.
 
 По умолчанию frontend работает с реальным FastAPI backend. Mock inference включается только явно и не скрывает ошибки backend или модели.
 
@@ -202,19 +202,17 @@ Bayes-PFL публикует cross-dataset checkpoints. В Inspect-Vision исп
 ```text
 checkpoint: train_visa.pth
 auxiliary training domain: VisA
-qualification domain: MVTec AD
+qualification / showcase domain: MVTec AD
 protocol: held-out cross-dataset zero-shot
 ```
 
-Исполняемые источники qualification для Bayes-PFL относятся к MVTec AD, поэтому `train_visa.pth` сохраняет qualification domain отличным от auxiliary training domain checkpoint. Замена на `train_mvtec.pth` при сохранении MVTec как qualification domain нарушила бы этот протокол.
-
-Локальный операторский demo-корпус относится к VisA и намеренно отделён от runtime qualification evidence. Он нужен для demo-изображений и офлайн-страницы Samples, а не для заявления held-out accuracy Bayes-PFL.
+Примеры Bayes-PFL в интерфейсе относятся к MVTec AD, поэтому `train_visa.pth` сохраняет qualification domain отличным от auxiliary training domain checkpoint. Замена на `train_mvtec.pth` при сохранении MVTec как qualification domain нарушила бы этот протокол.
 
 Связь также хранится в `backend/detection/model-selection.json`, а проверки репозитория не позволяют auxiliary training и qualification domain стать одинаковыми.
 
 ### Поведение runtime и ускорителя
 
-`DetectionRuntimeManager` лениво загружает и кэширует один успешный `DetectionService` на модель. Для guided Bayes-PFL смена `Bottle`, `Capsule`, `Screw`, `Metal nut` или другой категории меняет prompt context под runtime lock этой модели без загрузки ещё одной полной копии Bayes-PFL/CLIP.
+`DetectionRuntimeManager` лениво загружает и кэширует один успешный `DetectionService` на модель. Для guided Bayes-PFL смена `Bottle`, `Capsule`, `Screw`, `Metal nut` или другой категории меняет prompt context без загрузки ещё одной полной копии Bayes-PFL/CLIP.
 
 Поэтому работа с ускорителем состоит из двух фаз:
 
@@ -245,7 +243,7 @@ URL источников, revisions, thresholds, preprocessing, данные ц�
 | YOLO-World X | **отклонён кандидат** | локальные проверки показали слабую локализацию, слишком большие bounding boxes и false positives на чистых изображениях |
 | AnomalyCLIP | **отклонён кандидат** | локальные cross-domain проверки дали смесь успешных случаев, пропусков, false positives и слишком широких anomaly regions |
 
-Исторические runtime-материалы остаются историческими. Старый factory checkpoint сохранён для воспроизводимости, но consistency check не позволяет снова сделать отклонённую модель видимой оператору. Adapter AnomalyCLIP сохранён как experimental backend slot, но ни одна текущая exposed-модель его не использует.
+Исторические runtime-материалы остаются историческими. Старый factory checkpoint сохранён для воспроизводимости, но consistency check не позволяет снова сделать отклонённую модель видимой оператору.
 
 ## 🏷️ Контекст продукта / категории
 
@@ -266,26 +264,26 @@ Bayes-PFL использует текст продукта/категории к
 
 ## 🖼️ Примеры
 
-Страница Samples использует те же двенадцать изображений, которые лежат в `backend/samples/demo/`. Второго showcase-каталога нет, и для загрузки изображений на странице сеть не нужна.
+На странице Samples находится 14 атрибутированных примеров:
 
-| Категория VisA | Локальная demo-выборка |
-| --- | --- |
-| Candle | 1 normal + 2 anomaly изображения |
-| Capsules | 1 normal + 2 anomaly изображения |
-| Cashew | 1 normal + 2 anomaly изображения |
-| Chewing gum | 1 normal + 2 anomaly изображения |
+| Группа | Примеры | Рекомендуемая модель |
+| --- | --- | --- |
+| MVTec AD | Bottle good / broken large; Capsule good / crack; Screw good / manipulated front; Metal nut good / bent | Bayes-PFL general |
+| Steel Surface | good surface, inclusion, scratch | Steel Surface specialist |
+| Concrete & Structural Cracks | transverse, longitudinal и diagonal crack examples | Concrete specialist |
 
-`backend/samples/demo-samples.json` хранит provenance источника, source annotations, hashes, dimensions, media types и исторический model-observation exercise. Samples API отдаёт только source-ground-truth labels и metadata файлов; сохранённые `modelObservation` являются evidence-записями и никогда не выдаются за свежий prediction.
+Восемь примеров MVTec AD отдаются из зафиксированной MMAD mirror revision `e88b7bd615ad582b0a7e8238066a9fb293a072b4`. MVTec AD распространяется по CC BY-NC-SA 4.0.
+
+Три steel и три concrete showcase-изображения связаны с отслеживаемым provenance и зафиксированной исторической revision репозитория. Attribution датасетов показывается на странице Samples.
 
 Важное поведение интерфейса:
 
 - клик по sample подставляет product/category context этого примера;
 - клик по sample **не меняет выбранную модель**;
-- `Use suggested model` — отдельное явное действие для смены модели;
-- инспекция sample выполняет свежий inference через обычный `/api/inspect` и сохраняет результат в обычную history;
-- все двенадцать demo-изображений доступны офлайн, потому что закоммичены в репозиторий.
+- `Use suggested model` — отдельное явное действие для переключения на рекомендованную general/specialist модель;
+- source labels описывают metadata датасета и никогда не выдаются за предсказание модели.
 
-Runtime qualification моделей — отдельный verification workflow и может использовать pinned remote sources; это не страница Samples.
+Так один и тот же исходник можно сначала прогнать через Bayes-PFL, а затем через подходящего специалиста, не скрывая от оператора выбор модели.
 
 ## 🔄 Поток инспекции
 
@@ -308,8 +306,8 @@ Ultralytics-специалисты используют общий square-letter
 | Метод | Путь | Назначение |
 | --- | --- | --- |
 | `GET` | `/api/models` | список доступных моделей, curated guided categories и installed/default state |
-| `GET` | `/api/samples` | список двенадцати локальных demo-изображений VisA |
-| `GET` | `/api/samples/{id}/image` | получить локальное demo-изображение по manifest ID |
+| `GET` | `/api/samples` | список атрибутированного showcase-каталога |
+| `GET` | `/api/samples/{id}/image` | получить одно зафиксированное showcase-изображение |
 | `POST` | `/api/inspect` | выполнить инспекцию и сохранить результат |
 | `POST` | `/api/stream` | проверить один JPEG-кадр без сохранения |
 | `GET` | `/api/history` | список/фильтрация инспекций |
@@ -352,7 +350,7 @@ python scripts/validate.py
 Полезные отдельные команды:
 
 ```bash
-python scripts/validate_demo_samples.py
+python scripts/validate_showcase_samples.py
 python scripts/validate_architecture.py
 python -m pytest
 npm --prefix frontend test
@@ -385,7 +383,7 @@ inspect-vision/
 │   ├── detection/       adapters моделей, selection metadata, prompt validation
 │   ├── models/          manifest моделей и игнорируемые локальные артефакты
 │   ├── routes/          FastAPI boundaries
-│   ├── samples/         локальный demo-корпус, manifests и provenance
+│   ├── samples/         каталоги, provenance и showcase assets
 │   └── storage/         SQLite и lifecycle media
 ├── frontend/
 │   ├── src/             React routes, components, context, API client и styles
@@ -404,9 +402,8 @@ inspect-vision/
 - Bayes-PFL — anomaly localizer, а не semantic defect classifier.
 - Специалисты намеренно узкие; их семантическое преимущество относится к своим обученным доменам.
 - Веса моделей игнорируются Git и устанавливаются отдельно.
-- Операторские demo-изображения локальные и не требуют сети.
-- Runtime qualification sources — отдельные verification inputs и могут требовать доступ в сеть.
-- Source labels в Samples — ground truth датасета, а не сохранённый или выдуманный результат модели.
+- Для MVTec showcase нужен доступ в сеть, потому что исходные изображения отдаются из зафиксированной mirror revision.
+- Source labels в Samples — metadata датасета, а не сохранённый или выдуманный результат модели.
 - По умолчанию frontend использует реальный backend.
 - Исторический runtime evidence не изменяется, чтобы приписать ему выполнение более новых исходников.
 
