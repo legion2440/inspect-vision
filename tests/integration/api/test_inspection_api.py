@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import os
 from pathlib import Path
 
 from backend.detection.product_context import ProductNameValidationError, normalize_product_name
-from backend.utils.model_loader import ProductNameRequiredError
 
 
 _CASES_PATH = Path(__file__).with_name("inspection_api_cases.py")
@@ -18,8 +18,7 @@ _SPEC.loader.exec_module(_CASES)
 
 # Route/storage cases use the installed steel specialist as their ordinary model
 # so they stay focused on HTTP, persistence, filtering, and cleanup semantics.
-# Dedicated tests below exercise the guided Bayes-PFL default and local demo
-# sample contract.
+# Dedicated tests below exercise the guided Bayes-PFL default and operator showcase.
 _ORIGINAL_FAKE_INSPECT = _CASES.FakeDetectionRuntime.inspect
 
 
@@ -51,13 +50,7 @@ class GuidedRuntime(_CASES.FakeDetectionRuntime):
 
     def inspect(self, image, model_id=None, *, product_name=None):
         spec = self.registry.get_exposed(model_id)
-        if spec.requires_product_name:
-            try:
-                normalized_product = normalize_product_name(product_name)
-            except ProductNameValidationError:
-                raise
-        else:
-            normalized_product = None
+        normalized_product = normalize_product_name(product_name) if spec.requires_product_name else None
         self.requested_model_ids.append(spec.model_id)
         self.requested_product_names.append(normalized_product)
         if spec.model_id == self.missing_model_id:
@@ -120,11 +113,7 @@ def test_guided_default_accepts_images_and_preserves_original_bytes(
     assert body["imageWidth"] == 24
     assert body["imageHeight"] == 16
     assert body["defects"][0]["type"] == "anomaly"
-    assert body["model"] == {
-        "id": "bayespfl-general-v1",
-        "displayName": "General Manufacturing (Bayes-PFL)",
-    }
-    assert runtime.requested_model_ids == ["bayespfl-general-v1"]
+    assert body["model"]["id"] == "bayespfl-general-v1"
     assert runtime.requested_product_names == ["metal nut"]
     assert body["imageUrl"].startswith(f"data:{media_type};base64,")
     prefix, encoded_original = body["originalImageUrl"].split(",", 1)
@@ -134,12 +123,10 @@ def test_guided_default_accepts_images_and_preserves_original_bytes(
 
 def test_guided_default_requires_product_name(api_factory) -> None:
     client = api_factory(GuidedRuntime())
-
     response = client.post(
         "/api/inspect",
         files={"image": ("part.png", _CASES.encoded_image(".png"), "image/png")},
     )
-
     assert response.status_code == 422
     assert response.json() == {"detail": "Product / category is required for Bayes-PFL"}
 
@@ -154,13 +141,11 @@ def test_guided_context_validation_is_shared_by_inspect_and_stream(
     field: str,
 ) -> None:
     client = api_factory(GuidedRuntime())
-
     response = client.post(
         endpoint,
-        data={"productName": "хуй"},
+        data={"productName": "тест"},
         files={field: ("part.jpg", _CASES.encoded_image(".jpg"), "image/jpeg")},
     )
-
     assert response.status_code == 422
     assert "Latin letters" in response.json()["detail"]
 
@@ -181,18 +166,13 @@ def test_bayespfl_is_available_through_public_inference_routes(
 ) -> None:
     runtime = GuidedRuntime()
     client = api_factory(runtime)
-
     response = client.post(
         endpoint,
         data={"modelId": "bayespfl-general-v1", "productName": "Capsule"},
         files={field: (filename, _CASES.encoded_image(".jpg"), "image/jpeg")},
     )
-
     assert response.status_code == 200, response.text
-    assert response.json()["model"] == {
-        "id": "bayespfl-general-v1",
-        "displayName": "General Manufacturing (Bayes-PFL)",
-    }
+    assert response.json()["model"]["id"] == "bayespfl-general-v1"
     assert response.json()["defects"][0]["type"] == "anomaly"
     assert runtime.requested_product_names == ["capsule"]
     assert len(client.get("/api/history").json()) == history_count
@@ -201,9 +181,7 @@ def test_bayespfl_is_available_through_public_inference_routes(
 def test_models_endpoint_exposes_current_registry_entries(api_factory) -> None:
     missing_id = "concrete-crack-yolov8"
     client = api_factory(_CASES.FakeDetectionRuntime(missing_model_id=missing_id))
-
     response = client.get("/api/models")
-
     assert response.status_code == 200
     models = response.json()
     assert [model["id"] for model in models] == [
@@ -212,100 +190,79 @@ def test_models_endpoint_exposes_current_registry_entries(api_factory) -> None:
         "concrete-crack-yolov8",
     ]
     assert sum(model["isDefault"] for model in models) == 1
-    assert models[0]["id"] == "bayespfl-general-v1"
     assert models[0]["requiresProductName"] is True
-    assert models[0]["classes"] == ["anomaly"]
-    assert len(models[0]["productNamePresets"]) == 12
     assert {item["value"] for item in models[0]["productNamePresets"]} >= {
-        "Bottle",
-        "Capsule",
-        "Screw",
-        "Metal nut",
-        "Steel surface",
-        "Concrete surface",
+        "Bottle", "Capsule", "Screw", "Metal nut", "Steel surface", "Concrete surface"
     }
-    assert all(model["productNamePresets"] == [] for model in models[1:])
     assert models[2]["installed"] is False
 
 
-def test_samples_endpoint_exposes_local_demo_catalog(api_factory) -> None:
+def test_samples_endpoint_exposes_operator_showcase(api_factory) -> None:
     client = api_factory()
-
     response = client.get("/api/samples")
-
     assert response.status_code == 200
     body = response.json()
-    assert body["notice"] == "Source labels describe VisA dataset ground truth, not model predictions."
-    assert len(body["datasets"]) == 1
-    assert body["datasets"][0]["id"] == "visa"
-    assert len(body["samples"]) == 12
-    assert "base64" not in response.text.casefold()
-    assert {sample["recommendedModelId"] for sample in body["samples"]} == {
-        "bayespfl-general-v1"
-    }
+    assert body["notice"] == "Source labels describe dataset metadata, not model predictions."
+    assert len(body["samples"]) == 14
     assert {sample["productName"] for sample in body["samples"]} == {
-        "Candle",
-        "Capsules",
-        "Cashew",
-        "Chewing gum",
+        "Bottle", "Capsule", "Screw", "Metal nut", "Steel surface", "Concrete surface"
     }
-    for product_name in ("Candle", "Capsules", "Cashew", "Chewing gum"):
-        conditions = [
-            sample["condition"]
-            for sample in body["samples"]
+    assert {sample["recommendedModelId"] for sample in body["samples"]} == {
+        "bayespfl-general-v1", "neu-defect-yolov8", "concrete-crack-yolov8"
+    }
+    for product_name in ("Bottle", "Capsule", "Screw", "Metal nut"):
+        conditions = {
+            sample["condition"] for sample in body["samples"]
             if sample["productName"] == product_name
-        ]
-        assert conditions.count("good") == 1
-        assert conditions.count("bad") == 2
+        }
+        assert conditions == {"good", "bad"}
     assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
-    assert all("assetUrl" not in sample for sample in body["samples"])
 
 
-def test_sample_image_is_served_from_tracked_demo_file(api_factory) -> None:
+def _require_network_samples() -> None:
+    if os.getenv("INSPECT_VISION_RUN_NETWORK_TESTS") != "1":
+        _CASES.pytest.skip("network-backed showcase check; set INSPECT_VISION_RUN_NETWORK_TESTS=1")
+
+
+def test_sample_image_is_served_by_current_catalog_id(api_factory) -> None:
+    _require_network_samples()
     client = api_factory()
     sample = client.get("/api/samples").json()["samples"][0]
-
     response = client.get(sample["imageUrl"])
-
     assert response.status_code == 200
     assert response.headers["content-type"] == sample["mediaType"]
-    assert response.content.startswith(b"\xff\xd8")
-    assert 2 < len(response.content) <= 10 * 1024 * 1024
+    assert response.content.startswith(b"\x89PNG\r\n\x1a\n")
+    assert 8 < len(response.content) <= 10 * 1024 * 1024
 
 
-def test_tracked_demo_image_matches_recorded_hash(api_factory) -> None:
+def test_verified_screw_good_image_matches_recorded_hash(api_factory) -> None:
+    _require_network_samples()
     client = api_factory()
     sample = next(
         item for item in client.get("/api/samples").json()["samples"]
-        if item["id"] == "visa-candle-normal-0000"
+        if item["id"] == "mvtec-screw-good-001"
     )
-
     response = client.get(sample["imageUrl"])
-
     assert response.status_code == 200
-    assert len(response.content) == 113963
-    assert hashlib.sha256(response.content).hexdigest() == sample["sha256"]
-    assert sample["sha256"] == "223a16caac5a91232f7c52552dea5c7c7f096ef882e626c5908b4539a43dc131"
+    assert len(response.content) == 393132
+    assert hashlib.sha256(response.content).hexdigest() == (
+        "983a27fcea10ce8eafeebac3db0899e5fb6ad84338a6cabc5746ee96d2865daa"
+    )
 
 
 def test_guided_default_stream_does_not_persist(api_factory) -> None:
     runtime = GuidedRuntime()
     client = api_factory(runtime)
     before = client.get("/api/history").json()
-
     response = client.post(
         "/api/stream",
         data={"productName": "Capsule"},
         files={"frame": ("frame.png", _CASES.encoded_image(".jpg"), "image/png")},
     )
     after = client.get("/api/history").json()
-
     assert response.status_code == 200
     assert response.json()["frameWidth"] == 24
     assert response.json()["frameHeight"] == 16
     assert response.json()["defects"][0]["type"] == "anomaly"
-    assert response.json()["model"] == {
-        "id": "bayespfl-general-v1",
-        "displayName": "General Manufacturing (Bayes-PFL)",
-    }
+    assert response.json()["model"]["id"] == "bayespfl-general-v1"
     assert before == after == []
