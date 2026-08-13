@@ -1,50 +1,23 @@
 # Samples
 
-The repository keeps two sample roles separate: runtime qualification sources and
-the tracked local demo corpus.
+The repository keeps three sample roles separate.
 
-## Runtime qualification sources
+## Operator showcase
 
-`model-probe-samples.json` pins remote images by URL and SHA-256 for executable
-model qualification. Bayes-PFL is explicitly recorded as:
+`backend/routes/sample_catalog.py` defines the Samples page catalog. It contains 14 operator-facing examples: eight MVTec cases for Bayes-PFL (Bottle, Capsule, Screw, Metal nut good/bad pairs), three steel examples, and three concrete/crack examples.
 
-```text
-checkpoint: train_visa.pth
-auxiliary training domain: VisA
-qualification domain: MVTec AD
-```
+`GET /api/samples` exposes only this catalog. `GET /api/samples/{id}/image` resolves a known ID to its pinned source. A sample can supply product/category context, but it never changes the selected model automatically; inspection reuses the ordinary `/api/inspect` path.
 
-The probe downloads source bytes into a temporary directory and does not
-redistribute them. These sources are verification inputs; they are not served by
-the operator Samples page.
+## Local VisA demo/evidence corpus
 
-## Local demo corpus
+`demo/` contains twelve tracked VisA images across candle, capsules, cashew and chewing gum. `demo-samples.json` records provenance, source annotations, hashes, dimensions and historical model observations. This corpus satisfies the repository demo-image requirement and supports evidence checks, but it is not the operator Samples page.
 
-`demo/` contains twelve unmodified VisA images across candle, capsules, cashew,
-and chewing gum. `demo-samples.json` records their tracked source provenance,
-source annotations, hashes, dimensions, media types, and the retained historical
-`modelObservation` exercise.
-
-The source labels in `sourceGroundTruth` are dataset truth. The retained
-`modelObservation` block is historical evidence only and is not returned as a
-prediction by `/api/samples`.
-
-The same twelve files are the application's operator demo catalog. The API maps
-the manifest entries to `/api/samples` metadata and serves each image from
-`backend/samples/demo/` through `/api/samples/{id}/image`. No runtime network
-request is needed to browse or load the Samples page.
-
-Selecting a demo supplies its product/category context but never changes the
-operator's selected model automatically. The explicit recommendation button is
-the only sample action that changes the model, and inspection still uses the
-ordinary `/api/inspect` path so results are persisted to normal history.
-
-Validate the corpus with:
+Validate it with:
 
 ```bash
 python scripts/validate_demo_samples.py
 ```
 
-The demo corpus therefore satisfies both the repository's tracked demo-image
-requirement and the operator-facing sample workflow without maintaining a second
-showcase manifest or a second set of sample assets.
+## Runtime qualification sources
+
+`model-probe-samples.json` pins separate sources for executable model qualification. Runtime evidence is tied to the source commit that actually executed and is not interchangeable with either the operator showcase or the local VisA demo corpus.
