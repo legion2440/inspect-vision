@@ -3,12 +3,12 @@
 ## Status
 
 The React operator UI, FastAPI service, multi-model detection runtime,
-SQLite/media persistence, history/export/live endpoints, and local demo sample
-catalog are implemented. The default detector is the category-guided Bayes-PFL
-general anomaly localizer; steel and concrete specialists remain independently
-selectable for known domains. The rejected legacy general YOLO remains
-registered only for historical reproducibility and is not exposed to operators.
-See `docs/project-status.json` for the current baseline and limitations.
+SQLite/media persistence, history/export/live endpoints, and curated operator
+sample showcase are implemented. The default detector is the category-guided
+Bayes-PFL general anomaly localizer; steel and concrete specialists remain
+independently selectable for known domains. The rejected legacy general YOLO
+remains registered only for historical reproducibility and is not exposed to
+operators. See `docs/project-status.json` for the current baseline and limitations.
 
 ## System context
 
@@ -18,7 +18,7 @@ flowchart LR
     Frontend -->|"HTTP multipart and JSON"| API["FastAPI"]
     API --> Detection["OpenCV and defect models"]
     API --> History["Inspection history"]
-    API --> Samples["Tracked local VisA demo corpus"]
+    API --> Samples["Pinned operator showcase"]
     Detection --> Media["Original and annotated images"]
     History --> Database["SQLite metadata"]
 ```
@@ -32,17 +32,17 @@ flowchart LR
   selection, live frame capture, CSV download, and client-side quality fallback.
 - Uses relative `/api` URLs by default through the Vite development proxy.
 - Uses one global model selection state on Dashboard, Inspect, and Samples.
-- When the API marks a model `requiresProductName`, the selector exposes a
-  datalist-style combobox populated from tracked curated examples while still
-  allowing custom zero-shot product/category values.
+- When the API marks a model `requiresProductName`, the selector exposes an
+  editable combobox populated from tracked curated examples while still allowing
+  custom zero-shot product/category values.
 - Model choice and product/category choice are independent. Choosing a steel or
   concrete category never silently routes to a specialist.
 - Model or product-context changes abort in-flight requests before clearing the
   current upload result.
 - Displays original pixels without CSS color transforms; Canvas is a separate
   overlay.
-- A demo sample supplies its own product/category context but never changes the
-  selected model automatically.
+- A showcase sample supplies its own product/category context but never changes
+  the selected model automatically.
 
 ### Backend API
 
@@ -62,9 +62,12 @@ flowchart LR
   and do not load duplicate Bayes-PFL/CLIP services.
 - Stream inference does not persist records; upload inference persists metadata,
   original bytes, and annotated media through the storage service.
-- The Samples API is backed by `backend/samples/demo-samples.json` and serves
-  only files from the tracked `backend/samples/demo/` directory by manifest ID.
-  Sample image delivery therefore has no runtime network dependency.
+- `backend/routes/sample_catalog.py` defines the operator Samples catalog: eight
+  MVTec Bayes-PFL good/bad examples plus three steel and three concrete specialist
+  examples. `/api/samples/{id}/image` derives only revision-pinned sources from
+  catalog IDs; arbitrary client URLs are never accepted.
+- The twelve VisA files under `backend/samples/demo/` are a separate audit/demo
+  evidence corpus and are never projected into the operator Samples page.
 
 ### Defect detection
 
@@ -110,9 +113,9 @@ original BGR
 VisA is its auxiliary training domain and MVTec AD is the distinct held-out
 runtime qualification domain. That relationship is recorded as
 `held-out-cross-dataset-zero-shot`; it must not be inverted to
-`train_mvtec.pth` while MVTec remains the qualification domain. The operator's
-tracked VisA demo corpus is a UI/demo asset and is not used as Bayes-PFL
-qualification evidence.
+`train_mvtec.pth` while MVTec remains the qualification domain. The separate
+tracked VisA demo corpus is audit/evidence material and is not Bayes-PFL
+qualification evidence or the operator showcase.
 
 The Bayes adapter uses explicit product/category prompting, `518×518` CLIP
 preprocessing, Gaussian sigma `8`, fixed application threshold `0.72`, minimum
@@ -162,8 +165,9 @@ unchanged.
   requalification is pending.
 - New current runtime results are recorded only after the integrated source is
   executed through `DetectionRuntimeManager -> DetectionService`.
-- Runtime qualification sources are separate from the operator demo corpus;
-  model probes may use pinned remote sources while `/api/samples` stays local.
+- The VisA demo corpus remains a separate local evidence set. Operator showcase
+  byte checks that require pinned remote sources are opt-in network checks and do
+  not make ordinary repository validation network-dependent.
 
 ## Boundary rules
 
