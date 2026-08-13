@@ -172,7 +172,7 @@ The application provides:
 - backend-authoritative quality scoring;
 - CSV export;
 - non-persisted live-frame inspection;
-- a tracked local operator demo catalog built from twelve repository images.
+- an attributed operator sample catalog for general-vs-specialist comparison.
 
 The real FastAPI backend is the default frontend data source. Mock inference must be enabled explicitly and does not hide backend/model failures.
 
@@ -202,19 +202,17 @@ Bayes-PFL publishes cross-dataset checkpoints. Inspect-Vision uses:
 ```text
 checkpoint: train_visa.pth
 auxiliary training domain: VisA
-qualification domain: MVTec AD
+qualification / showcase domain: MVTec AD
 protocol: held-out cross-dataset zero-shot
 ```
 
-The executable Bayes-PFL qualification sources are MVTec AD categories, so using `train_visa.pth` keeps the qualification domain distinct from the checkpoint's auxiliary training domain. Switching to `train_mvtec.pth` while qualifying on MVTec would defeat that protocol.
-
-The local operator demo corpus is VisA and is intentionally separate from runtime qualification evidence. It exists to provide tracked demo images and an offline Samples workflow, not to claim held-out Bayes-PFL accuracy.
+The operator Bayes samples are MVTec AD categories, so using `train_visa.pth` keeps the qualification domain distinct from the checkpoint's auxiliary training domain. Switching to `train_mvtec.pth` while qualifying on MVTec would defeat that protocol.
 
 The relationship is also stored in `backend/detection/model-selection.json`, and repository checks prevent the auxiliary training and qualification domains from collapsing to the same value.
 
 ### Runtime device behavior
 
-`DetectionRuntimeManager` lazy-loads and caches one successful `DetectionService` per model. For guided Bayes-PFL requests, changing `Bottle`, `Capsule`, `Screw`, `Metal nut`, or another category updates the prompt context under the model's runtime lock without loading another full Bayes-PFL/CLIP copy.
+`DetectionRuntimeManager` lazy-loads and caches one successful `DetectionService` per model. For guided Bayes-PFL requests, changing `Bottle`, `Capsule`, `Screw`, `Metal nut`, or another category updates the prompt context without loading another full Bayes-PFL/CLIP copy.
 
 That means an accelerator run has two distinct phases:
 
@@ -266,26 +264,26 @@ The server normalizes category input to lowercase, accepts `_` as a backwards-co
 
 ## 🖼️ Samples
 
-The operator Samples page uses the same twelve tracked images stored in `backend/samples/demo/`. There is no second showcase catalog and no network fetch when the page loads an image.
+The operator Samples page contains 14 attributed examples:
 
-| VisA category | Local demo selection |
-| --- | --- |
-| Candle | 1 normal + 2 anomaly images |
-| Capsules | 1 normal + 2 anomaly images |
-| Cashew | 1 normal + 2 anomaly images |
-| Chewing gum | 1 normal + 2 anomaly images |
+| Group | Samples | Suggested model |
+| --- | --- | --- |
+| MVTec AD | Bottle good / broken large; Capsule good / crack; Screw good / manipulated front; Metal nut good / bent | Bayes-PFL general |
+| Steel Surface | good surface, inclusion, scratch | Steel Surface specialist |
+| Concrete & Structural Cracks | transverse, longitudinal, and diagonal crack examples | Concrete specialist |
 
-`backend/samples/demo-samples.json` records source provenance, source annotations, hashes, dimensions, media types, and the historical model-observation exercise. The Samples API exposes source-ground-truth labels and file metadata only; retained `modelObservation` values are evidence records and are never presented as fresh predictions.
+The eight Bayes-PFL examples are pinned to one MVTec AD mirror revision. The three steel and three concrete examples are pinned to a historical repository source revision with their dataset attribution retained.
+
+The separate `backend/samples/demo/` directory contains twelve tracked VisA images used for demo/evidence validation. Those files satisfy the repository's `at least 10 demo images` requirement but are not the operator Samples catalog.
 
 Important UI behavior:
 
 - clicking a sample supplies that sample's product/category context;
 - clicking a sample **does not change the selected model**;
-- `Use suggested model` is the explicit action that changes the model;
-- inspecting a sample performs fresh inference through the ordinary `/api/inspect` path and stores the result in normal history;
-- the twelve demo images are available offline because they are committed to the repository.
+- `Use suggested model` is the explicit action that switches to the sample's specialist/general recommendation;
+- source labels describe dataset metadata and are never presented as model predictions.
 
-Runtime model qualification is a separate verification workflow and may use pinned remote sources; it is not the operator Samples page.
+This allows the same source to be inspected first with Bayes-PFL and then with a matching specialist without hiding the model choice.
 
 ## 🔄 Inspection flow
 
@@ -308,8 +306,8 @@ The pinned Bayes-PFL source files stay byte-exact. Device-specific upstream allo
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/models` | list selectable models, curated guided categories, and installed/default state |
-| `GET` | `/api/samples` | list the twelve tracked local VisA demo samples |
-| `GET` | `/api/samples/{id}/image` | serve one local demo image by manifest ID |
+| `GET` | `/api/samples` | list the attributed 14-item operator showcase |
+| `GET` | `/api/samples/{id}/image` | serve one pinned showcase image by catalog ID |
 | `POST` | `/api/inspect` | inspect and persist an image |
 | `POST` | `/api/stream` | inspect one JPEG frame without persistence |
 | `GET` | `/api/history` | list/filter inspections |
@@ -352,11 +350,16 @@ python scripts/validate.py
 Useful focused commands:
 
 ```bash
-python scripts/validate_demo_samples.py
 python scripts/validate_architecture.py
 python -m pytest
 npm --prefix frontend test
 npm --prefix frontend run build
+```
+
+The two tests that fetch pinned showcase bytes are opt-in so ordinary validation remains offline-stable:
+
+```bash
+INSPECT_VISION_RUN_NETWORK_TESTS=1 python -m pytest tests/integration/api/test_inspection_api.py -k 'sample_image or verified_screw'
 ```
 
 Real-model qualification is separate from static/unit checks:
@@ -384,8 +387,8 @@ inspect-vision/
 ├── backend/
 │   ├── detection/       detector adapters, selection metadata, prompt validation
 │   ├── models/          model manifest and ignored local model artifacts
-│   ├── routes/          FastAPI boundaries
-│   ├── samples/         local demo corpus, manifests and provenance
+│   ├── routes/          FastAPI boundaries and operator sample catalog
+│   ├── samples/         local VisA demo/evidence corpus and provenance
 │   └── storage/         SQLite and media lifecycle
 ├── frontend/
 │   ├── src/             React routes, components, context, API client and styles
@@ -404,9 +407,8 @@ inspect-vision/
 - Bayes-PFL is an anomaly localizer, not a semantic defect classifier.
 - The specialists are intentionally narrow; their semantic advantage applies inside their trained domains.
 - Model weights are ignored by Git and installed separately.
-- Operator demo images are local and require no network access.
-- Runtime qualification sources are separate verification inputs and may require network access.
-- Sample source labels are dataset ground truth, not cached or fabricated model output.
+- The operator showcase image endpoints use pinned network sources; ordinary repository validation does not fetch them.
+- Sample source labels are dataset metadata, not cached or fabricated model output.
 - The default frontend path uses the real backend.
 - Historical runtime evidence is not modified to claim execution by newer source.
 
