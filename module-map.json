@@ -5,7 +5,7 @@
   "modules": [
     {
       "id": "frontend-app",
-      "description": "Provides the operator dashboard, upload and live inspection UI, local demo sample catalog, history, details, Canvas overlays, and HTTP client boundary.",
+      "description": "Provides the operator dashboard, upload and live inspection UI, curated operator sample showcase, history, details, Canvas overlays, and HTTP client boundary.",
       "module_type": "application",
       "root": "frontend",
       "entrypoints": [
@@ -43,14 +43,12 @@
     },
     {
       "id": "backend-api",
-      "description": "Owns FastAPI composition, HTTP validation, endpoint serialization, CORS, error mapping, and local demo sample delivery.",
+      "description": "Owns FastAPI composition, HTTP validation, endpoint serialization, CORS, error mapping, and the operator sample HTTP boundary.",
       "module_type": "service",
       "root": "backend/routes",
       "additional_owned_paths": [
         "backend/config.py",
-        "backend/main.py",
-        "backend/samples/demo-samples.json",
-        "backend/samples/demo"
+        "backend/main.py"
       ],
       "entrypoints": [
         { "path": "backend/main.py", "status": "implemented" }
@@ -64,6 +62,7 @@
         { "path": "backend/routes/history.py", "status": "implemented" },
         { "path": "backend/routes/images.py", "status": "implemented" },
         { "path": "backend/routes/models.py", "status": "implemented" },
+        { "path": "backend/routes/sample_catalog.py", "status": "implemented" },
         { "path": "backend/routes/samples.py", "status": "implemented" },
         { "path": "backend/routes/serialization.py", "status": "implemented" },
         { "path": "backend/routes/stream.py", "status": "implemented" }
@@ -380,6 +379,8 @@
       "owned_configuration": [
         { "path": "docs/evidence/anomalyclip-public-api/sample-contract.json", "status": "implemented" },
         { "path": "backend/samples/model-probe-samples.json", "status": "implemented" },
+        { "path": "backend/samples/demo-samples.json", "status": "implemented" },
+        { "path": "backend/samples/demo", "status": "implemented" },
         { "path": "backend/samples/provenance", "status": "implemented" }
       ]
     }
@@ -391,6 +392,7 @@
     { "path": "Makefile", "status": "implemented" },
     { "path": ".python-version", "status": "implemented" },
     { "path": "dependency-graph.json", "status": "implemented" },
+    { "path": "module-map.json", "status": "implemented" },
     { "path": "pyproject.toml", "status": "implemented" },
     { "path": "requirements-detection.txt", "status": "implemented" },
     { "path": "schemas/module-map.schema.json", "status": "implemented" },
