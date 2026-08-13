@@ -1,8 +1,6 @@
 # API contract
 
-This document is the authoritative frontend/backend boundary. JSON fields use
-camelCase. Dates are UTC ISO 8601 strings. Bounding boxes use original-image
-pixels with `(0, 0)` at the top-left.
+This document is the authoritative frontend/backend boundary. JSON fields use camelCase. Dates are UTC ISO 8601 strings. Bounding boxes use original-image pixels with `(0, 0)` at the top-left.
 
 ## Inspection detail
 
@@ -15,186 +13,64 @@ pixels with `(0, 0)` at the top-left.
   "originalImageUrl": "data:image/jpeg;base64,...original...",
   "imageWidth": 1920,
   "imageHeight": 1080,
-  "defects": [
-    {
-      "type": "scratches",
-      "confidence": 0.92,
-      "boundingBox": { "x": 120, "y": 85, "width": 45, "height": 30 }
-    }
-  ],
+  "defects": [{"type":"scratches","confidence":0.92,"boundingBox":{"x":120,"y":85,"width":45,"height":30}}],
   "totalDefects": 1,
   "qualityScore": 82,
   "status": "failed",
-  "model": { "id": "neu-defect-yolov8", "displayName": "Steel Surface" }
+  "model": {"id":"neu-defect-yolov8","displayName":"Steel Surface"}
 }
 ```
 
-Contract invariants:
+Invariants: `imageUrl` is annotated, `originalImageUrl` is the Canvas source, boxes use original-image coordinates, confidence is finite in `[0,1]`, boxes have positive bounded area, `totalDefects == defects.length`, `status` is `passed` only with zero defects, `qualityScore` is authoritative 0-100, and native class names are not semantically remapped.
 
-- `imageUrl` is the server-rendered annotated image and Download target.
-- `originalImageUrl` is unmodified and is the Canvas viewer source.
-- `imageWidth` and `imageHeight` define the original-image coordinate space.
-- `confidence` is finite and between `0` and `1`.
-- Boxes are clamped to the image boundary and have positive width and height.
-- `totalDefects` equals `defects.length`.
-- `status` is `passed` only when `totalDefects` is zero.
-- `qualityScore` is an authoritative integer from `0` to `100`; higher is better.
-- `model.id` is the persisted manifest model ID and `model.displayName` is its operator-facing label.
-- Historical records remain readable after a model is hidden or removed; the persisted ID becomes the display fallback.
-- `type` preserves the checkpoint-native class name without semantic remapping.
+## Model selection
 
-## Model selection fields
-
-`modelId` is optional for inspect and stream requests. Omission selects the
-registry `defaultModelId`.
-
-`productName` is a multipart text field used only by category-guided models. The
-model registry advertises this requirement with `requiresProductName`. For
-`bayespfl-general-v1`, the server normalizes `_` to a space, collapses
-whitespace, lowercases the value, and requires:
-
-- 2-40 characters;
-- Latin letters, spaces, or hyphens after normalization;
-- at most three whitespace-separated words.
-
-Missing, blank, malformed, or non-Latin guided context returns HTTP 422. Ordinary
-Ultralytics specialists ignore `productName`.
-
-The model registry also returns `productNamePresets` for Bayes-PFL. Presets are
-curated examples, not a whitelist of target classes. Each object has `value` and
-an `evidence` label (`local`, `upstream`, or `comparison`). Custom values remain
-valid when they satisfy server validation.
+`modelId` is optional for inspect/stream; omission selects `defaultModelId`. Guided models use multipart `productName`. Bayes-PFL normalizes underscores/spaces/case and requires 2-40 Latin-letter/space/hyphen characters with at most three words. Invalid or missing guided context returns HTTP 422. `productNamePresets` are curated examples, not a whitelist.
 
 ## Endpoints
 
 ### `POST /api/inspect`
-
-Accepts `multipart/form-data` with required field `image`, optional `modelId`, and
-conditional `productName`. Supported content is JPEG or PNG up to 10 MiB.
-Validation uses decoded content, not only the extension or supplied MIME type.
-Successful requests return the full detail record and persist metadata plus
-original and annotated media.
-
-### `GET /api/history`
-
-Returns inspection summaries newest first. Summaries omit `imageUrl` and
-`originalImageUrl`.
-
-Optional filters are `from` and `to` inclusive UTC dates in `YYYY-MM-DD`, exact
-lowercase `type`, and case-insensitive substring `q` over inspection ID or source
-filename. Invalid dates or `from > to` return HTTP 422. Filters combine with AND
-semantics.
-
-### `GET /api/history/{id}`
-
-Returns the full inspection detail including both image fields.
-
-### `DELETE /api/history/{id}`
-
-Deletes metadata and owned media and returns:
-
-```json
-{ "inspectionId": "insp_20260803_001", "deleted": true }
-```
-
-### `POST /api/history/clear`
-
-Clears all metadata and owned media and returns:
-
-```json
-{ "cleared": 12 }
-```
+Accepts JPEG/PNG `image` up to 10 MiB plus optional `modelId` and conditional `productName`. Validation uses decoded content. Successful requests persist metadata, original media and annotated media and return the full record.
 
 ### `POST /api/stream`
-
-Accepts one JPEG frame in multipart field `frame`, optional `modelId`, and the
-same conditional `productName` used by inspect. Validation rejects PNG and
-undecodable payloads. The endpoint uses the same detection runtime and inference
-lock as `/api/inspect`; frames are not persisted.
+Accepts one JPEG `frame` plus optional model/context, reuses the detection runtime, and does not persist.
 
 ### `GET /api/models`
-
-Returns only currently exposed registry models without loading checkpoints:
-
-```json
-[
-  {
-    "id": "bayespfl-general-v1",
-    "displayName": "General Manufacturing (Bayes-PFL)",
-    "role": "general",
-    "domain": "Cross-domain manufacturing anomaly localization",
-    "description": "Category-guided anomaly localization for varied manufactured products...",
-    "classes": ["anomaly"],
-    "preprocessingProfile": "bayespfl-stretch",
-    "requiresProductName": true,
-    "productNamePresets": [
-      { "value": "Bottle", "evidence": "local" },
-      { "value": "Steel surface", "evidence": "comparison" }
-    ],
-    "isDefault": true,
-    "installed": true
-  }
-]
-```
-
-`installed` means every required local model artifact and runtime source passes
-its pinned integrity checks. Uninstalled exposed models remain visible so the UI
-can show the exact installer command.
-
-The current exposed set is Bayes-PFL general, Steel Surface, and Concrete &
-Structural Cracks. `factory-defect-guard-v6-mc` remains registered for historical
-reproducibility but is rejected and not exposed.
+Returns the exposed registry: default `bayespfl-general-v1`, `neu-defect-yolov8`, and `concrete-crack-yolov8`. Uninstalled exposed entries remain visible with their installer command.
 
 ### `GET /api/samples`
+Returns the 14-item operator showcase defined by `backend/routes/sample_catalog.py`:
 
-Returns `notice`, one VisA `datasets` entry, and twelve tracked local `samples`.
-Each sample contains its dataset/source metadata, `condition` (`good` or `bad`),
-product/category context, integrity metadata, and a stable same-origin
-`imageUrl`. The catalog contains one normal and two anomalous images for each of
-Candle, Capsules, Cashew, and Chewing gum.
+- 8 MVTec AD Bayes-PFL cases: Bottle, Capsule, Screw and Metal nut, each with one good and one bad example;
+- 3 Steel Surface cases: good, inclusion, scratch;
+- 3 Concrete & Structural Cracks cases: transverse, longitudinal, diagonal.
 
-`sourceLabels` are reconstructed from `sourceGroundTruth` in
-`backend/samples/demo-samples.json`; they describe source-dataset truth and are
-not current model predictions. The retained `modelObservation` evidence in that
-manifest is intentionally not returned by this endpoint.
+Each sample contains a stable catalog ID, dataset/domain metadata, `recommendedModelId`, product/category context, condition/source labels, media metadata and a same-origin `imageUrl`. Source labels are dataset metadata, never model predictions. Selecting a sample may set its category context but never switches the selected model automatically.
 
-The frontend may pass a sample's `productName` to a guided model, but opening or
-inspecting a sample never changes the operator's selected model automatically.
+The twelve VisA files under `backend/samples/demo/` are separate demo/evidence material and are not returned by `/api/samples`.
 
 ### `GET /api/samples/{id}/image`
+Resolves only a known catalog ID. The server derives the revision-pinned source; arbitrary client filesystem paths or remote URLs are never accepted. MVTec cases are revision-pinned and specialist cases are pinned to a historical repository commit. Recorded size/SHA metadata is verified where available. Unknown IDs return 404; source/integrity failures return 502. These image requests require network access; ordinary repository validation does not execute the byte-fetch checks.
 
-Serves the tracked file for a demo manifest ID from `backend/samples/demo/`.
-Filesystem paths and arbitrary URLs are never accepted as request input. Unknown
-IDs return HTTP 404. The endpoint has no runtime network dependency.
+### History
+`GET /api/history` returns newest-first summaries with inclusive `from`/`to`, exact lowercase `type`, and case-insensitive `q` filters. `GET /api/history/{id}` returns full detail. `DELETE /api/history/{id}` removes metadata/media. `POST /api/history/clear` clears all owned records/media.
 
 ### `GET /api/export`
-
-Accepts the same history filters and returns `text/csv; charset=utf-8` with
-newest-first rows. Column order is:
-
-```text
-inspectionId,timestamp,defectCount,types,qualityScore,status
-```
-
-`types` contains unique defect types in first-appearance order separated by
-` | `. Output is UTF-8 without BOM, LF line endings, standard CSV quoting, and
-`Content-Disposition: attachment; filename="inspection-history.csv"`.
+Uses the same history filters and returns UTF-8 CSV with `inspectionId,timestamp,defectCount,types,qualityScore,status`.
 
 ## Error contract
 
-FastAPI errors use `{ "detail": "message" }`.
-
 | Condition | HTTP | Detail |
 | --- | ---: | --- |
-| Undecodable or unsupported image | 415 | `Unsupported file type` |
+| Unsupported/undecodable image | 415 | `Unsupported file type` |
 | More than 10 MiB | 413 | `File size exceeds 10MB limit` |
-| Guided model missing category | 422 | `Product / category is required for Bayes-PFL` |
-| Guided model invalid category | 422 | Specific length/word/character validation message |
-| Model inference failure after successful load | 500 | `Detection model error` |
-| Unknown `modelId` | 404 | `Detection model not found` |
-| Registered exposed model missing or invalid | 409 | Message includes `python scripts/install_models.py --model <id>` |
-| Unknown inspection ID | 404 | `Inspection not found` |
-| Unknown sample ID | 404 | `Sample not found` |
+| Bayes-PFL category missing | 422 | `Product / category is required for Bayes-PFL` |
+| Invalid guided category | 422 | Specific validation message |
+| Inference failure | 500 | `Detection model error` |
+| Unknown model | 404 | `Detection model not found` |
+| Exposed model not installed | 409 | Includes exact installer command |
+| Unknown inspection | 404 | `Inspection not found` |
+| Unknown sample | 404 | `Sample not found` |
+| Pinned sample unavailable/changed | 502 | Pinned-source retrieval/integrity message |
 
-Internal paths, stack traces, model paths, and original unsafe filenames are not
-returned. Filenames are sanitized before filesystem use.
+Internal paths, stack traces, model paths and unsafe original filenames are not returned.
