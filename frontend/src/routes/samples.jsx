@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ArrowRight, ExternalLink } from 'lucide-react';
 import ModelSelector from '../components/ModelSelector.jsx';
 import { useInspection } from '../hooks/useInspection.js';
 import * as api from '../utils/apiClient.js';
 import {
   groupSamplesByDomain,
-  inspectSample,
+  inspectShowcaseSample,
   recommendedModelFor,
 } from '../utils/samples.js';
 
@@ -96,7 +95,7 @@ function Samples() {
     setProductName(value);
   };
 
-  const inspectSampleFromCatalog = async (sample) => {
+  const inspectSample = async (sample) => {
     cancelSampleRequest();
     const controller = new AbortController();
     sampleRequestRef.current = controller;
@@ -105,7 +104,7 @@ function Samples() {
     const sampleProductName = sample.productName || productName;
     if (sample.productName) setProductName(sample.productName);
     try {
-      const record = await inspectSample({
+      const record = await inspectShowcaseSample({
         sample,
         selectedModelId,
         productName: sampleProductName,
@@ -131,10 +130,10 @@ function Samples() {
     <main className="qc-main">
       <div className="qc-pagehead">
         <div>
-          <h6 className="qc-kicker">Tracked demo corpus</h6>
+          <h6 className="qc-kicker">Curated inspection showcase</h6>
           <h1>Inspection samples</h1>
           <p className="text-muted qc-lede">
-            Twelve local VisA demo images are served directly from the repository. Model choice always stays explicit.
+            Checked Bayes-PFL product examples plus steel and concrete specialist cases. Model choice always stays explicit.
           </p>
         </div>
       </div>
@@ -150,9 +149,9 @@ function Samples() {
       />
 
       <div className="qc-sample-notice" role="note">
-        <strong>{catalog.notice || 'Source labels describe VisA dataset ground truth, not model predictions.'}</strong>
+        <strong>{catalog.notice || 'Source labels describe dataset metadata, not model predictions.'}</strong>
         <span>
-          Clicking a sample supplies its product/category context but keeps your current model selection, so the same source can be compared across models.
+          Clicking a sample supplies its product/category context but keeps your current model selection, so the same source can be compared across general and specialist models.
         </span>
       </div>
 
@@ -179,7 +178,7 @@ function Samples() {
                 const canInspect = Boolean(selectedModelId) && (
                   !selectedModel?.requiresProductName || Boolean(sample.productName || productName.trim())
                 );
-                const sourceReference = sample.sourcePath || sample.sourceFile || sample.sourceReference || sample.filename;
+                const sourceReference = sample.sourcePath || sample.sourceFile || sample.filename;
                 return (
                   <article className="card qc-sample-card" key={sample.id}>
                     <div className="qc-sample-image-wrap">
@@ -209,9 +208,9 @@ function Samples() {
                           type="button"
                           className="btn btn-primary"
                           disabled={busy || !canInspect}
-                          onClick={() => inspectSampleFromCatalog(sample)}
+                          onClick={() => inspectSample(sample)}
                         >
-                          {busy ? 'Inspecting…' : 'Inspect sample'} <ArrowRight size={15} />
+                          {busy ? 'Inspecting…' : 'Inspect sample'}
                         </button>
                         <button
                           type="button"
@@ -239,29 +238,6 @@ function Samples() {
               <article className="card" key={dataset.id}>
                 <h3>{dataset.name}</h3>
                 <p className="card-body">{dataset.attribution}</p>
-                {dataset.sourceRevision && <p className="qc-mono text-muted">Source revision: {dataset.sourceRevision}</p>}
-                <div className="qc-sample-links">
-                  {dataset.sourceUrl && (
-                    <a href={dataset.sourceUrl} target="_blank" rel="noreferrer">
-                      Dataset source <ExternalLink size={13} />
-                    </a>
-                  )}
-                  {dataset.mirrorUrl && (
-                    <a href={dataset.mirrorUrl} target="_blank" rel="noreferrer">
-                      Pinned mirror <ExternalLink size={13} />
-                    </a>
-                  )}
-                  {dataset.projectUrl && (
-                    <a href={dataset.projectUrl} target="_blank" rel="noreferrer">
-                      Project site <ExternalLink size={13} />
-                    </a>
-                  )}
-                  {dataset.license?.url && (
-                    <a href={dataset.license.url} target="_blank" rel="noreferrer">
-                      {dataset.license.name} <ExternalLink size={13} />
-                    </a>
-                  )}
-                </div>
               </article>
             ))}
           </div>
