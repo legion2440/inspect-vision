@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
-import os
 from pathlib import Path
 
 from backend.detection.product_context import ProductNameValidationError, normalize_product_name
@@ -219,13 +218,8 @@ def test_samples_endpoint_exposes_operator_showcase(api_factory) -> None:
     assert all(sample["imageUrl"].endswith("/image") for sample in body["samples"])
 
 
-def _require_network_samples() -> None:
-    if os.getenv("INSPECT_VISION_RUN_NETWORK_TESTS") != "1":
-        _CASES.pytest.skip("network-backed showcase check; set INSPECT_VISION_RUN_NETWORK_TESTS=1")
 
-
-def test_sample_image_is_served_by_current_catalog_id(api_factory) -> None:
-    _require_network_samples()
+def test_sample_image_is_served_from_local_demo_file(api_factory) -> None:
     client = api_factory()
     sample = client.get("/api/samples").json()["samples"][0]
     response = client.get(sample["imageUrl"])
@@ -236,7 +230,6 @@ def test_sample_image_is_served_by_current_catalog_id(api_factory) -> None:
 
 
 def test_verified_screw_good_image_matches_recorded_hash(api_factory) -> None:
-    _require_network_samples()
     client = api_factory()
     sample = next(
         item for item in client.get("/api/samples").json()["samples"]

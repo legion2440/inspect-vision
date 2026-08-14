@@ -1,7 +1,7 @@
 PYTHON ?= python
 NPM ?= npm
 
-.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service probe-api probe-bonuses validate-samples probe-samples status
+.PHONY: validate validate-architecture validate-frontend test architecture check-architecture probe-service probe-api probe-bonuses validate-samples status
 
 validate:
 	$(PYTHON) scripts/validate.py
@@ -36,9 +36,6 @@ probe-bonuses:
 
 validate-samples:
 	$(PYTHON) scripts/validate_demo_samples.py
-
-probe-samples:
-	$(PYTHON) scripts/probe_demo_samples.py
 
 status:
 	$(PYTHON) scripts/show_status.py

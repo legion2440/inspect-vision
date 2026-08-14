@@ -1,12 +1,12 @@
-"""Pinned operator showcase metadata.
+"""Metadata for the single local operator/demo sample corpus.
 
-This catalog is intentionally separate from backend/samples/demo: the VisA demo
-corpus is audit/runtime evidence, while these records are the operator-facing
-Samples page.
+The fourteen records below are both the /samples catalog and the repository demo
+images used for acceptance. Source revisions remain provenance only; runtime image
+delivery is local from backend/samples/demo.
 """
 
-MVTEC_REVISION = "e88b7bd615ad582b0a7e8238066a9fb293a072b4"
-SPECIALIST_ASSET_COMMIT = "f82fe4645ada00d5b01a16b9a05b2ea36795cce2"
+MVTEC_SOURCE_REVISION = "e88b7bd615ad582b0a7e8238066a9fb293a072b4"
+SPECIALIST_SOURCE_COMMIT = "f82fe4645ada00d5b01a16b9a05b2ea36795cce2"
 
 DATASETS = [
     {"id": "mvtec-ad", "name": "MVTec Anomaly Detection Dataset", "attribution": "MVTec Anomaly Detection Dataset (MVTec AD), CC BY-NC-SA 4.0."},
