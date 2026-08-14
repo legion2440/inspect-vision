@@ -39,21 +39,16 @@ Accepts one JPEG `frame` plus optional model/context, reuses the detection runti
 Returns the exposed registry: default `bayespfl-general-v1`, `neu-defect-yolov8`, and `concrete-crack-yolov8`. Uninstalled exposed entries remain visible with their installer command.
 
 ### `GET /api/samples`
-Returns the 14-item operator showcase defined by `backend/routes/sample_catalog.py`:
 
-- 8 MVTec AD Bayes-PFL cases: Bottle, Capsule, Screw and Metal nut, each with one good and one bad example;
-- 3 Steel Surface cases: good, inclusion, scratch;
-- 3 Concrete & Structural Cracks cases: transverse, longitudinal, diagonal.
+Returns `notice`, dataset attribution metadata, and the fourteen records from the single local operator/demo corpus. The catalog contains eight MVTec Bayes-PFL examples (Bottle, Capsule, Screw, and Metal nut good/bad pairs), three steel examples, and three concrete/crack examples.
 
-Each sample contains a stable catalog ID, dataset/domain metadata, `recommendedModelId`, product/category context, condition/source labels, media metadata and a same-origin `imageUrl`. Source labels are dataset metadata, never model predictions. Selecting a sample may set its category context but never switches the selected model automatically.
-
-The twelve VisA files under `backend/samples/demo/` are separate demo/evidence material and are not returned by `/api/samples`.
+Each sample includes its stable ID, product/category context, source labels, recommended model, filename/media type, and same-origin `imageUrl`. Source labels describe dataset metadata, not model predictions. Opening or inspecting a sample never changes the selected model automatically.
 
 ### `GET /api/samples/{id}/image`
-Resolves only a known catalog ID. The server derives the revision-pinned source; arbitrary client filesystem paths or remote URLs are never accepted. MVTec cases are revision-pinned and specialist cases are pinned to a historical repository commit. Recorded size/SHA metadata is verified where available. Unknown IDs return 404; source/integrity failures return 502. These image requests require network access; ordinary repository validation does not execute the byte-fetch checks.
 
-### History
-`GET /api/history` returns newest-first summaries with inclusive `from`/`to`, exact lowercase `type`, and case-insensitive `q` filters. `GET /api/history/{id}` returns full detail. `DELETE /api/history/{id}` removes metadata/media. `POST /api/history/clear` clears all owned records/media.
+Serves the matching committed file from `backend/samples/demo/`. Request input is only the known sample ID; filesystem paths and arbitrary URLs are never accepted. Unknown IDs return HTTP 404. The endpoint has no runtime network dependency.
+
+The same fourteen files are the repository demo images and directly satisfy the `at least 10 demo images` acceptance requirement.
 
 ### `GET /api/export`
 Uses the same history filters and returns UTF-8 CSV with `inspectionId,timestamp,defectCount,types,qualityScore,status`.

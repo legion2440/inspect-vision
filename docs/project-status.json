@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-08-13",
+  "recorded_at": "2026-08-14",
   "frontend_baseline_commit": "68614fd089db5b594cfdb3b750b818f6e008ebc7",
   "current_commit_command": "git rev-parse HEAD",
   "state": "runtime-cache-correction-pending-validation-and-qualification",
@@ -12,29 +12,23 @@
     "Bayes-PFL category input is normalized and validated before inference",
     "Dashboard, Inspect, live stream, and Samples share explicit model/category state without automatic model switching",
     "the operator Samples page contains the intended 14-item showcase: eight MVTec Bayes examples plus three steel and three concrete specialist examples",
-    "the twelve local VisA files in backend/samples/demo remain separate demo/evidence material and are not projected into the operator Samples page",
-    "ordinary API validation skips the two byte-fetch checks unless INSPECT_VISION_RUN_NETWORK_TESTS=1 is set",
     "the rejected legacy general YOLO no longer contributes classes to the visible registry or history filter",
     "the model installer provides manual artifact fallback details when downloads fail",
     "runtime auto device selection prefers CUDA, then Apple MPS, then CPU",
     "the retained production-service probe at source commit 5824fa1a647e1e05597f6750a2fd43e9d51e38aa qualified all three exposed models on PyTorch 2.12.1+cu126, CUDA 12.6, and NVIDIA GeForce RTX 4080 Laptop GPU; it is historical after the guided-runtime cache correction",
-    "historical runtime bundles remain bound to the source snapshots they actually executed"
+    "historical runtime bundles remain bound to the source snapshots they actually executed",
+    "the operator Samples page and the demo-image acceptance set are the same fourteen committed files: eight MVTec Bayes examples plus three steel and three concrete specialist examples"
   ],
   "known_limitations": [
     {
       "id": "repository-validation-pending",
       "area": "verification-evidence",
-      "detail": "The corrected guided-runtime cache and restored operator sample catalog require canonical validation on the current source."
+      "detail": "The current local sample/demo consolidation requires canonical repository validation on the current source."
     },
     {
       "id": "runtime-requalification-pending",
       "area": "verification-evidence",
       "detail": "Detection runtime source changed after the retained CUDA evidence. A fresh production-service probe is required before current runtime qualification can be claimed."
-    },
-    {
-      "id": "operator-showcase-network-source",
-      "area": "backend-api",
-      "detail": "Operator sample image bytes use revision-pinned network sources. Catalog/API structure is validated offline; byte-fetch integrity checks are opt-in."
     },
     {
       "id": "bayespfl-generic-native-output",

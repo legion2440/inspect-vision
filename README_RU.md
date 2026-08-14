@@ -57,37 +57,27 @@ Bayes-PFL остаётся основной general-моделью и модел
 
 AnomalyCLIP adapter сохранён как experimental backend slot, но ни одна текущая exposed-модель его не использует.
 
-## Samples и demo corpus
+## Samples / demo images
 
-В проекте два разных набора с разным назначением.
+В проекте **один** набор operator/demo images: 14 файлов в `backend/samples/demo/`. Эти же изображения отображаются на `/samples` и они же закрывают требование задания `at least 10 demo images`.
 
-### Operator Samples
-
-Страница `/samples` содержит **14 operator-facing примеров**:
-
-| Группа | Примеры | Suggested model |
+| Группа | Локальные примеры | Suggested model |
 | --- | --- | --- |
 | MVTec AD | Bottle good / broken large; Capsule good / crack; Screw good / manipulated front; Metal nut good / bent | Bayes-PFL |
 | Steel Surface | good, inclusion, scratch | Steel Surface |
 | Concrete & Structural Cracks | transverse, longitudinal, diagonal | Concrete specialist |
 
-Итого: **8 Bayes + 3 steel + 3 concrete**. Этот набор определяется `backend/routes/sample_catalog.py` и отдаётся через `/api/samples`.
+Итого: **8 Bayes + 3 steel + 3 concrete**. Каталог определяется `backend/routes/sample_catalog.py`, а `/api/samples/{id}/image` отдаёт соответствующий локальный файл. Runtime network для страницы Samples не нужен.
 
 Клик по sample подставляет product/category context, но не переключает выбранную модель автоматически. `Use suggested model` — отдельное явное действие. Инспекция sample идёт через обычный `/api/inspect` и сохраняется в history.
-
-### Local VisA demo/evidence corpus
-
-Отдельно в `backend/samples/demo/` находятся **12 локальных VisA изображений** с provenance/hash/annotation metadata. Они закрывают требование задания `at least 10 demo images` и используются для demo/evidence validation.
-
-Эти VisA-файлы **не являются содержимым `/samples`**.
 
 ## API
 
 | Метод | Путь | Назначение |
 | --- | --- | --- |
 | GET | `/api/models` | модели и capabilities |
-| GET | `/api/samples` | 14 operator showcase records |
-| GET | `/api/samples/{id}/image` | pinned sample image по catalog ID |
+| GET | `/api/samples` | 14 local operator/demo records |
+| GET | `/api/samples/{id}/image` | local demo image по catalog ID |
 | POST | `/api/inspect` | инспекция + persistence |
 | POST | `/api/stream` | live frame без persistence |
 | GET | `/api/history` | history + filters |
@@ -95,8 +85,6 @@ AnomalyCLIP adapter сохранён как experimental backend slot, но ни
 | DELETE | `/api/history/{id}` | удалить запись |
 | POST | `/api/history/clear` | очистить history |
 | GET | `/api/export` | filtered CSV |
-
-Operator sample image endpoints используют pinned network sources. Обычный canonical validation их не скачивает; два byte-level network checks запускаются только при `INSPECT_VISION_RUN_NETWORK_TESTS=1`.
 
 ## Проверка
 
@@ -109,6 +97,7 @@ python scripts/validate.py
 Отдельно:
 
 ```bash
+python scripts/validate_demo_samples.py
 python scripts/validate_architecture.py
 python -m pytest
 npm --prefix frontend test

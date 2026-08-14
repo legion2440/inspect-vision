@@ -18,7 +18,7 @@ flowchart LR
     Frontend -->|"HTTP multipart and JSON"| API["FastAPI"]
     API --> Detection["OpenCV and defect models"]
     API --> History["Inspection history"]
-    API --> Samples["Pinned operator showcase"]
+    API --> Samples["14 local operator/demo images"]
     Detection --> Media["Original and annotated images"]
     History --> Database["SQLite metadata"]
 ```
@@ -62,12 +62,7 @@ flowchart LR
   and do not load duplicate Bayes-PFL/CLIP services.
 - Stream inference does not persist records; upload inference persists metadata,
   original bytes, and annotated media through the storage service.
-- `backend/routes/sample_catalog.py` defines the operator Samples catalog: eight
-  MVTec Bayes-PFL good/bad examples plus three steel and three concrete specialist
-  examples. `/api/samples/{id}/image` derives only revision-pinned sources from
-  catalog IDs; arbitrary client URLs are never accepted.
-- The twelve VisA files under `backend/samples/demo/` are a separate audit/demo
-  evidence corpus and are never projected into the operator Samples page.
+- `backend/routes/sample_catalog.py` defines the fourteen-image operator/demo catalog: eight MVTec Bayes-PFL examples plus three steel and three concrete specialist examples. `/api/samples/{id}/image` serves those exact committed files from `backend/samples/demo/`; arbitrary client paths or URLs are never accepted. The operator catalog and the demo-image acceptance set are the same corpus.
 
 ### Defect detection
 
@@ -113,9 +108,7 @@ original BGR
 VisA is its auxiliary training domain and MVTec AD is the distinct held-out
 runtime qualification domain. That relationship is recorded as
 `held-out-cross-dataset-zero-shot`; it must not be inverted to
-`train_mvtec.pth` while MVTec remains the qualification domain. The separate
-tracked VisA demo corpus is audit/evidence material and is not Bayes-PFL
-qualification evidence or the operator showcase.
+`train_mvtec.pth` while MVTec remains the qualification domain. The local operator/demo corpus is not Bayes-PFL runtime qualification evidence.
 
 The Bayes adapter uses explicit product/category prompting, `518×518` CLIP
 preprocessing, Gaussian sigma `8`, fixed application threshold `0.72`, minimum
@@ -165,9 +158,7 @@ unchanged.
   requalification is pending.
 - New current runtime results are recorded only after the integrated source is
   executed through `DetectionRuntimeManager -> DetectionService`.
-- The VisA demo corpus remains a separate local evidence set. Operator showcase
-  byte checks that require pinned remote sources are opt-in network checks and do
-  not make ordinary repository validation network-dependent.
+- The fourteen operator/demo images are local committed files and require no runtime network access. Runtime model qualification remains a separate verification workflow.
 
 ## Boundary rules
 

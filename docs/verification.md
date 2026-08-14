@@ -27,9 +27,8 @@ Statuses describe committed implementation and retained runtime records. `PASS` 
 | Boxes/types/confidence | PASS | Native types, finite confidence, positive bounded original-coordinate boxes and geometry ownership are enforced; no scientific benchmark claim is made |
 | Annotated backend image | PASS | DetectionService annotates original-size pixels and API stores/returns original + annotated media |
 | Persisted timestamped records | PASS | SQLite metadata, relative media paths, detail hydration, deletion and cleanup implemented |
-| At least 10 demo images | PASS | Twelve attributed, hash-bound VisA images remain tracked under `backend/samples/demo/`; `python scripts/validate_demo_samples.py` |
+| At least 10 demo images | PASS | The same fourteen local files shown on `/samples` are committed in `backend/samples/demo/`; the set includes clean and defective cases across Bayes, steel, and concrete examples | `python scripts/validate_demo_samples.py`; API/frontend tests |
 | Operator Samples catalog | PASS | `/api/samples` exposes the intended 14-item catalog: 8 MVTec Bayes + 3 steel + 3 concrete. API/frontend tests assert its composition. VisA demo/evidence images are not returned by this endpoint |
-| Operator sample byte retrieval | PARTIAL | Sources are revision/commit pinned and recorded hashes are checked where available; two real network-byte checks are opt-in with `INSPECT_VISION_RUN_NETWORK_TESTS=1` |
 | Model artifact installation | PASS | Model artifacts are pinned by source, size and SHA-256 with manual fallback instructions |
 | Code quality/separation | PARTIAL | Module boundaries and validators are implemented; current restored sample/catalog source still needs canonical validation |
 | Quality-score bonus | PASS | Backend-authoritative 0-100 quality score returned/persisted |
@@ -37,4 +36,3 @@ Statuses describe committed implementation and retained runtime records. `PASS` 
 
 The retained runtime bundle belongs to source commit `5824fa1a647e1e05597f6750a2fd43e9d51e38aa` and records CUDA on an NVIDIA GeForce RTX 4080 Laptop GPU. It remains historical until a fresh production-service probe qualifies the current detector-bound source.
 
-The operator Samples catalog and the twelve-image VisA demo/evidence corpus are intentionally separate. Ordinary canonical validation checks the catalog/API shape without network access; byte-fetch checks run only when explicitly enabled.

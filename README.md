@@ -264,26 +264,25 @@ The server normalizes category input to lowercase, accepts `_` as a backwards-co
 
 ## 🖼️ Samples
 
-The operator Samples page contains 14 attributed examples:
+The Samples page uses the same fourteen images committed in `backend/samples/demo/`. They are both the operator sample catalog and the project demo-image set used for acceptance; there is no second demo corpus.
 
-| Group | Samples | Suggested model |
+| Group | Local samples | Suggested model |
 | --- | --- | --- |
 | MVTec AD | Bottle good / broken large; Capsule good / crack; Screw good / manipulated front; Metal nut good / bent | Bayes-PFL general |
 | Steel Surface | good surface, inclusion, scratch | Steel Surface specialist |
 | Concrete & Structural Cracks | transverse, longitudinal, and diagonal crack examples | Concrete specialist |
 
-The eight Bayes-PFL examples are pinned to one MVTec AD mirror revision. The three steel and three concrete examples are pinned to a historical repository source revision with their dataset attribution retained.
-
-The separate `backend/samples/demo/` directory contains twelve tracked VisA images used for demo/evidence validation. Those files satisfy the repository's `at least 10 demo images` requirement but are not the operator Samples catalog.
+The eight MVTec files preserve the previously pinned MMAD revision sources. The six specialist files preserve the previously pinned project-source bytes and dataset attribution. Runtime delivery is entirely local through `/api/samples/{id}/image`.
 
 Important UI behavior:
 
 - clicking a sample supplies that sample's product/category context;
 - clicking a sample **does not change the selected model**;
-- `Use suggested model` is the explicit action that switches to the sample's specialist/general recommendation;
-- source labels describe dataset metadata and are never presented as model predictions.
+- `Use suggested model` is the explicit action that switches the model;
+- source labels describe dataset metadata and are never presented as model predictions;
+- inspecting a sample performs fresh inference through the ordinary `/api/inspect` path and stores the result in normal history.
 
-This allows the same source to be inspected first with Bayes-PFL and then with a matching specialist without hiding the model choice.
+These fourteen files directly satisfy the assignment requirement for at least ten demo images, including clean and defective examples.
 
 ## 🔄 Inspection flow
 
@@ -306,8 +305,8 @@ The pinned Bayes-PFL source files stay byte-exact. Device-specific upstream allo
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/models` | list selectable models, curated guided categories, and installed/default state |
-| `GET` | `/api/samples` | list the attributed 14-item operator showcase |
-| `GET` | `/api/samples/{id}/image` | serve one pinned showcase image by catalog ID |
+| `GET` | `/api/samples` | list the fourteen local operator/demo samples |
+| `GET` | `/api/samples/{id}/image` | serve one local demo image by catalog ID |
 | `POST` | `/api/inspect` | inspect and persist an image |
 | `POST` | `/api/stream` | inspect one JPEG frame without persistence |
 | `GET` | `/api/history` | list/filter inspections |
@@ -356,11 +355,6 @@ npm --prefix frontend test
 npm --prefix frontend run build
 ```
 
-The two tests that fetch pinned showcase bytes are opt-in so ordinary validation remains offline-stable:
-
-```bash
-INSPECT_VISION_RUN_NETWORK_TESTS=1 python -m pytest tests/integration/api/test_inspection_api.py -k 'sample_image or verified_screw'
-```
 
 Real-model qualification is separate from static/unit checks:
 
@@ -388,7 +382,7 @@ inspect-vision/
 │   ├── detection/       detector adapters, selection metadata, prompt validation
 │   ├── models/          model manifest and ignored local model artifacts
 │   ├── routes/          FastAPI boundaries and operator sample catalog
-│   ├── samples/         local VisA demo/evidence corpus and provenance
+│   ├── samples/         fourteen local operator/demo images and source metadata
 │   └── storage/         SQLite and media lifecycle
 ├── frontend/
 │   ├── src/             React routes, components, context, API client and styles
@@ -407,7 +401,7 @@ inspect-vision/
 - Bayes-PFL is an anomaly localizer, not a semantic defect classifier.
 - The specialists are intentionally narrow; their semantic advantage applies inside their trained domains.
 - Model weights are ignored by Git and installed separately.
-- The operator showcase image endpoints use pinned network sources; ordinary repository validation does not fetch them.
+- The fourteen operator/demo images are committed locally and require no runtime network access.
 - Sample source labels are dataset metadata, not cached or fabricated model output.
 - The default frontend path uses the real backend.
 - Historical runtime evidence is not modified to claim execution by newer source.
